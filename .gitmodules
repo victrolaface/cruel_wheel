@@ -5,6 +5,3 @@
 [submodule "lib/entt"]
 	path = lib/entt
 	url = git@github.com:skypjack/entt.git
-[submodule "lib/godot"]
-	path = lib/godot
-	url = https://github.com/godotengine/godot.git
