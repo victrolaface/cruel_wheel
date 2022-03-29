@@ -1,0 +1,15 @@
+{
+    "fileOptions": {
+        "systemExcludeSearchPatterns": [
+            "**/node_modules/**/*",
+            "**/bin/**/*",
+            "**/obj/**/*"
+        ],
+        "excludeSearchPatterns": [
+            ".vscode",
+            "assets",
+            "bin",
+            "lib"
+        ]
+    }
+}

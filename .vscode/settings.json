@@ -1,0 +1,14 @@
+{
+    "files.exclude": {
+        "assets": true,
+        "bin": true,
+        "lib": true
+    },
+    "search.exclude": {
+        "assets": true,
+        "bin": true,
+        "lib": true
+    },
+    // Turn off tsc task auto detection since we have the necessary tasks as npm scripts
+    "typescript.tsc.autoDetect": "off"
+}
