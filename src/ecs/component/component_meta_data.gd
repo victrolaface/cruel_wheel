@@ -1,18 +1,31 @@
 extends Resource
+class_name ComponentMetaData
+
+enum BaseComponentSignalType { ENABLE, DISABLE, DESTROY, INITIALIZE }
 
 export(int) var id
-export(int) var parent_id
-export(bool) var initialized_id
+export(bool) var is_local
+export(bool) var has_id
 export(bool) var initialized
-export(bool) var connected
-export(bool) var connected_parent
-export(bool) var active
+export(bool) var enabled
+export(bool) var destroyed
+export(bool) var enable_connected
+export(bool) var disable_connected
+export(bool) var destroy_connected
+export(bool) var initialize_connected
+export(BaseComponentSignalType) var signal_types 
 
-func _init(_id = null, _parent_id = null, _initialized_id = false, _initialized = false, _connected = false, _connected_parent = false, _active = false):
+func _init(_id = null, _is_local = true, _has_id = false, _initialized = false, _enabled = false, 
+    _destroyed = false, _enable_connected = false, _disable_connected = false, 
+    _destroy_connected = false, _initialize_connected = false):
     id = _id
-    parent_id = parent_id
-    initialized_id = _initialized_id
+    is_local = _is_local
+    has_id = _has_id
     initialized = _initialized
-    connected = _connected
-    connected_parent = _connected_parent
-    active = _active
+    enabled = _enabled
+    destroyed = _destroyed
+    enable_connected = _enable_connected
+    disable_connected = _disable_connected
+    destroy_connected = _destroy_connected
+    initialize_connected = _initialize_connected
+    
