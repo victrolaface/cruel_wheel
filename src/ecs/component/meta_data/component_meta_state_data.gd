@@ -13,13 +13,3 @@ func _init():
 	destroyed = false
 	parented = false
 	initialized = false
-
-
-func initialize(
-	_local = true, _enable = false, _destroy = false, _parent = false, _initialized = false
-):
-	resource_local_to_scene = _local
-	enabled = _enable
-	destroyed = _destroy
-	parented = _parent
-	initialized = _initialized

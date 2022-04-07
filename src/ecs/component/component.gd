@@ -10,21 +10,96 @@ signal initialized(name, id)
 
 export(String) var name setget set_name, get_name
 export(int) var id setget set_id, get_id
+export(bool) var is_local setget set_is_local, get_is_local
 
 var meta: ComponentMetaData = null
 
 
+# virtual methods
+func _init():
+	meta = ComponentMetaData.new()
+	resource_local_to_scene = true
+
+
+# public methods
+func initialize(_is_local: bool):
+	resource_local_to_scene = _is_local
+	meta.is_local = resource_local_to_scene
+	if meta.name != "" && meta.id != 0:
+		var emit_parented = false
+		var connecting = true
+		while connecting:
+			meta.connected.parented = _connect(
+				meta.connected.parented, "parented", "_parent", CONNECT_ONESHOT
+			)
+			emit_parented = meta.connected.parented
+			connecting = emit_parented
+			meta.connected.disabled = _connect(
+				meta.connected.disabled, "disabled", "_disable", CONNECT_DEFERRED
+			)
+			emit_parented = meta.connected.disabled
+			connecting = emit_parented
+			meta.connected.enabled = _connect(
+				meta.connected.enabled, "enabled", "_enable", CONNECT_DEFERRED
+			)
+			emit_parented = meta.connected.enabled
+			connecting = emit_parented
+			meta.connected.destroyed = _connect(
+				meta.connected.destroyed, "destroyed", "_on_destroy", CONNECT_ONESHOT
+			)
+			emit_parented = meta.connected.destroyed
+			connecting = emit_parented
+			meta.connected.initialized = _connect(
+				meta.connected.initialized, "initialized", "_on_init", CONNECT_ONESHOT
+			)
+			emit_parented = meta.connected.initialized
+			connecting = not connecting
+		if emit_parented:
+			emit_signal("parented", meta.name, meta.id)
+
+
+func destroy():
+	if meta.state.enabled:
+		emit_signal("disabled", meta.name, meta.id)
+	emit_signal("destroyed", meta.name, meta.id)
+
+
+# helper methods
+func _connect(_connected: bool, _signal: String, _method: String, _flag: int):
+	if not _connected:
+		if not is_connected(_signal, self, _method):
+			_connected = connect(_signal, self, _method, [], _flag)
+	return _connected
+
+
+# signal functions
+func _parent():
+	meta.state.parented = true
+	meta.connected.parented = not meta.state.parented
+
+
+func _enable():
+	meta.state.enabled = true
+
+
+func _disable():
+	meta.state.enabled = false
+
+
+func _on_destroy():
+	meta.state.destroyed = true
+	meta.connected.destroyed = not meta.state.destroyed
+
+
+func _on_init():
+	meta.state.initialized = true
+	meta.connected.initialized = not meta.state.initialized
+	emit_signal(meta.name, meta.id)
+
+
+# setters, getters functions
 func set_name(_name: String):
-	if _valid_name(_name) && not _valid_name(meta.name):
-		meta.name = _name
-
-
-func _valid_name(_name: String):
-	return _name != "" && _name != null
-
-
-func _valid_id(_id: int):
-	return _id != 0 && _id != null
+	pass
 
 
 func get_name():
@@ -32,89 +107,16 @@ func get_name():
 
 
 func set_id(_id: int):
-	if _valid_id(_id) && not _valid_id(meta.id):
-		meta.id = _id
+	pass
 
 
 func get_id():
 	return meta.id
 
 
-func _init():
-	name = null
-	id = null
-	meta = ComponentMetaData.new()
-	resource_local_to_scene = true
+func set_is_local(_is_local: bool):
+	pass
 
 
-func initialize(_name: String, _id: int, _parent_init: bool, _is_local: bool):
-	resource_local_to_scene = _is_local
-	set_name(_name)
-	set_id(_id)
-	if _valid_name(name) && _valid_id(id):
-		meta.initialize(name, id, _is_local)
-		var emit_parented = false
-		var connecting = true
-		while connecting:
-			meta.connected.parented = _connected("parented", "_parent", CONNECT_ONESHOT)
-			emit_parented = meta.connected.parented
-			connecting = emit_parented
-			meta.connected.disabled = _connected("disabled", "_disable", CONNECT_DEFERRED)
-			emit_parented = meta.connected.disabled
-			connecting = emit_parented
-			meta.connected.enabled = _connected("enabled", "_enable", CONNECT_DEFERRED)
-			emit_parented = meta.connected.enabled
-			connecting = emit_parented
-			meta.connected.destroyed = _connected("destroyed", "_on_destroy", CONNECT_ONESHOT)
-			emit_parented = meta.connected.destroyed
-			connecting = emit_parented
-			meta.connected.initialized = _connected("initialized", "_on_init", CONNECT_ONESHOT)
-			emit_parented = meta.connected.initialized
-			connecting = emit_parented
-			connecting = not connecting
-		if emit_parented:
-			emit_signal("parented", meta.name, meta.id)
-
-
-func _connected(_signal: String, _method: String, _flag: int):
-	var _connected = false
-	if not is_connected(_signal, self, _method):
-		_connected = connect(_signal, self, _method, [], _flag)
-	return _connected
-
-
-func destroy():
-	if meta.connected.destroyed:
-		if meta.state.enabled:
-			emit_signal("disabled", meta.name, meta.id)
-		if not meta.state.enabled:
-			emit_signal("destroyed", meta.name, meta.id)
-
-
-func _parent():
-	if meta.connected.parented && not meta.state.parented:
-		meta.state.parented = meta.connected.parented
-		meta.connected.parented = not meta.state.parented
-
-
-func _enable():
-	if meta.connected.enabled && not meta.state.enabled:
-		meta.state.enabled = meta.connected.enabled
-
-
-func _disable():
-	if meta.connected.disabled && meta.state.enabled:
-		meta.state.enabled = not meta.state.enabled
-
-
-func _on_destroy():
-	if meta.connected.destroyed && not meta.state.destroyed:
-		meta.state.destroyed = meta.connected.destroyed
-		meta.connected.destroyed = not meta.state.destroyed
-
-
-func _on_init():
-	if meta.connected.initialized && not meta.state.initialized:
-		meta.state.initialized = meta.connected.initialized
-		meta.connected.initialized = not meta.state.initialized
-		emit_signal(meta.name, meta.id)
+func get_is_local():
+	return meta.is_local

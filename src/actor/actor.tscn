@@ -1,4 +1,4 @@
-[gd_scene load_steps=7 format=2]
+[gd_scene load_steps=6 format=2]
 
 [ext_resource path="res://src/ecs/component/component_manager.gd" type="Script" id=1]
 [ext_resource path="res://addons/godot-next/resources/resource_collections/resource_set.gd" type="Script" id=2]
@@ -8,9 +8,8 @@
 resource_name = "[ Set ]"
 script = ExtResource( 2 )
 
-[sub_resource type="PhysicsMaterial" id=2]
-
-[sub_resource type="CapsuleShape2D" id=3]
+[sub_resource type="RectangleShape2D" id=2]
+extents = Vector2( 26, 28 )
 
 [node name="ComponentManager" type="Node"]
 script = ExtResource( 1 )
@@ -18,10 +17,13 @@ id = null
 _elements = SubResource( 1 )
 
 [node name="RigidBody2D" type="RigidBody2D" parent="."]
-physics_material_override = SubResource( 2 )
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="RigidBody2D"]
-shape = SubResource( 3 )
 
 [node name="Sprite" type="Sprite" parent="RigidBody2D"]
 texture = ExtResource( 3 )
+__meta__ = {
+"_edit_lock_": true
+}
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="RigidBody2D"]
+position = Vector2( 0, 2 )
+shape = SubResource( 2 )
