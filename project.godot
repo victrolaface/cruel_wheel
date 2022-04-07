@@ -14,15 +14,10 @@ _global_script_classes=[ {
 "language": "GDScript",
 "path": "res://addons/godot-next/references/array_2d.gd"
 }, {
-"base": "Resource",
+"base": "Reference",
 "class": "ArrayMap",
 "language": "GDScript",
 "path": "res://addons/godot-next/resources/array_map.gd"
-}, {
-"base": "Resource",
-"class": "BaseComponent",
-"language": "GDScript",
-"path": "res://src/ecs/component/base_component.gd"
 }, {
 "base": "Resource",
 "class": "Behavior",
@@ -55,9 +50,29 @@ _global_script_classes=[ {
 "path": "res://addons/godot-next/references/class_type.gd"
 }, {
 "base": "Resource",
+"class": "Component",
+"language": "GDScript",
+"path": "res://src/ecs/component/component.gd"
+}, {
+"base": "CallbackDelegator",
+"class": "ComponentManager",
+"language": "GDScript",
+"path": "res://src/ecs/component/component_manager.gd"
+}, {
+"base": "Resource",
+"class": "ComponentMetaConnectionsData",
+"language": "GDScript",
+"path": "res://src/ecs/component/meta_data/component_meta_connections_data.gd"
+}, {
+"base": "Resource",
 "class": "ComponentMetaData",
 "language": "GDScript",
-"path": "res://src/ecs/component/component_meta_data.gd"
+"path": "res://src/ecs/component/meta_data/component_meta_data.gd"
+}, {
+"base": "Resource",
+"class": "ComponentMetaStateData",
+"language": "GDScript",
+"path": "res://src/ecs/component/meta_data/component_meta_state_data.gd"
 }, {
 "base": "TabContainer",
 "class": "Cycle",
@@ -69,7 +84,7 @@ _global_script_classes=[ {
 "language": "GDScript",
 "path": "res://addons/godot-next/gui/debug_label.gd"
 }, {
-"base": "ImageTexture",
+"base": "Reference",
 "class": "DiscreteGradientTexture",
 "language": "GDScript",
 "path": "res://addons/godot-next/resources/discrete_gradient_texture.gd"
@@ -78,6 +93,16 @@ _global_script_classes=[ {
 "class": "EditorTools",
 "language": "GDScript",
 "path": "res://addons/godot-next/global/editor_tools.gd"
+}, {
+"base": "Node2D",
+"class": "Entity2d",
+"language": "GDScript",
+"path": "res://src/ecs/entity/entity2d.gd"
+}, {
+"base": "MessageDispatcher",
+"class": "EntityManager",
+"language": "GDScript",
+"path": "res://src/ecs/entity/entity_manager.gd"
 }, {
 "base": "Reference",
 "class": "FileSearch",
@@ -89,7 +114,7 @@ _global_script_classes=[ {
 "language": "GDScript",
 "path": "res://addons/godot-next/global/file_system_link.gd"
 }, {
-"base": "CollisionShape2D",
+"base": "Reference",
 "class": "Geometry2D",
 "language": "GDScript",
 "path": "res://addons/godot-next/2d/geometry_2d.gd"
@@ -124,7 +149,7 @@ _global_script_classes=[ {
 "language": "GDScript",
 "path": "res://addons/godot-next/nodes/message_dispatcher_wrapper.gd"
 }, {
-"base": "Resource",
+"base": "Reference",
 "class": "PhysicsLayers",
 "language": "GDScript",
 "path": "res://addons/godot-next/global/physics_layers.gd"
@@ -159,17 +184,27 @@ _global_script_classes=[ {
 "language": "GDScript",
 "path": "res://addons/godot-next/resources/resource_collections/resource_set.gd"
 }, {
+"base": "Component",
+"class": "RigidBody2dComponent",
+"language": "GDScript",
+"path": "res://src/ecs/component/collision/rigid_body_2d_component.gd"
+}, {
+"base": "Singletons",
+"class": "SingletonManagerStorage",
+"language": "GDScript",
+"path": "res://src/singleton/singleton_manager_storage.gd"
+}, {
 "base": "Reference",
 "class": "Singletons",
 "language": "GDScript",
 "path": "res://addons/godot-next/global/singletons.gd"
 }, {
-"base": "Line2D",
+"base": "Reference",
 "class": "Trail2D",
 "language": "GDScript",
 "path": "res://addons/godot-next/2d/trail_2d.gd"
 }, {
-"base": "ImmediateGeometry",
+"base": "Reference",
 "class": "Trail3D",
 "language": "GDScript",
 "path": "res://addons/godot-next/3d/trail_3d.gd"
@@ -194,22 +229,22 @@ _global_script_classes=[ {
 "language": "GDScript",
 "path": "res://addons/godot-next/global/variant.gd"
 }, {
-"base": "Resource",
+"base": "Reference",
 "class": "Vec2",
 "language": "GDScript",
 "path": "res://addons/godot-next/2d/vec2.gd"
 }, {
-"base": "Resource",
+"base": "Reference",
 "class": "Vec3",
 "language": "GDScript",
 "path": "res://addons/godot-next/3d/vec3.gd"
 }, {
-"base": "Node",
+"base": "Reference",
 "class": "VectorDisplay2D",
 "language": "GDScript",
 "path": "res://addons/godot-next/2d/vector_display_2d.gd"
 }, {
-"base": "Node",
+"base": "Reference",
 "class": "VectorDisplay3D",
 "language": "GDScript",
 "path": "res://addons/godot-next/3d/vector_display_3d.gd"
@@ -217,21 +252,26 @@ _global_script_classes=[ {
 _global_script_class_icons={
 "Array2D": "",
 "ArrayMap": "",
-"BaseComponent": "",
 "Behavior": "",
 "BitFlag": "",
 "Bitset": "",
 "CSVFile": "",
 "CallbackDelegator": "",
 "ClassType": "",
+"Component": "",
+"ComponentManager": "",
+"ComponentMetaConnectionsData": "",
 "ComponentMetaData": "",
+"ComponentMetaStateData": "",
 "Cycle": "res://addons/godot-next/icons/icon_cycle.svg",
 "DebugLabel": "",
 "DiscreteGradientTexture": "",
 "EditorTools": "",
+"Entity2d": "",
+"EntityManager": "",
 "FileSearch": "",
 "FileSystemLink": "",
-"Geometry2D": "res://addons/godot-next/icons/icon_geometry_2d.svg",
+"Geometry2D": "",
 "Icons": "",
 "Inflector": "",
 "InspectorControls": "",
@@ -245,9 +285,11 @@ _global_script_class_icons={
 "ResourceArray": "",
 "ResourceCollection": "",
 "ResourceSet": "",
+"RigidBody2dComponent": "",
+"SingletonManagerStorage": "",
 "Singletons": "",
-"Trail2D": "res://addons/godot-next/icons/icon_trail_2d.svg",
-"Trail3D": "res://addons/godot-next/icons/icon_trail_3d.svg",
+"Trail2D": "",
+"Trail3D": "",
 "TweenSequence": "",
 "Tweener": "",
 "VBoxItemList": "res://addons/godot-next/icons/icon_v_box_item_list.svg",
@@ -261,7 +303,12 @@ _global_script_class_icons={
 [application]
 
 config/name="Cruel Wheel"
+run/main_scene="res://src/main.tscn"
 config/icon="res://icon.png"
+
+[autoload]
+
+SingletonManager="*res://src/singleton/singleton_manager.gd"
 
 [display]
 

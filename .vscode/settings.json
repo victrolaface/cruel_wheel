@@ -1,7 +1,6 @@
 {
     "files.exclude": {
         "assets": true,
-        "addons": true,
         "bin": true,
         "lib": true,
         ".mono": true,
@@ -9,7 +8,6 @@
     },
     "search.exclude": {
         "assets": true,
-        "addons": true,
         "bin": true,
         "lib": true,
         ".mono": true,
