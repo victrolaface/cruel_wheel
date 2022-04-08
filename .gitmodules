@@ -1,3 +1,6 @@
 [submodule "lib/godot-next"]
 	path = lib/godot-next
 	url = https://github.com/godot-extended-libraries/godot-next.git
+[submodule "lib/Godot-Text-Database"]
+	path = lib/Godot-Text-Database
+	url = git@github.com:KoBeWi/Godot-Text-Database.git

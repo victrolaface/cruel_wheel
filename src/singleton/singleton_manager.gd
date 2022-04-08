@@ -5,8 +5,6 @@ signal initialized(id)
 signal enabled(id)
 signal disabled(id)
 
-const SINGLETON_MANAGER_PATH = "res://src/singleton_manager.gd"
-
 var id = null
 var has_id = false
 var is_enabled = false
@@ -15,7 +13,12 @@ var init_connected = false
 var enabled_connected = false
 var disabled_connected = false
 
-var storage = preload("res://src/singleton/singleton_manager_storage.gd")
+const _PRE = "res://src/singleton/singleton_manager"
+const _EXT = ".gd"
+const _STORAGE_PATH = _PRE + "_storage" + _EXT
+const _MGR_PATH = _PRE + _EXT
+
+var storage = preload(_STORAGE_PATH)
 
 
 func _init():
@@ -31,7 +34,7 @@ func _init():
 			if not init_connected:
 				init_connected = _connected(init_connected, "initialized", "_initialize", true)
 			if is_enabled && disabled_connected && init_connected:
-				if storage.pushed("SingletonManager", SINGLETON_MANAGER_PATH, self):
+				if storage.pushed("SingletonManager", _MGR_PATH, self):
 					emit_signal("initialized", id)
 	else:
 		if not is_enabled:

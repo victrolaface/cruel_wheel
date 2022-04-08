@@ -4,11 +4,15 @@ extends Component
 class_name RigidBody2dComponent
 
 signal received_collider(name, id)
-signal body_entered(name, id)
-signal body_exited(name, id)
-signal body_shape_entered(name, id)
-signal body_shape_exited(name, id)
+signal body_entered(name, id, body)
+signal body_exited(name, id, body)
+signal body_shape_entered(name, id, body_rid, body, body_shape_index, local_shape_index)
+signal body_shape_exited(name, id, body_rid, body, body_shape_index, local_shape_index)
 signal sleeping_state_changed(name, id)
+signal rigid_body_changed(name, id)
+signal rigid_body_predelete(name, id)
+signal collision_body_2d_changed(name, id)
+signal collision_body_2d_predelete(name, id)
 
 export(bool) var is_initialized setget set_is_initialized, get_is_initialized
 export(bool) var has_collider setget set_has_collider, get_has_collider
@@ -44,27 +48,34 @@ export(Vector2) var linear_velocity setget set_linear_velocity, get_linear_veloc
 var rigid_body: RigidBody2D setget set_rigid_body, get_rigid_body
 var collider: CollisionShape2D setget set_collider, get_collider
 
-const _MODES = {"RIGID": 0, "STATIC": 1, "CHARACTER": 2, "KINEMATIC": 3}
-const _CCD_MODES = {"DISABLED": 0, "CAST_RAY": 1, "CAST_SHAPE": 2}
-const COMPONENT_NAME = "RigidBody2d"
+var data = preload("rigid_body_2d_component_data.gd")
 
-var connected = {
-	"received_collider": false,
-	"body_entered": false,
-	"body_exited": false,
-	"body_shape_entered": false,
-	"body_shape_exited": false,
-	"sleeping_state_changed": false
-}
+#var entered_body: Node setget set_entered_body, get_entered_body
+#var entered_bodies_by_id: Dictionary setget set_entered_bodies_by_id, get_entered_bodies_by_id
 
-var state = {
-	"has_collider": false,
-	"body_entered": false,
-	"body_exited": false,
-	"body_shape_entered": false,
-	"body_shape_exited": false,
-	"sleeping_state_changed": false
-}
+#func set_entered_body(_body: Node):
+#	pass
+
+#func get_entered_body():
+#	return entered_body
+#func set_entered_bodies_by_id
+
+#const _MODES = {"RIGID": 0, "STATIC": 1, "CHARACTER": 2, "KINEMATIC": 3}
+#const _CCD_MODES = {"DISABLED": 0, "CAST_RAY": 1, "CAST_SHAPE": 2}
+#const COMPONENT_NAME = "RigidBody2d"
+
+#var connected = {
+#	"received_collider": false,
+#	"body_entered": false,
+#	"body_exited": false,
+#	"body_shape_entered": false,
+#	"body_shape_exited": false,
+#	"sleeping_state_changed": false
+#}
+
+#var state = {
+#	"has_collider": false, "body_entered": false, "body_shape_entered": false, "sleeping": false
+#}
 
 
 # virtual methods
@@ -88,13 +99,25 @@ func _on_received_collider():
 	connected.received_collider = not state.has_collider
 
 
-"""
-_on_body_entered
-_on_body_exited
-_on_body_shape_entered
-_on_body_shape_exited
-_on_sleeping_state_changed
-"""
+func _on_body_entered(_body: Node):
+	#entered_body = _body
+	state.body_entered = true
+
+
+func _on_body_exited(_body: Node):
+	state.body_entered = false
+
+
+func _on_body_shape_entered():
+	state.body_shape_entered = true
+
+
+func _on_body_shape_exited():
+	state.body_shape_entered = false
+
+
+func _on_sleeping_state_changed():
+	state.sleeping = not state.sleeping
 
 
 # setters, getters
@@ -122,6 +145,9 @@ func get_collider():
 	return collider
 
 
+#onready var rigid_body_ref;# = $Child
+
+
 func set_rigid_body(_rigid_body: RigidBody2D):
 	rigid_body = _rigid_body
 	var has_col = false
@@ -139,26 +165,35 @@ func set_rigid_body(_rigid_body: RigidBody2D):
 			)
 			emit_init = connected.received_collider
 			connecting = emit_init
-			connected.body_entered = _on_connect(
-				connected.body_entered, "body_entered", "_on_body_entered", true
-			)
-			emit_init = connected.body_entered
-			connecting = emit_init
-			connected.body_exited = _on_connect(
-				connected.body_exited, "body_exited", "_on_body_exited", true
-			)
-			emit_init = connected.body_exited
-			connecting = emit_init
-			connected.body_shape_entered = _on_connect(
-				connected.body_shape_entered, "body_shape_entered", "_on_body_shape_entered", true
-			)
-			emit_init = connected.body_shape_entered
-			connecting = emit_init
-			connected.body_shape_exited = _on_connect(
-				connected.body_shape_exited, "body_shape_exited", "_on_body_shape_exited", true
-			)
-			emit_init = connected.body_shape_exited
-			connecting = emit_init
+			if rigid_body.contact_monitor:
+				connected.body_entered = _on_connect(
+					connected.body_entered, "body_entered", "_on_body_entered", true, [Node.new()]
+				)
+				emit_init = connected.body_entered
+				connecting = emit_init
+				connected.body_exited = _on_connect(
+					connected.body_exited, "body_exited", "_on_body_exited", true, [Node.new()]
+				)
+				emit_init = connected.body_exited
+				connecting = emit_init
+				connected.body_shape_entered = _on_connect(
+					connected.body_shape_entered,
+					"body_shape_entered",
+					"_on_body_shape_entered",
+					true,
+					[null, Node.new(), 0, 0]
+				)
+				emit_init = connected.body_shape_entered
+				connecting = emit_init
+				connected.body_shape_exited = _on_connect(
+					connected.body_shape_exited,
+					"body_shape_exited",
+					"_on_body_shape_exited",
+					true,
+					[null, Node.new(), 0, 0]
+				)
+				emit_init = connected.body_shape_exited
+				connecting = emit_init
 			connected.sleeping_state_changed = _on_connect(
 				connected.sleeping_state_changed,
 				"sleeping_state_changed",
@@ -174,7 +209,9 @@ func set_rigid_body(_rigid_body: RigidBody2D):
 
 
 # helper methods
-func _on_connect(_connect: bool, _signal: String, _method: String, _is_rigid_body = false):
+func _on_connect(
+	_connect: bool, _signal: String, _method: String, _is_rigid_body = false, _args = []
+):
 	if not _connect:
 		if _is_rigid_body:
 			_connect = is_connected(_signal, rigid_body, _method)
@@ -182,9 +219,9 @@ func _on_connect(_connect: bool, _signal: String, _method: String, _is_rigid_bod
 			_connect = is_connected(_signal, self, _method)
 		if not _connect:
 			if _is_rigid_body:
-				_connect = connect(_signal, rigid_body, _method, [], CONNECT_DEFERRED)
+				_connect = connect(_signal, rigid_body, _method, _args, CONNECT_DEFERRED)
 			else:
-				_connect = connect(_signal, self, _method, [], CONNECT_ONESHOT)
+				_connect = connect(_signal, self, _method, _args, CONNECT_ONESHOT)
 	return _connect
 
 
@@ -209,7 +246,8 @@ func get_contact_monitor():
 
 
 func set_sleeping(_sleeping: bool):
-	rigid_body.sleeping = _sleeping
+	if _sleeping != rigid_body.sleeping:
+		emit_signal("sleeping_state_changed", meta.name, meta.id)
 
 
 func get_sleeping():
