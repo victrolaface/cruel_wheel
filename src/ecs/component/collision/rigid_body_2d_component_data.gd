@@ -1,3 +1,4 @@
+"""
 tool
 extends Resource
 class_name RigidBody2dComponentData
@@ -248,3 +249,4 @@ func _delete_collider():
 	_connect_collider_predelete()
 	connected.collider_changed = false
 	emit_signal("collider_predelete")
+"""
