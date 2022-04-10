@@ -7,10 +7,7 @@
         ],
         "excludeSearchPatterns": [
             "godot/assets",
-            "godot/.mono",
-			"godot/.import",
-			"*.import",
-			"bin",
+            "bin",
             "lib"
         ]
     }

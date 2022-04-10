@@ -1,17 +1,19 @@
 {
     "files.exclude": {
-        "assets": true,
+        "godot/assets": true,
         "bin": true,
         "lib": true,
-        ".mono": true,
-        ".import": true
+        "godot/.mono": true,
+        "godot/.import": true,
+		"*.import": true
     },
     "search.exclude": {
-        "assets": true,
+        "godot/assets": true,
         "bin": true,
         "lib": true,
-        ".mono": true,
-        ".import": true
+        "godot/.mono": true,
+        "godot/.import": true,
+		"*.import": true
     },
     // Turn off tsc task auto detection since we have the necessary tasks as npm scripts
     "typescript.tsc.autoDetect": "off"

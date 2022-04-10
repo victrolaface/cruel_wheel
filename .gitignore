@@ -1,5 +1,9 @@
-.import/
-.mono/
-assets/
-addons/
+godot/.import/
+godot/.mono/
+godot/assets/
+godot/addons/
 bin/
+lib/
+.vscode/
+*.import
+omnisharp.json
