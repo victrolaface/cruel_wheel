@@ -1,3 +1,0 @@
-[submodule "lib/godot"]
-	path = lib/godot
-	url = git@github.com:godotengine/godot.git
