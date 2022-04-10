@@ -10,10 +10,10 @@ body_shape_exited ( RID body_rid, Node body, int body_shape_index, int local_sha
 sleeping_state_changed ( )
 """
 
-signal rigid_body_changed
-signal received_rigid_body
-signal received_collider
-signal received_physics_override
+signal rigid_body_changed()
+signal received_rigid_body()
+signal received_collider()
+signal received_physics_override()
 signal body_entered(body)
 signal body_exited(body)
 signal body_shape_entered(body_rid, body, body_shape_index, local_shape_index)
@@ -32,7 +32,7 @@ export(bool) var sleeping setget set_sleeping, get_sleeping
 export(bool) var custom_integrator setget set_custom_integrator, get_custom_integrator
 export(int) var continuous_cd setget set_continuous_cd, get_continuous_cd
 export(bool) var rough setget set_rough, get_rough
-export(bool) var absorbent setget set_absorbent, get_absorbent
+export(bool) var absorbent setget set_absorbentorbent, get_absorbentorbent
 export(int) var mode setget set_mode, get_mode
 export(int) var contacts_reported setget set_contacts_reported, get_contacts_reported
 export(float) var angular_damp setget set_angular_damp, get_angular_damp
@@ -43,7 +43,7 @@ export(float) var inertia setget set_inertia, get_inertia
 export(float) var linear_damp setget set_linear_damp, get_linear_damp
 export(float) var mass setget set_mass, get_mass
 export(float) var weight setget set_weight, get_weight
-export(float) var friction setget set_friction, get_friction
+export(float) var friction setget set_frictioniction, get_frictioniction
 export(float) var bounce setget set_bounce, get_bounce
 export(Vector2) var applied_force setget set_applied_force, get_applied_force
 export(Vector2) var linear_velocity setget set_linear_velocity, get_linear_velocity
@@ -53,17 +53,17 @@ const COL_CLASS_NAME = "CollisionShape2D"
 var rb: RigidBody2D
 var col: CollisionShape2D
 var has_rb = false
-var has_phys_mat = false
+var has_physics_material = false
 var has_col = false
 var is_init = false
-var signal_mgr = preload("res://src/signal/signal_manager.gd")
+#var signal_mgr = preload("res://src/signal/signal_manager.gd")
 
 
 func _init():
 	rb = null
 	col = null
 	has_rb = false
-	has_phys_mat = false
+	has_physics_material = false
 	has_col = false
 	is_init = false
 
@@ -73,8 +73,8 @@ func set_rigid_body(_obj: Object):
 	if _obj != null && not has_rb && _obj.is_class("RigidBody2D"):
 		rb = _obj
 		has_rb = true
-		if not has_phys_mat && rb.physics_material_override != null:
-			_validate_phys_mat(rb.physics_material_override, false, 0.0, 1.0, false)
+		if not has_physics_material && rb.physics_material_override != null:
+			_validate_physics_material(rb.physics_material_override, false, 0.0, 1.0, false)
 		if not has_col && rb.has_node(COL_CLASS_NAME):
 			col = rb.get_node(COL_CLASS_NAME)
 			has_col = col != null
@@ -87,14 +87,14 @@ func get_rigid_body():
 
 func set_physics_material_override(_p: PhysicsMaterial):
 	if has_rigid_body:
-		if _p != null && has_phys_mat:
-			_validate_phys_mat(_p, _p.absorbent, _p.bounce, _p.friction, _p.rough)
+		if _p != null && has_physics_material:
+			_validate_physics_material(_p, _p.absorbent, _p.bounce, _p.friction, _p.rough)
 		else:
-			_validate_phys_mat(_p, false, 0.0, 1.0, false)
+			_validate_physics_material(_p, false, 0.0, 1.0, false)
 
 
 func get_physics_material_override():
-	if not has_phys_mat:
+	if not has_physics_material:
 		return
 	return rb.physics_material_override
 
@@ -122,7 +122,7 @@ func set_has_physics_material_override(_has: bool):
 
 
 func get_has_physics_material_override():
-	return has_phys_mat
+	return has_physics_material
 
 
 func get_has_collider():
@@ -207,13 +207,13 @@ func get_rough():
 	return rb.physics_material_override.rough
 
 
-func set_absorbent(_absorbent: bool):
+func set_absorbentorbent(_absorbentorbent: bool):
 	if not has_rb:
 		return
-	rb.physics_material_override.absorbent = _absorbent
+	rb.physics_material_override.absorbent = _absorbentorbent
 
 
-func get_absorbent():
+func get_absorbentorbent():
 	if not has_rb:
 		return
 	return rb.physics_material_override.absorbent
@@ -339,13 +339,13 @@ func get_weight():
 	return rb.weight
 
 
-func set_friction(_friction: float):
+func set_frictioniction(_frictioniction: float):
 	if not has_rb:
 		return
-	rb.physics_material_override.friction = _friction
+	rb.physics_material_override.friction = _frictioniction
 
 
-func get_friction():
+func get_frictioniction():
 	if not has_rb:
 		return
 	return rb.physics_material_override.friction
@@ -388,22 +388,22 @@ func get_linear_velocity():
 
 
 # getters, setters helper functions
-func _validate_phys_mat(_p: PhysicsMaterial, _abs: bool, _bnc: float, _fr: float, _rgh: bool):
-	var amt = 0
-	amt = _valid_phys_mat_prop(amt, rb.physics_material_override.absorent != _abs)
-	amt = _valid_phys_mat_prop(amt, rb.physics_material_override.bounce != _bnc)
-	amt = _valid_phys_mat_prop(amt, rb.physics_material_override.friction != _fr)
-	amt = _valid_phys_mat_prop(amt, rb.physics_material_override.rough != _rgh)
-	has_phys_mat = amt == 4
-	if has_phys_mat:
-		rb.physics_material_override = _p
-	return has_phys_mat
+func _validate_physics_material(_physics_material: PhysicsMaterial, _absorbent: bool, _bounce: float, _friction: float, _rough: bool):
+	var valid_amount = 0
+	valid_amount = _valid_physics_material(valid_amount, rb.physics_material_override.absorent != _absorbent)
+	valid_amount = _valid_physics_material(valid_amount, rb.physics_material_override.bounce != _bounce)
+	valid_amount = _valid_physics_material(valid_amount, rb.physics_material_override.friction != _friction)
+	valid_amount = _valid_physics_material(valid_amount, rb.physics_material_override.rough != _rough)
+	has_physics_material = valid_amount == 4
+	if has_physics_material:
+		rb.physics_material_override = _physics_material
+	return has_physics_material
 
 
-func _valid_phys_mat_prop(_amt: int, _valid: bool):
+func _valid_physics_material(_valid_amount: int, _valid: bool):
 	if _valid:
-		_amt = _amt + 1
-	return _amt
+		_valid_amount = _valid_amount + 1
+	return _valid_amount
 
 
 # adapted methods

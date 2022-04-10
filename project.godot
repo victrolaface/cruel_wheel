@@ -199,7 +199,7 @@ _global_script_classes=[ {
 "language": "GDScript",
 "path": "res://src/signal/signal_item.gd"
 }, {
-"base": "ResourceCollection",
+"base": "Resource",
 "class": "SignalManager",
 "language": "GDScript",
 "path": "res://src/signal/signal_manager.gd"
