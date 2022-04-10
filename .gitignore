@@ -5,7 +5,6 @@ godot/assets/
 godot/addons/
 godot/omnisharp.json
 bin/
-lib/
 .vscode/
 *.import
 *.bak

@@ -200,6 +200,16 @@ _global_script_classes=[ {
 "path": "res://src/signal/signal_item.gd"
 }, {
 "base": "Resource",
+"class": "SignalItemData",
+"language": "GDScript",
+"path": "res://src/signal/signal_item_data.gd"
+}, {
+"base": "Resource",
+"class": "SignalItemState",
+"language": "GDScript",
+"path": "res://src/signal/signal_item_state.gd"
+}, {
+"base": "Resource",
 "class": "SignalManager",
 "language": "GDScript",
 "path": "res://src/signal/signal_manager.gd"
@@ -303,6 +313,8 @@ _global_script_class_icons={
 "RigidBody2DWrapper": "",
 "RigidBody2dComponent": "",
 "SignalItem": "",
+"SignalItemData": "",
+"SignalItemState": "",
 "SignalManager": "",
 "SingletonManagerStorage": "",
 "Singletons": "",

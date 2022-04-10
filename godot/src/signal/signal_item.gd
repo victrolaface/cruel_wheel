@@ -18,7 +18,7 @@ export(int) var connection_flags setget set_connection_flags, get_connection_fla
 export(SignalItemType) var type setget set_type, get_type
 
 var flags: int
-var is_connected: bool
+#var is_connected: bool
 var signal_name: String
 var signal_method: String
 var args: Array
@@ -26,8 +26,10 @@ var obj_to: Resource
 var obj_from: Resource
 var item_type: int
 
+
+
 func _init():
-	is_connected = false
+	#is_connected = false
 	obj_from = null
 	name = ""
 	obj_to = null
