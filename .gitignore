@@ -1,9 +1,11 @@
+godot/.vscode/
 godot/.import/
 godot/.mono/
 godot/assets/
 godot/addons/
+godot/omnisharp.json
 bin/
 lib/
 .vscode/
 *.import
-omnisharp.json
+*.bak
