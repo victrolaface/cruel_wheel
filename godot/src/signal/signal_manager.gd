@@ -13,6 +13,7 @@ var init_nonself_deferred: bool
 #func set_is_valid():
 #	pass
 
+"""
 func _init():
 	db = {
 		"self": {"oneshot": null, "deferred": null}, "nonself": {"oneshot": null, "deferred": null}
@@ -21,18 +22,18 @@ func _init():
 	init_self_deferred = false
 	init_nonself_oneshot = false
 	init_nonself_deferred = false
-
-
+"""
+"""
 func add(_validate = true, _signal_item=null):#_c, _o_f, _n, _o_t, _m, _a, _f, _t):
 	var added = false
 	if _validate:
 		if _signal_item.get_class() == "SignalItem":
 			if _is_valid(_signal_item):
-	
-	if added:
-		pass
+"""
+	#if added:
+	#	pass
 	# validation
-	"""
+"""
 	if is_valid(_c, _o_f, _n, _o_t, _m, _a, _f, _t, _o_f.resource_local_to_scene):
 		#var i = SignalItem.new(_c, _o_f, _n, _o_t, _m, _a, _f, _t, _o_f.resource_local_to_scene)
 		if _t == "SELF_ONESHOT":
@@ -65,6 +66,7 @@ func add(_validate = true, _signal_item=null):#_c, _o_f, _n, _o_t, _m, _a, _f, _
 			db.nonself.deferred.set(_n, i)
 """
 
+"""
 static func is_valid():
 	var valid = false
 	if _valid_str(_n) && _valid_str(_m):
@@ -109,3 +111,4 @@ static func _valid_objs(_is_self: bool, _is_loc: bool, _obj_from: Object, _obj_t
 
 static func _valid_ids(_is: bool, _is_not: bool):
 	return _is || _is_not
+"""
