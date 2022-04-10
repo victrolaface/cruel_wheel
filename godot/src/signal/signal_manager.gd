@@ -20,6 +20,8 @@ func _init():
 
 func _add(_validate: bool, _signal_item:SignalItem):#_c, _o_f, _n, _o_t, _m, _a, _f, _t):
 	var added = false
+	if added:
+		pass
 	# validation
 	"""
 	if is_valid(_c, _o_f, _n, _o_t, _m, _a, _f, _t, _o_f.resource_local_to_scene):
