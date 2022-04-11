@@ -10,127 +10,80 @@ export(int) var connection_flags setget set_connection_flags, get_connection_fla
 export(int) var type setget set_type, get_type
 
 # state
-"""
 export(bool) var exists setget set_exists, get_exists
 export(bool) var connected setget set_connected, get_connected
 export(bool) var has_method setget set_has_method, get_has_method
-export(bool) var has_name setget set_has_name, get_has_name
 export(bool) var has_arguments setget set_has_arguments, get_has_arguments
 export(bool) var has_connection_flags setget set_has_connection_flags, get_has_connection_flags
-"""
-
-# var data:SignalItemData
 
 func _init():
 	data = SignalItemData.new()
+	resource_local_to_scene = true
+	data.local = resource_local_to_scene
 
 # setters, getters functions
 func set_object_from(_obj_from:Object):
-	data.object_from = _obj_from
+	pass
 
 func get_object_from():
 	return data.object_from
 
 func set_object_to(_obj_to:Object):
-	data.object_to = _obj_to
+	pass
 
 func get_object_to():
 	return data.object_to
 
 func set_method(_method:String):
-	data.method = _method
+	pass
 
 func get_method():
 	return data.method
 
 func set_arguments(_arguments:Array):
-	data.arguments = _arguments
+	pass
 
 func get_arguments():
 	return data.arguments
 
 func set_connection_flags(_connection_flags:int):
-	data.connection_flags = _connection_flags
+	pass
 
 func get_connection_flags():
 	return data.connection_flags
 
 func set_type(_type: int):
-	data.type = _type
+	pass
 
 func get_type():
 	return data.type
 
-"""
-export(bool) var exists setget set_exists, get_exists
-export(bool) var connected setget set_connected, get_connected
-export(bool) var has_method setget set_has_method, get_has_method
-export(bool) var has_name setget set_has_name, get_has_name
-export(bool) var has_arguments setget set_has_arguments, get_has_arguments
-export(bool) var has_connection_flags setget set_has_connection_flags, get_has_connection_flags
-"""
 func set_exists(_exists:bool):
-	data.exists = _exists
+	pass
 
-#func get_exists():
-#func _init():
-	#is_connected = false
-	#obj_from = null
-	#name = ""
-	#obj_to = null
-	#method = ""
-	#args = []
-	#flags = CONNECT_DEFERRED
-	#item_type = SignalItemType.SELF_DEFERRED
-	#resource_local_to_scene = true
+func get_exists():
+	return data.exists
 
-# setters, getters functions
-"""
 func set_connected(_connected:bool):
 	pass
 
 func get_connected():
-	return is_connected
+	return data.connected
 
-func set_object_from(_obj_from: Resource):
+func set_has_method(_has_method:bool):
 	pass
 
-func get_object_from():
-	return obj_from
+func get_has_method():
+	return data.has_method
 
-func set_name(_name:String):
+func set_has_arguments(_has_arguments:bool):
 	pass
 
-func get_name():
-	return signal_name
+func get_has_arguments():
+	return data.has_arguments
 
-func set_object_to(_obj_to:Resource):
+func set_has_connection_flags(_has_connection_flags:bool):
 	pass
 
-func get_object_to():
-	return obj_to
-
-func set_method(_method:String):
-	pass
-
-func get_method():
-	return signal_method
-
-func set_arguments(_args:Array):
-	pass
-
-func get_arguments():
-	return args
-
-func set_connection_flags(_flags:int):
-	pass
-
-func get_connection_flags():
-	return flags
-
-func set_type(_type:int):
-	pass
-
-func get_type():
-	return item_type
-"""
+func get_has_connection_flags():
+	return data.has_connection_flags

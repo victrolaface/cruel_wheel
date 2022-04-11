@@ -1,28 +1,26 @@
 tool
-class_name SignalManager extends Resource
+class_name SignalManager extends Item
 
-var db = {}
-var init_self_oneshot: bool
-var init_self_deferred: bool
-var init_nonself_oneshot: bool
-var init_nonself_deferred: bool
-#var is_valid: bool setget get_is_valid, set_is_valid
+# data
+export(Dictionary) var db setget set_db, get_db
+export(Resource) var self_oneshot setget set_self_oneshot, get_self_oneshot
+export(Resource) var self_deferred setget set_self_deferred, get_self_deferred
+export(Resource) var nonself_oneshot setget set_nonself_oneshot, get_nonself_oneshot
+export(Resource) var nonself_deferred setget set_nonself_deferred, get_nonself_deferred
 
-#func get_is_valid():
+# state
+export(bool) var has_self_oneshot setget set_has_self_oneshot, get_has_self_oneshot
+export(bool) var has_self_deferred setget set_has_self_deferred, get_has_self_deferred
+export(bool) var has_nonself_oneshot setget set_has_nonself_oneshot, get_has_nonself_oneshot
+export(bool) var has_nonself_deferred setget set_has_nonself_deferred, get_has_nonself_deferred
+export(bool) var initialized_self_oneshot setget set_initialized_self_oneshot, get_initialized_self_oneshot
+export(bool) var initialized_self_deferred setget set_initialized_self_deferred, get_initialized_self_deferred
+export(bool) var initialized_nonself_oneshot setget set_initialized_nonself_oneshot, get_initialized_nonself_oneshot
+export(bool) var initialized_nonself_deferred setget set_initialized_nonself_deferred, get_initialized_nonself_deferred
 
-#func set_is_valid():
-#	pass
-
-"""
 func _init():
-	db = {
-		"self": {"oneshot": null, "deferred": null}, "nonself": {"oneshot": null, "deferred": null}
-	}
-	init_self_oneshot = false
-	init_self_deferred = false
-	init_nonself_oneshot = false
-	init_nonself_deferred = false
-"""
+	data = SignalManagerData.new()
+
 """
 func add(_validate = true, _signal_item=null):#_c, _o_f, _n, _o_t, _m, _a, _f, _t):
 	var added = false
@@ -64,9 +62,7 @@ func add(_validate = true, _signal_item=null):#_c, _o_f, _n, _o_t, _m, _a, _f, _
 				db.nonself.deferred.set_type_readonly(true)
 				init_nonself_deferred = true
 			db.nonself.deferred.set(_n, i)
-"""
 
-"""
 static func is_valid():
 	var valid = false
 	if _valid_str(_n) && _valid_str(_m):
@@ -112,3 +108,82 @@ static func _valid_objs(_is_self: bool, _is_loc: bool, _obj_from: Object, _obj_t
 static func _valid_ids(_is: bool, _is_not: bool):
 	return _is || _is_not
 """
+
+# setters, getters
+func set_db(_db:Object):
+    pass
+
+func get_db():
+    return data.db
+
+func set_self_oneshot(_self_oneshot:ResourceCollection):
+    pass
+
+func get_self_oneshot():
+    return data.self_oneshot
+
+func set_self_deferred(_self_deferred:ResourceCollection):
+    pass
+
+func get_self_deferred():
+    return data.self_deferred
+
+func set_nonself_oneshot(_nonself_oneshot:ResourceCollection):
+    pass
+
+func get_nonself_oneshot():
+    return data.nonself_oneshot
+
+func set_nonself_deferred(_nonself_deferred:ResourceCollection):
+    pass
+
+func get_nonself_deferred():
+    return data.nonself_deferred
+
+func set_has_self_oneshot(_has_self_oneshot:bool):
+    pass
+
+func get_has_self_oneshot():
+    return data.has_self_oneshot
+
+func set_has_self_deferred(_has_self_deferred:bool):
+    pass
+
+func get_has_self_deferred():
+    return data.has_self_deferred
+
+func set_has_nonself_oneshot(_has_nonself_oneshot:bool):
+    pass
+
+func get_has_nonself_oneshot():
+    return data.has_nonself_oneshot
+
+func set_has_nonself_deferred(_has_nonself_deferred:bool):
+    pass
+
+func get_has_nonself_deferred():
+    return data.has_nonself_deferred
+
+func set_initialized_self_oneshot(_initialized_self_oneshot:bool):
+    pass
+
+func get_initialized_self_oneshot():
+    return data.initialized_self_oneshot
+
+func set_initialized_self_deferred(_initialized_self_deferred:bool):
+    pass
+
+func get_initialized_self_deferred():
+    return data.initialized_self_deferred
+
+func set_initialized_nonself_oneshot(_initialized_nonself_oneshot:bool):
+    pass
+
+func get_initialized_nonself_oneshot():
+    return data.initialized_nonself_oneshot
+
+func set_initialized_nonself_deferred(_initialized_nonself_deferred:bool):
+    pass
+
+func get_initialized_nonself_deferred():
+    return data.initialized_nonself_deferred
