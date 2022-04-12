@@ -1,3 +1,4 @@
+"""
 tool
 class_name SignalManagerState extends State
 
@@ -76,3 +77,4 @@ func set_initialized_nonself_deferred(_initialized_nonself_deferred:bool):
 
 func get_initialized_nonself_deferred():
     return init_nonself_deferred
+"""

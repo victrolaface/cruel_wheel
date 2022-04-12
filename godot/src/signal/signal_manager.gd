@@ -1,5 +1,6 @@
+"""
 tool
-class_name SignalManager extends Item
+class_name SignalManager extends Resource
 
 # data
 export(Dictionary) var db setget set_db, get_db
@@ -69,6 +70,7 @@ func _valid_id(_id:int):
 	return IDUtility.is_valid(_id)
 		#data.
 
+"""
 """
 func add(_validate = true, _signal_item=null):#_c, _o_f, _n, _o_t, _m, _a, _f, _t):
 	var added = false
@@ -145,7 +147,7 @@ static func _valid_ids(_is: bool, _is_not: bool):
 	return _is || _is_not
 """
 
-
+"""
 # setters, getters
 func set_db(_db: Object):
 	pass
@@ -249,3 +251,4 @@ func set_initialized_nonself_deferred(_initialized_nonself_deferred: bool):
 
 func get_initialized_nonself_deferred():
 	return data.initialized_nonself_deferred
+"""

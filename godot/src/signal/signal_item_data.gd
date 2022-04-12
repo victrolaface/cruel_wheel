@@ -1,5 +1,6 @@
+"""
 tool
-class_name SignalItemData extends Data
+class_name SignalItemData extends Resource
 
 enum SignalItemType { SELF_ONESHOT = 0, SELF_DEFERRED = 1, NONSELF_ONESHOT = 2, NONSELF_DEFERRED = 3 }
 
@@ -22,6 +23,9 @@ var obj_from: Object
 var obj_to: Object
 var args: Array
 var flags: int
+
+
+
 
 
 func _init():
@@ -84,40 +88,51 @@ func get_type():
 
 
 func set_exists(_exists: bool):
-	state.exists = _exists
+	pass
+	#state.exists = _exists
 
 
 func get_exists():
-	return state.exists
+	return true
+	#return state.exists
 
 
 func set_connected(_connected: bool):
-	state.connected = _connected
+	pass
+	#state.connected = _connected
 
 
 func get_connected():
-	return state.connected
+	return true
+	#return state.connected
 
 
 func set_has_method(_has_method: bool):
-	state.has_method = _has_method
+	pass
+	#state.has_method = _has_method
 
 
 func get_has_method():
-	return state.has_method
+	return true
+	#return state.has_method
 
 
 func set_has_arguments(_has_arguments: bool):
-	state.has_arguments = _has_arguments
+	pass
+	#state.has_arguments = _has_arguments
 
 
 func get_has_arguments():
-	return state.has_arguments
+	return true
+	#return state.has_arguments
 
 
 func set_has_connection_flags(_has_connection_flags: bool):
-	state.has_connection_flags = _has_connection_flags
+	pass
+	#state.has_connection_flags = _has_connection_flags
 
 
 func get_has_connection_flags():
-	return state.has_connection_flags
+	return true
+	#return state.has_connection_flags
+"""

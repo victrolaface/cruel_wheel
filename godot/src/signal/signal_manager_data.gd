@@ -1,3 +1,4 @@
+"""
 tool
 class_name SignalManagerData extends Data
 
@@ -18,7 +19,7 @@ export(bool) var initialized_self_deferred setget set_initialized_self_deferred,
 export(bool) var initialized_nonself_oneshot setget set_initialized_nonself_oneshot, get_initialized_nonself_oneshot
 export(bool) var initialized_nonself_deferred setget set_initialized_nonself_deferred, get_initialized_nonself_deferred
 
-#var state: SignalManagerState
+var state: SignalManagerState
 
 func _init():
     self_oneshot = null
@@ -114,3 +115,4 @@ func set_initialized_nonself_deferred(_initialized_nonself_deferred:bool):
 
 func get_initialized_nonself_deferred():
     return state.initialized_nonself_deferred
+"""

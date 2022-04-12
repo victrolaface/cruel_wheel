@@ -1,27 +1,14 @@
 #warning-ignore-all:unused_signal
-class_name Component
-extends Resource
-
-signal enabled(name, id)
-signal disabled(name, id)
-signal destroyed(name, id)
-signal parented(name, id)
-signal initialized(name, id)
-
-export(String) var name setget set_name, get_name
-export(int) var id setget set_id, get_id
-export(bool) var is_local setget set_is_local, get_is_local
-
-var meta: ComponentMetaData = null
-
+tool
+class_name Component extends Item
 
 # virtual methods
 func _init():
-	meta = ComponentMetaData.new()
 	resource_local_to_scene = true
-
+	
 
 # public methods
+"""
 func initialize(_is_local: bool):
 	resource_local_to_scene = _is_local
 	meta.is_local = resource_local_to_scene
@@ -120,3 +107,4 @@ func set_is_local(_is_local: bool):
 
 func get_is_local():
 	return meta.is_local
+"""

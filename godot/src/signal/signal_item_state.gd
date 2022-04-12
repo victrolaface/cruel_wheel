@@ -1,3 +1,4 @@
+"""
 tool
 class_name SignalItemState extends State
 
@@ -58,3 +59,4 @@ func set_has_connection_flags(_has_connection_flags:bool):
 
 func get_has_connection_flags():
     return flags
+"""
