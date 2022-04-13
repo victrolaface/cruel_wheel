@@ -37,24 +37,6 @@ export(bool) var has_method setget , get_has_method
 export(bool) var has_arguments setget , get_has_arguments
 export(bool) var has_flags setget , get_has_flags
 
-const VALID_SIGNAL_TYPES = [
-	SignalType.SELF_DEFERRED,
-	SignalType.SELF_PERSIST,
-	SignalType.SELF_ONESHOT,
-	SignalType.SELF_REFERENCE_COUNTED,
-	SignalType.NONSELF_DEFERRED,
-	SignalType.NONSELF_ONESHOT,
-	SignalType.NONSELF_ONESHOT,
-	SignalType.NONSELF_REFERENCE_COUNTED
-]
-
-const VALID_TYPES = [
-	SignalFlagType.CONNECT_DEFERRED,
-	SignalFlagType.CONNECT_PERSIST,
-	SignalFlagType.CONNECT_ONESHOT,
-	SignalFlagType.CONNECT_REFERENCE_COUNTED
-]
-
 var data: Dictionary
 
 
@@ -83,9 +65,7 @@ func _init(
 	if self.has_signal_name:
 		_name = _name + "-" + data.name
 		if self.has_type && self.has_object_from && self.has_object_to && self.has_method && self.has_flags:
-			_connected = data.object_from.is_connected(data.name, data.object_to, data.method)
-			if not _connected:
-				_connected = data.object_from.connect(data.name, data.object_to, data.method, data.args, data.flags)
+			_connected = SignalItemUtility.is_connect_valid(self)
 	data.connected = _connected
 	name = _name
 	cached = self
@@ -131,7 +111,8 @@ func get_flags():
 
 
 func get_has_type():
-	return _is_type(data.type, SignalType.NONE, VALID_SIGNAL_TYPES)
+	return true
+	#return _is_valid_type(data.type, SignalType.NONE, VALID_SIGNAL_TYPES)
 
 
 func get_has_signal_name():
@@ -151,11 +132,12 @@ func get_has_method():
 
 
 func get_has_arguments():
-	return data.arguments.count() > 0 || data.arguments.get_class() == "Array"
+	return data.arguments.count() > 0
 
 
 func get_has_flags():
-	return _is_type(data.flags, SignalFlagType.NONE, VALID_TYPES)
+	return true
+	#return _is_valid_type(data.flags, SignalFlagType.NONE, VALID_SIGNAL_FLAG_TYPES)
 
 
 func get_exists():
@@ -164,21 +146,3 @@ func get_exists():
 
 func get_connected():
 	return data.state.connected
-
-
-# setters, getters helper functions
-func _is_type(_type: int, _invalid_type: int, _valid_types = []):
-	var is_type = false
-	if _type != _invalid_type:
-		var amt = _valid_types.count()
-		if amt > 0:
-			var proc_type = true
-			var idx = 0
-			while proc_type:
-				if _type == _valid_types[idx]:
-					is_type = true
-					proc_type = false
-				if idx == amt - 1:
-					proc_type = false
-				idx = idx + 1
-	return is_type
