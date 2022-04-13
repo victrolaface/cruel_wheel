@@ -20,14 +20,25 @@ var saved_self: EncodedObjectAsID
 
 func _init():
 	resource_local_to_scene = true
-	meta_data = {"name": "", "state": {"initialized": false, "enabled": false}}
+	meta_data = {
+		"name": "",
+		"state":
+		{
+			"has_parent": false,
+			"is_cached": false,
+			"has_name": false,
+			"initialized": false,
+			"enabled": false,
+			"destroyed": false
+		}
+	}
 	saved_parent.object_id = 0
 	saved_self.object_id = 0
 
 
 # setters, getters functions
 func set_parent(_parent: Object):
-	saved_parent.object_id = _on_cache(saved_parent.object_id, self.has_parent, _parent, _parent.get_instance_id())
+	saved_parent.object_id = _save(saved_parent.object_id, self.has_parent, _parent, _parent.get_instance_id())
 
 
 func get_parent():
@@ -36,7 +47,7 @@ func get_parent():
 
 
 func set_cached(_cached: Object):
-	saved_self.object_id = _on_cache(saved_self.object_id, self.is_cached, _cached, _cached.get_instance_id())
+	saved_self.object_id = _save(saved_self.object_id, self.is_cached, _cached, _cached.get_instance_id())
 
 
 func get_cached():
@@ -65,20 +76,26 @@ func get_id():
 
 
 func get_has_parent():
-	return IDUtility.is_valid(saved_parent.object_id)
+	if not meta_data.state.has_parent:
+		meta_data.state.has_parent = IDUtility.is_valid(saved_parent.object_id)
+	return meta_data.state.has_parent
 
 
 func get_is_cached():
-	return IDUtility.is_valid(saved_self.object_id)
+	if not meta_data.state.is_cached:
+		meta_data.state.is_cached = IDUtility.is_valid(saved_self.object_id)
+	return meta_data.state.is_cached
 
 
 func get_has_name():
-	return StringUtility.is_valid(meta_data.name)
+	if not meta_data.state.has_name:
+		meta_data.state.has_name = StringUtility.is_valid(meta_data.name)
+	return meta_data.state.has_name
 
 
 func set_initialized(_initialized: bool):
 	if _initialized && not self.initialized && self.is_cached && self.has_name:
-		meta_data.initialized = _initialized
+		meta_data.state.initialized = _initialized
 
 
 func get_initialized():
@@ -87,26 +104,26 @@ func get_initialized():
 
 func set_enabled(_enabled: bool):
 	if self.initialized:
-		meta_data.enabled = _enabled
+		meta_data.state.enabled = _enabled
 
 
 func get_enabled():
-	return meta_data.enabled
+	return meta_data.state.enabled
 
 
 func set_destroyed(_destroyed: bool):
 	if _destroyed && not self.destroyed:
 		if self.enabled:
 			self.enabled = not _destroyed
-		meta_data.destroyed = _destroyed
+		meta_data.state.destroyed = _destroyed
 
 
 func get_destroyed():
-	return meta_data.destroyed
+	return meta_data.state.destroyed
 
 
 # setters, getters helper functions
-func _on_cache(_init_obj_id: int, _has_obj: bool, _obj: Object, _obj_id: int):
+func _save(_init_obj_id: int, _has_obj: bool, _obj: Object, _obj_id: int):
 	var _id = _init_obj_id
 	if not _has_obj && _obj != null && IDUtility.is_valid(_obj_id):
 		_id = _obj_id
