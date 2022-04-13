@@ -2,10 +2,18 @@
 tool
 class_name Component extends Item
 
+#export(Resource) signal_manager setget, get_signal_manager
+
+#var signal_mgr: SignalManager
+
+
+# setters, getters functions
+#func get_signal_manager():
+#	if
 # virtual methods
 func _init():
 	resource_local_to_scene = true
-	
+
 
 # public methods
 """

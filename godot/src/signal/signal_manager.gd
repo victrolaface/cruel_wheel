@@ -1,254 +1,230 @@
-"""
-tool
 class_name SignalManager extends Resource
 
-# data
-export(Dictionary) var db setget set_db, get_db
-export(Resource) var self_oneshot setget set_self_oneshot, get_self_oneshot
-export(Resource) var self_deferred setget set_self_deferred, get_self_deferred
-export(Resource) var nonself_oneshot setget set_nonself_oneshot, get_nonself_oneshot
-export(Resource) var nonself_deferred setget set_nonself_deferred, get_nonself_deferred
+export(int) var id setget , get_id
+export(String) var name setget , get_name
+export(Array, Resource) var self_deferred setget , get_self_deferred
+export(Array, Resource) var self_persist setget , get_self_persist
+export(Array, Resource) var self_oneshot setget , get_self_oneshot
+export(Array, Resource) var self_reference_counted setget , get_self_reference_counted
+export(Array, Resource) var nonself_deferred setget , get_nonself_deferred
+export(Array, Resource) var nonself_persist setget , get_nonself_persist
+export(Array, Resource) var nonself_oneshot setget , get_nonself_oneshot
+export(Array, Resource) var nonself_reference_counted setget , get_nonself_reference_counted
+export(bool) var has_id setget , get_has_id
+export(bool) var has_name setget , get_has_name
+export(bool) var has_self_deferred setget , get_has_self_deferred
+export(bool) var has_self_persist setget , get_has_self_persist
+export(bool) var has_self_oneshot setget , get_has_self_oneshot
+export(bool) var has_self_reference_counted setget , get_has_self_reference_counted
+export(bool) var has_nonself_deferred setget , get_has_nonself_deferred
+export(bool) var has_nonself_persist setget , get_has_nonself_persist
+export(bool) var has_nonself_oneshot setget , get_has_nonself_oneshot
+export(bool) var has_nonself_reference_counted setget , get_has_nonself_reference_counted
+export(bool) var saved setget , get_saved
+export(bool) var initialized setget , get_initialized
+export(bool) var enabled setget , get_enabled
+export(bool) var destroyed setget , get_destroyed
 
-# state
-export(bool) var has_self_oneshot setget set_has_self_oneshot, get_has_self_oneshot
-export(bool) var has_self_deferred setget set_has_self_deferred, get_has_self_deferred
-export(bool) var has_nonself_oneshot setget set_has_nonself_oneshot, get_has_nonself_oneshot
-export(bool) var has_nonself_deferred setget set_has_nonself_deferred, get_has_nonself_deferred
-export(bool) var initialized_self_oneshot setget set_initialized_self_oneshot, get_initialized_self_oneshot
-export(bool) var initialized_self_deferred setget set_initialized_self_deferred, get_initialized_self_deferred
-export(bool) var initialized_nonself_oneshot setget set_initialized_nonself_oneshot, get_initialized_nonself_oneshot
-export(bool) var initialized_nonself_deferred setget set_initialized_nonself_deferred, get_initialized_nonself_deferred
+var data: Dictionary
+var cached: EncodedObjectAsID
 
-var types = SignalItemData.SignalItemType
 
 func _init():
-	data = SignalManagerData.new()
+	resource_local_to_scene = true
+	var _id = get_instance_id()
+	var valid_id = IDUtility.is_valid(_id)
+	var save = false
+	if valid_id:
+		cached.object_id = _id
+	else:
+		_id = 0
+	var _name = get_class()
+	var valid_name = StringUtility.is_valid(_name)
+	if not valid_name:
+		_name = ""
+	if valid_id && valid_name:
+		_name = _name + "-" + _id
+		save = true
+	var _destroyed = not save
+	data = {
+		"name": _name,
+		"self": {"SELF_DEFERRED": [], "SELF_PERSIST": [], "SELF_ONESHOT": [], "SELF_REFERENCED_COUNTED": []},
+		"nonself": {"NONSELF_DEFERRED": [], "NONSELF_PERSIST": [], "NONSELF_ONESHOT": [], "NONSELF_REFERENCE_COUNTED": []},
+		"state":
+		{
+			"has_id": false,
+			"has_name": false,
+			"has_self_deferred": false,
+			"has_self_persist": false,
+			"has_self_oneshot": false,
+			"has_self_reference_counted": false,
+			"has_nonself_deferred": false,
+			"has_nonself_persist": false,
+			"has_nonself_oneshot": false,
+			"has_nonself_reference_counted": false,
+			"saved": save,
+			"initialized": save,
+			"enabled": save,
+			"destroyed": _destroyed
+		}
+	}
 
 
-func is_valid(_signal_item: SignalItem):
-	return SignalItemUtility.is_valid(_signal_item)
-
-func add(_signal_item: SignalItem, _id = null, _validate = false):
-	var do_add = true
-	var added = false
-	if _validate:
-		do_add = not SignalItemUtility.is_valid(_signal_item)
-	if do_add:
-		if _is_invalid(_id):#not IDUtility.is_valid(_id):#not _valid_id(_id):
-			if not _signal_item.object_from.resource_local_to_scene:
-				_id = _signal_item.object_from.get_rid()
-			else:
-				_id = _signal_item.object_from.get_instance_id()
-			if _is_invalid(_id):
-				do_add = not _is_invalid(_id)
-	if do_add:
-		if _signal_item.type == types.SELF_ONESHOT:
-			if not data.has_self_oneshot && not data.initialized_self_oneshot:
-				pass
-			#added = true
-		elif _signal_item.type == types.SELF_DEFERRED:
-			added = true
-		elif _signal_item.type == types.NONSELF_ONESHOT:
-			added = true
-		elif _signal_item.type == types.NONSELF_ONESHOT:
-			added = true
-		else:
-			added = false
-	return added
-
-func _is_invalid(_id:int):
-	return not IDUtility.is_valid(_id)
-
-func _on_not_valid(_id:int):
-	var do_added = true
-	if not IDUtility.is_valid(_id):
-		do_added = false
-	return do_added
-	#return not IDUtility.is_valid(_id)
-
-func _valid_id(_id:int):
-	return IDUtility.is_valid(_id)
-		#data.
-
-"""
-"""
-func add(_validate = true, _signal_item=null):#_c, _o_f, _n, _o_t, _m, _a, _f, _t):
-	var added = false
-	if _validate:
-		if _signal_item.get_class() == "SignalItem":
-			if _is_valid(_signal_item):
-"""
-#if added:
-#	pass
-# validation
-"""
-	if is_valid(_c, _o_f, _n, _o_t, _m, _a, _f, _t, _o_f.resource_local_to_scene):
-		#var i = SignalItem.new(_c, _o_f, _n, _o_t, _m, _a, _f, _t, _o_f.resource_local_to_scene)
-		if _t == "SELF_ONESHOT":
-			if not init_self_oneshot:
-				db.self.oneshot = ResourceCollection.new()
-				db.self.oneshot.set_base_type(SignalItem)
-				db.self.oneshot.set_type_readonly(true)
-				init_self_oneshot = true
-			db.self.oneshot.set(_n, i)
-		elif _t == "SELF_DEFERRED":
-			if not init_self_deferred:
-				db.self.deferred = ResourceCollection.new()
-				db.self.deferred.set_base_type(SignalItem)
-				db.self.deferred.set_type_readonly(true)
-				init_self_deferred = true
-			db.self.deferred.set(_n, i)
-		elif _t == "NONSELF_ONESHOT":
-			if not init_nonnonself_oneshot:
-				db.nonself.oneshot = ResourceCollection.new()
-				db.nonself.oneshot.set_base_type(SignalItem)
-				db.nonself.oneshot.set_type_readonly(true)
-				init_nonself_oneshot = true
-			db.nonself.oneshot.set(_n, i)
-		elif _t == "NONSELF_DEFERRED":
-			if not init_nonself_deferred:
-				db.nonself.deferred = ResourceCollection.new()
-				db.nonself.deferred.set_base_type(SignalItem)
-				db.nonself.deferred.set_type_readonly(true)
-				init_nonself_deferred = true
-			db.nonself.deferred.set(_n, i)
+# public methods
+func added(_signal_item: SignalItem):
+	return true
 
 
-
-static func _valid_connect(_self, _c, _l, _o_f, _n, _o_t, _m, _a, _f):
-	var valid = false
-	if _valid_objs(_self, _l, _o_f, _o_t):
-		var is_conn = _o_f.is_connected(_n, _o_t, _m)
-		if _c == is_conn:
-			if not is_conn:
-				valid = _o_f.connect(_n, _o_t, _m, _a, _f)
-			else:
-				valid = true
-	return valid
+# setters, getters functions
+func get_id():
+	if self.has_id:
+		return saved.object_id
 
 
-static func _valid_str(_str = null):
-	return _str != null && _str != ""
-
-
-static func _is_type(_t = null, _t1 = null, _t2 = null):
-	return _t == _t1 || _t == _t2
-
-
-static func _valid_objs(_is_self: bool, _is_loc: bool, _obj_from: Object, _obj_to: Object):
-	var is_eq_ids = _is_self && _obj_from.get_instance_id() == _obj_to.get_instance_id()
-	var is_eq_rids = _is_self && _obj_from.get_rid() == _obj_to.get_rid()
-	var is_self_eq_ids = _valid_ids(_is_loc && is_eq_ids, not _is_loc && is_eq_rids)
-	var not_self_not_eq_ids = _valid_ids(not _is_loc && not is_eq_rids, not is_eq_ids && _is_loc)
-	return is_self_eq_ids || not_self_not_eq_ids
-
-
-static func _valid_ids(_is: bool, _is_not: bool):
-	return _is || _is_not
-"""
-
-"""
-# setters, getters
-func set_db(_db: Object):
-	pass
-
-
-func get_db():
-	return data.db
-
-
-func set_self_oneshot(_self_oneshot: ResourceCollection):
-	pass
-
-
-func get_self_oneshot():
-	return data.self_oneshot
-
-
-func set_self_deferred(_self_deferred: ResourceCollection):
-	pass
+func get_name():
+	if self.has_name:
+		return data.name
 
 
 func get_self_deferred():
-	return data.self_deferred
+	if self.has_self_deferred:
+		return data.self.SELF_DEFERRED
 
 
-func set_nonself_oneshot(_nonself_oneshot: ResourceCollection):
-	pass
+func get_self_persist():
+	if self.has_self_persist:
+		return data.self.SELF_PERSIST
 
 
-func get_nonself_oneshot():
-	return data.nonself_oneshot
+func get_self_oneshot():
+	if self.has_self_oneshot:
+		return data.self.SELF_ONESHOT
 
 
-func set_nonself_deferred(_nonself_deferred: ResourceCollection):
-	pass
+func get_self_reference_counted():
+	if self.has_self_reference_counted:
+		return data.self.SELF_REFERENCE_COUNTED
 
 
 func get_nonself_deferred():
-	return data.nonself_deferred
+	if self.has_nonself_deferred:
+		return data.nonself.NONSELF_DEFERRED
 
 
-func set_has_self_oneshot(_has_self_oneshot: bool):
-	pass
+func get_nonself_persist():
+	if self.has_nonself_persist:
+		return data.nonself.NONSELF_PERSIST
 
 
-func get_has_self_oneshot():
-	return data.has_self_oneshot
+func get_nonself_oneshot():
+	if self.has_nonself_oneshot:
+		return data.nonself.NONSELF_ONESHOT
 
 
-func set_has_self_deferred(_has_self_deferred: bool):
-	pass
+func get_nonself_reference_counted():
+	if self.has_nonself_reference_counted:
+		return data.nonself.NONSELF_REFERENCE_COUNTED
+
+
+func get_has_id():
+	if not data.state.has_id && self.saved:
+		data.state.has_id = IDUtility.is_valid(saved.object_id)
+	return data.state.has_id
+
+
+func get_has_name():
+	if not data.state.has_name:
+		data.state.has_name = StringUtility.is_valid(data.name)
+	return data.state.has_name
 
 
 func get_has_self_deferred():
-	return data.has_self_deferred
+	return _has(data.state.has_self_deferred, data.self.SELF_DEFERRED, SignalTypes.SignalType.SELF_DEFERRED)
 
 
-func set_has_nonself_oneshot(_has_nonself_oneshot: bool):
-	pass
+func get_has_self_persist():
+	return _has(data.state.has_self_persist, data.self.SELF_PERSIST, SignalTypes.SignalType.SELF_PERSIST)
 
 
-func get_has_nonself_oneshot():
-	return data.has_nonself_oneshot
+func get_has_self_oneshot():
+	return _has(data.state.has_self_oneshot, data.self.SELF_ONESHOT, SignalTypes.SignalType.SELF_ONESHOT)
 
 
-func set_has_nonself_deferred(_has_nonself_deferred: bool):
-	pass
+func get_has_self_reference_counted():
+	return _has(
+		data.state.has_self_reference_counted,
+		data.self.SELF_REFERENCE_COUNTED,
+		SignalTypes.SignalType.SELF_REFERENCE_COUNTED
+	)
 
 
 func get_has_nonself_deferred():
-	return data.has_nonself_deferred
+	return _has(data.state.has_nonself_deferred, data.nonself.NONSELF_DEFERRED, SignalTypes.SignalType.NONSELF_DEFERRED)
 
 
-func set_initialized_self_oneshot(_initialized_self_oneshot: bool):
-	pass
+func get_has_nonself_persist():
+	return _has(data.state.has_nonself_persist, data.nonself.NONSELF_PERSIST, SignalTypes.SignalType.NONSELF_PERSIST)
 
 
-func get_initialized_self_oneshot():
-	return data.initialized_self_oneshot
+func get_has_nonself_oneshot():
+	return _has(data.state.has_nonself_oneshot, data.nonself.NONSELF_ONESHOT, SignalTypes.SignalType.NONSELF_ONESHOT)
 
 
-func set_initialized_self_deferred(_initialized_self_deferred: bool):
-	pass
+func get_has_nonself_reference_counted():
+	return _has(
+		data.state.has_nonself_reference_counted,
+		data.nonself.NONSELF_REFERENCE_COUNTED,
+		SignalTypes.SignalType.NONSELF_REFERENCE_COUNTED
+	)
 
 
-func get_initialized_self_deferred():
-	return data.initialized_self_deferred
+func get_saved():
+	return data.state.saved
 
 
-func set_initialized_nonself_oneshot(_initialized_nonself_oneshot: bool):
-	pass
+func get_initialized():
+	return data.state.initialized
 
 
-func get_initialized_nonself_oneshot():
-	return data.initialized_nonself_oneshot
+func get_enabled():
+	return data.state.enabled
 
 
-func set_initialized_nonself_deferred(_initialized_nonself_deferred: bool):
-	pass
+func get_destroyed():
+	return data.state.destroyed
 
 
-func get_initialized_nonself_deferred():
-	return data.initialized_nonself_deferred
-"""
+# setters, getters helper functions
+func _has(_has_items = false, _items = [], _signal_type = SignalTypes.SignalType.NONE):
+	var has = false
+	if not _has_items:
+		match _signal_type:
+			SignalTypes.SignalType.SELF_DEFERRED:
+				data.state.has_self_deferred = _items.count() > 0
+				has = data.state.has_self_deferred
+			SignalTypes.SignalType.SELF_PERSIST:
+				data.state.has_self_persist = _items.count() > 0
+				has = data.state.has_self_persist
+			SignalTypes.SignalType.SELF_ONESHOT:
+				data.state.has_self_oneshot = _items.count() > 0
+				has = data.state.has_self_oneshot
+			SignalTypes.SignalType.SELF_REFERENCE_COUNTED:
+				data.state.has_self_reference_counted = _items.count() > 0
+				has = data.state.has_self_reference_counted
+			SignalTypes.SignalType.NONSELF_DEFERRED:
+				data.state.has_nonself_deferred = _items.count() > 0
+				has = data.state.has_nonself_deferred
+			SignalTypes.SignalType.NONSELF_PERSIST:
+				data.state.has_nonself_persist = _items.count() > 0
+				has = data.state.has_nonself_persist
+			SignalTypes.SignalType.NONSELF_ONESHOT:
+				data.state.has_nonself_oneshot = _items.count() > 0
+				has = data.state.has_nonself_oneshot
+			SignalTypes.SignalType.NONSELF_REFERENCE_COUNTED:
+				data.state.has_nonself_reference_counted = _items.count() > 0
+				has = data.state.has_nonself_reference_counted
+			_:
+				has = false
+	else:
+		has = true
+	return has && self.initialized && self.enabled && not self.destroyed
