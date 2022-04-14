@@ -1,4 +1,4 @@
-class_name SignalTypes
+class_name SignalItemTypes
 
 enum SignalType {
 	NONE = 0,

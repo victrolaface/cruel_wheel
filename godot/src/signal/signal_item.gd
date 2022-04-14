@@ -22,12 +22,12 @@ var data: Dictionary
 
 func _init(
 	_signal_name = "",
-	_type = SignalTypes.signal_type_none,
+	_type = SignalItemTypes.signal_type_none,
 	_obj_from = null,
 	_obj_to = null,
 	_method = "",
 	_args = [],
-	_flags = SignalTypes.signal_flag_type_none
+	_flags = SignalItemTypes.signal_flag_type_none
 ):
 	resource_local_to_scene = true
 	data = {

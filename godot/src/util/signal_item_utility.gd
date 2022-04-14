@@ -2,7 +2,7 @@ class_name SignalItemUtility
 
 
 static func is_valid(_signal_item, valid = false):
-	if _is_class_valid(_signal_item):
+	if _can_validate(_signal_item, valid):
 		var name_valid = StringUtility.is_valid(_signal_item.name)
 		var method_valid = StringUtility.is_valid(_signal_item.method)
 		var obj_valid = _signal_item.object_from != null && _signal_item.object_to != null
@@ -15,26 +15,30 @@ static func is_valid(_signal_item, valid = false):
 
 
 static func is_connect_valid(_i, valid = false):
-	if _is_class_valid(_i):
-		if is_connected_valid(_i):
+	if _can_validate(_i, valid):
+		if on_is_connected(_i):
 			valid = true
-		elif _i.object_from.connect(_i.name, _i.object_to, _i.method, _i.arguments, _i.connection_flags):
-			if is_connected_valid(_i):
+		elif on_connect(_i):
+			if on_is_connected(_i):
 				_i.disconnect(_i.name, _i.object_to, _i.method)
 				valid = true
 	return valid
 
 
-static func is_connected_valid(_i):
-	return _i.get_class() == "SignalItem" && _i.object_from.is_connected(_i.name, _i.object_from, _i.method)
+static func on_is_connected(_i):
+	return _i.object_from.is_connected(_i.name, _i.object_from, _i.method)
+
+
+static func on_connect(_i):
+	return _i.object_from.connect(_i.name, _i.object_to, _i.method, _i.arguments, _i.connection_flags)
 
 
 static func is_valid_type(_type, _is_signal_type, valid = false):
-	var invalid_type = SignalTypes.invalid_signal_type()
-	var valid_types = SignalTypes.valid_signal_types()
+	var invalid_type = SignalItemTypes.invalid_signal_type()
+	var valid_types = SignalItemTypes.valid_signal_types()
 	if not _is_signal_type:
-		invalid_type = SignalTypes.invalid_signal_flag_type()
-		valid_types = SignalTypes.valid_signal_flag_types()
+		invalid_type = SignalItemTypes.invalid_signal_flag_type()
+		valid_types = SignalItemTypes.valid_signal_flag_types()
 	if _type != invalid_type:
 		var amt = valid_types.count()
 		if amt > 0:
@@ -50,5 +54,9 @@ static func is_valid_type(_type, _is_signal_type, valid = false):
 	return valid
 
 
+static func _can_validate(_i, _valid):
+	return not _valid && _is_class_valid(_i)
+
+
 static func _is_class_valid(_i):
-	return _i.get_class() == "SignalItem"
+	return _i.get_class() == "SignalItem" && _i != null
