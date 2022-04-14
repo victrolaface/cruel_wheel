@@ -79,17 +79,22 @@ func _init(
 		data.state.has_method = valid
 		data.state.has_arguments = valid && data.arguments.count() > 0
 		data.state.has_flags = valid
-		data.state.connected = data.object_from.is_connected(data.signal_name, data.object_to, data.method)
-		if not data.state.connected:
-			data.state.connected = data.object_from.connect(
-				data.signal_name, data.object_to, data.method, data.arguments, data.flags
-			)
+		on_connected()
 		valid = data.state.connected
 	ref_self = self
 	ref_parent = _parent
 	initialized = valid
 	enabled = valid
 	destroyed = not valid
+
+
+# public methods
+func on_connected():
+	data.state.connected = data.object_from.is_connected(data.signal_name, data.object_to, data.method)
+	if not data.state.connected:
+		data.state.connected = data.object_from.connect(
+			data.signal_name, data.object_to, data.method, data.arguments, data.flags
+		)
 
 
 # setters, getters functions
@@ -174,4 +179,6 @@ func get_has_flags():
 
 
 func get_connected():
+	if not data.state.connected:
+		on_connected()
 	return data.state.connected

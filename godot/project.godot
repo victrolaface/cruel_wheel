@@ -224,10 +224,15 @@ _global_script_classes=[ {
 "language": "GDScript",
 "path": "res://src/util/signal_item_utility.gd"
 }, {
-"base": "Resource",
+"base": "Item",
 "class": "SignalManager",
 "language": "GDScript",
 "path": "res://src/signal/signal_manager.gd"
+}, {
+"base": "Resource",
+"class": "SignalsTable",
+"language": "GDScript",
+"path": "res://src/signal/signals_table.gd"
 }, {
 "base": "Singletons",
 "class": "SingletonManagerStorage",
@@ -339,6 +344,7 @@ _global_script_class_icons={
 "SignalItemTypes": "",
 "SignalItemUtility": "",
 "SignalManager": "",
+"SignalsTable": "",
 "SingletonManagerStorage": "",
 "Singletons": "",
 "StringUtility": "",
