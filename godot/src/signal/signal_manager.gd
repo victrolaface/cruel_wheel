@@ -49,9 +49,8 @@ func _init():
 	var _destroyed = not save
 	data = {
 		"name": _name,
-		"self": {"SELF_DEFERRED": null, "SELF_PERSIST": null, "SELF_ONESHOT": null, "SELF_REFERENCE_COUNTED": null},
-		"nonself":
-		{"NONSELF_DEFERRED": null, "NONSELF_PERSIST": null, "NONSELF_ONESHOT": null, "NONSELF_REFERENCE_COUNTED": null},
+		"SELF_DEFERRED": null, "SELF_PERSIST": null, "SELF_ONESHOT": null, "SELF_REFERENCE_COUNTED": null,
+		"NONSELF_DEFERRED": null, "NONSELF_PERSIST": null, "NONSELF_ONESHOT": null, "NONSELF_REFERENCE_COUNTED": null,
 		"state":
 		{
 			"has_id": false,
@@ -85,67 +84,67 @@ func added(_signal_item: SignalItem, _valid = false):
 			match _signal_item.type:
 				SignalItemTypes.SELF_DEFERRED:
 					if not self.has_self_deferred:  # init
-						data.self.SELF_DEFERRED = ResourceCollection.new()
-						data.self.SELF_DEFERRED.set_base_type(BASE_TYPE)
-						data.self.SELF_DEFERRED.set_type_readonly(true)
-					if _deduped(data.self.SELF_DEFERRED, _signal_item):
-						data.self.SELF_DEFERRED.set(_signal_item.signal_name, _signal_item)
+						data.SELF_DEFERRED = ResourceCollection.new()
+						data.SELF_DEFERRED.set_base_type(BASE_TYPE)
+						data.SELF_DEFERRED.set_type_readonly(true)
+					if _deduped(data.SELF_DEFERRED, _signal_item):
+						data.SELF_DEFERRED.set(_signal_item.signal_name, _signal_item)
 						added = true
 				SignalItemTypes.SELF_PERSIST:
 					if not self.has_self_persist:  # init
-						data.self.SELF_PERSIST = ResourceCollection.new()
-						data.self.SELF_PERSIST.set_base_type(BASE_TYPE)
-						data.self.SELF_PERSIST.set_type_readonly(true)
-					if _deduped(data.self.SELF_PERSIST, _signal_item):
-						data.self.SELF_PERSIST.set(_signal_item.signal_name, _signal_item)
+						data.SELF_PERSIST = ResourceCollection.new()
+						data.SELF_PERSIST.set_base_type(BASE_TYPE)
+						data.SELF_PERSIST.set_type_readonly(true)
+					if _deduped(data.SELF_PERSIST, _signal_item):
+						data.SELF_PERSIST.set(_signal_item.signal_name, _signal_item)
 						added = true
 				SignalItemTypes.SELF_ONESHOT:
 					if not self.has_self_oneshot:  # init
-						data.self.SELF_ONESHOT = ResourceCollection.new()
-						data.self.SELF_ONESHOT.set_base_type(BASE_TYPE)
-						data.self.SELF_ONESHOT.set_type_readonly(true)
-					if _deduped(data.self.SELF_ONESHOT, _signal_item):
-						data.self.SELF_ONESHOT.set(_signal_item.signal_name, _signal_item)
+						data.SELF_ONESHOT = ResourceCollection.new()
+						data.SELF_ONESHOT.set_base_type(BASE_TYPE)
+						data.SELF_ONESHOT.set_type_readonly(true)
+					if _deduped(data.SELF_ONESHOT, _signal_item):
+						data.SELF_ONESHOT.set(_signal_item.signal_name, _signal_item)
 						added = true
 				SignalItemTypes.SELF_REFERENCE_COUNTED:
 					if not self.has_self_reference_counted:  # init
-						data.self.SELF_REFERENCE_COUNTED = ResourceCollection.new()
-						data.self.SELF_REFERENCE_COUNTED.set_base_type(BASE_TYPE)
-						data.self.SELF_REFERENCE_COUNTED.set_type_readonly(true)
-					if _deduped(data.self.SELF_REFERENCE_COUNTED, _signal_item):
-						data.self.SELF_REFERENCE_COUNTED.set(_signal_item.signal_name, _signal_item)
+						data.SELF_REFERENCE_COUNTED = ResourceCollection.new()
+						data.SELF_REFERENCE_COUNTED.set_base_type(BASE_TYPE)
+						data.SELF_REFERENCE_COUNTED.set_type_readonly(true)
+					if _deduped(data.SELF_REFERENCE_COUNTED, _signal_item):
+						data.SELF_REFERENCE_COUNTED.set(_signal_item.signal_name, _signal_item)
 						added = true
 				SignalItemTypes.NONSELF_DEFERRED:
 					if not self.has_nonself_deferred:  # init
-						data.nonself.NONSELF_DEFERRED = ResourceCollection.new()
-						data.nonself.NONSELF_DEFERRED.set_base_type(BASE_TYPE)
-						data.nonself.NONSELF_DEFERRED.set_type_readonly(true)
-					if _deduped(data.nonself.NONSELF_DEFERRED, _signal_item):
-						data.nonself.NONSELF_DEFERRED.set(_signal_item.signal_name, _signal_item)
+						data.NONSELF_DEFERRED = ResourceCollection.new()
+						data.NONSELF_DEFERRED.set_base_type(BASE_TYPE)
+						data.NONSELF_DEFERRED.set_type_readonly(true)
+					if _deduped(data.NONSELF_DEFERRED, _signal_item):
+						data.NONSELF_DEFERRED.set(_signal_item.signal_name, _signal_item)
 						added = true
 				SignalItemTypes.NONSELF_PERSIST:
 					if not self.has_self_persist:  # init
-						data.nonself.NONSELF_PERSIST = ResourceCollection.new()
-						data.nonself.NONSELF_PERSIST.set_base_type(BASE_TYPE)
-						data.nonself.NONSELF_PERSIST.set_type_readonly(true)
-					if _deduped(data.nonself.NONSELF_PERSIST, _signal_item):
-						data.nonself.NONSELF_PERSIST.set(_signal_item.signal_name, _signal_item)
+						data.NONSELF_PERSIST = ResourceCollection.new()
+						data.NONSELF_PERSIST.set_base_type(BASE_TYPE)
+						data.NONSELF_PERSIST.set_type_readonly(true)
+					if _deduped(data.NONSELF_PERSIST, _signal_item):
+						data.NONSELF_PERSIST.set(_signal_item.signal_name, _signal_item)
 						added = true
 				SignalItemTypes.NONSELF_ONESHOT:
 					if not self.has_self_oneshot:  # init
-						data.nonself.NONSELF_ONESHOT = ResourceCollection.new()
-						data.nonself.NONSELF_ONESHOT.set_base_type(BASE_TYPE)
-						data.nonself.NONSELF_ONESHOT.set_type_readonly(true)
-					if _deduped(data.nonself.NONSELF_ONESHOT, _signal_item):
-						data.nonself.NONSELF_ONESHOT.set(_signal_item.signal_name, _signal_item)
+						data.NONSELF_ONESHOT = ResourceCollection.new()
+						data.NONSELF_ONESHOT.set_base_type(BASE_TYPE)
+						data.NONSELF_ONESHOT.set_type_readonly(true)
+					if _deduped(data.NONSELF_ONESHOT, _signal_item):
+						data.NONSELF_ONESHOT.set(_signal_item.signal_name, _signal_item)
 						added = true
 				SignalItemTypes.NONSELF_REFERENCE_COUNTED:
 					if not self.has_self_reference_counted:  # init
-						data.nonself.NONSELF_REFERENCE_COUNTED = ResourceCollection.new()
-						data.nonself.NONSELF_REFERENCE_COUNTED.set_base_type(BASE_TYPE)
-						data.nonself.NONSELF_REFERENCE_COUNTED.set_type_readonly(true)
-					if _deduped(data.nonself.NONSELF_REFERENCE_COUNTED, _signal_item):
-						data.nonself.NONSELF_REFERENCE_COUNTED.set(_signal_item.signal_name, _signal_item)
+						data.NONSELF_REFERENCE_COUNTED = ResourceCollection.new()
+						data.NONSELF_REFERENCE_COUNTED.set_base_type(BASE_TYPE)
+						data.NONSELF_REFERENCE_COUNTED.set_type_readonly(true)
+					if _deduped(data.NONSELF_REFERENCE_COUNTED, _signal_item):
+						data.NONSELF_REFERENCE_COUNTED.set(_signal_item.signal_name, _signal_item)
 						added = true
 				_:
 					added = false
@@ -181,42 +180,42 @@ func get_name():
 
 func get_self_deferred():
 	if self.has_self_deferred:
-		return data.self.SELF_DEFERRED
+		return data.SELF_DEFERRED
 
 
 func get_self_persist():
 	if self.has_self_persist:
-		return data.self.SELF_PERSIST
+		return data.SELF_PERSIST
 
 
 func get_self_oneshot():
 	if self.has_self_oneshot:
-		return data.self.SELF_ONESHOT
+		return data.SELF_ONESHOT
 
 
 func get_self_reference_counted():
 	if self.has_self_reference_counted:
-		return data.self.SELF_REFERENCE_COUNTED
+		return data.SELF_REFERENCE_COUNTED
 
 
 func get_nonself_deferred():
 	if self.has_nonself_deferred:
-		return data.nonself.NONSELF_DEFERRED
+		return data.NONSELF_DEFERRED
 
 
 func get_nonself_persist():
 	if self.has_nonself_persist:
-		return data.nonself.NONSELF_PERSIST
+		return data.NONSELF_PERSIST
 
 
 func get_nonself_oneshot():
 	if self.has_nonself_oneshot:
-		return data.nonself.NONSELF_ONESHOT
+		return data.NONSELF_ONESHOT
 
 
 func get_nonself_reference_counted():
 	if self.has_nonself_reference_counted:
-		return data.nonself.NONSELF_REFERENCE_COUNTED
+		return data.NONSELF_REFERENCE_COUNTED
 
 
 func get_has_id():
@@ -232,42 +231,42 @@ func get_has_name():
 
 
 func get_has_self_deferred():
-	return _has(data.state.has_self_deferred, data.self.SELF_DEFERRED, SignalTypes.SignalType.SELF_DEFERRED)
+	return _has(data.state.has_self_deferred, data.SELF_DEFERRED, SignalItemTypes.SignalType.SELF_DEFERRED)
 
 
 func get_has_self_persist():
-	return _has(data.state.has_self_persist, data.self.SELF_PERSIST, SignalTypes.SignalType.SELF_PERSIST)
+	return _has(data.state.has_self_persist, data.SELF_PERSIST, SignalItemTypes.SignalType.SELF_PERSIST)
 
 
 func get_has_self_oneshot():
-	return _has(data.state.has_self_oneshot, data.self.SELF_ONESHOT, SignalTypes.SignalType.SELF_ONESHOT)
+	return _has(data.state.has_self_oneshot, data.SELF_ONESHOT, SignalItemTypes.SignalType.SELF_ONESHOT)
 
 
 func get_has_self_reference_counted():
 	return _has(
 		data.state.has_self_reference_counted,
-		data.self.SELF_REFERENCE_COUNTED,
-		SignalTypes.SignalType.SELF_REFERENCE_COUNTED
+		data.SELF_REFERENCE_COUNTED,
+		SignalItemTypes.SignalType.SELF_REFERENCE_COUNTED
 	)
 
 
 func get_has_nonself_deferred():
-	return _has(data.state.has_nonself_deferred, data.nonself.NONSELF_DEFERRED, SignalTypes.SignalType.NONSELF_DEFERRED)
+	return _has(data.state.has_nonself_deferred, data.NONSELF_DEFERRED, SignalItemTypes.SignalType.NONSELF_DEFERRED)
 
 
 func get_has_nonself_persist():
-	return _has(data.state.has_nonself_persist, data.nonself.NONSELF_PERSIST, SignalTypes.SignalType.NONSELF_PERSIST)
+	return _has(data.state.has_nonself_persist, data.NONSELF_PERSIST, SignalItemTypes.SignalType.NONSELF_PERSIST)
 
 
 func get_has_nonself_oneshot():
-	return _has(data.state.has_nonself_oneshot, data.nonself.NONSELF_ONESHOT, SignalTypes.SignalType.NONSELF_ONESHOT)
+	return _has(data.state.has_nonself_oneshot, data.NONSELF_ONESHOT, SignalItemTypes.SignalType.NONSELF_ONESHOT)
 
 
 func get_has_nonself_reference_counted():
 	return _has(
 		data.state.has_nonself_reference_counted,
-		data.nonself.NONSELF_REFERENCE_COUNTED,
-		SignalTypes.SignalType.NONSELF_REFERENCE_COUNTED
+		data.NONSELF_REFERENCE_COUNTED,
+		SignalItemTypes.SignalType.NONSELF_REFERENCE_COUNTED
 	)
 
 
@@ -288,33 +287,33 @@ func get_destroyed():
 
 
 # setters, getters helper functions
-func _has(_has_items = false, _items = null, _signal_type = SignalTypes.SignalType.NONE):
+func _has(_has_items = false, _items = null, _signal_type = SignalItemTypes.SignalType.NONE):
 	var has = false
 	var has_amt_gt = _items != null && _items.get_property_list().count() > 0
 	if not _has_items:
 		match _signal_type:
-			SignalTypes.SignalType.SELF_DEFERRED:
+			SignalItemTypes.SignalType.SELF_DEFERRED:
 				data.state.has_self_deferred = has_amt_gt
 				has = data.state.has_self_deferred
-			SignalTypes.SignalType.SELF_PERSIST:
+			SignalItemTypes.SignalType.SELF_PERSIST:
 				data.state.has_self_persist = has_amt_gt
 				has = data.state.has_self_persist
-			SignalTypes.SignalType.SELF_ONESHOT:
+			SignalItemTypes.SignalType.SELF_ONESHOT:
 				data.state.has_self_oneshot = has_amt_gt
 				has = data.state.has_self_oneshot
-			SignalTypes.SignalType.SELF_REFERENCE_COUNTED:
+			SignalItemTypes.SignalType.SELF_REFERENCE_COUNTED:
 				data.state.has_self_reference_counted = has_amt_gt
 				has = data.state.has_self_reference_counted
-			SignalTypes.SignalType.NONSELF_DEFERRED:
+			SignalItemTypes.SignalType.NONSELF_DEFERRED:
 				data.state.has_nonself_deferred = has_amt_gt
 				has = data.state.has_nonself_deferred
-			SignalTypes.SignalType.NONSELF_PERSIST:
+			SignalItemTypes.SignalType.NONSELF_PERSIST:
 				data.state.has_nonself_persist = has_amt_gt
 				has = data.state.has_nonself_persist
-			SignalTypes.SignalType.NONSELF_ONESHOT:
+			SignalItemTypes.SignalType.NONSELF_ONESHOT:
 				data.state.has_nonself_oneshot = has_amt_gt
 				has = data.state.has_nonself_oneshot
-			SignalTypes.SignalType.NONSELF_REFERENCE_COUNTED:
+			SignalItemTypes.SignalType.NONSELF_REFERENCE_COUNTED:
 				data.state.has_nonself_reference_counted = has_amt_gt
 				has = data.state.has_nonself_reference_counted
 			_:

@@ -1,63 +1,85 @@
 tool
 class_name Item extends Resource
 
-export(Resource) var parent setget set_parent, get_parent
-export(Resource) var cached setget set_cached, get_cached
-export(String) var name setget set_name, get_name
-export(int) var parent_id setget , get_parent_id
+export(Resource) var ref_self setget set_ref_self, get_ref_self
+export(Resource) var ref_parent setget set_ref_parent, get_ref_parent
 export(int) var id setget , get_id
-export(bool) var has_parent setget , get_has_parent
-export(bool) var is_cached setget , get_is_cached
+export(int) var parent_id setget , get_parent_id
+export(String) var name setget , get_name
+export(bool) var has_id setget , get_has_id
+export(bool) var has_parent_id setget , get_has_parent_id
+export(bool) var saved setget , get_saved
+export(bool) var saved_parent setget , get_saved_parent
 export(bool) var has_name setget , get_has_name
 export(bool) var initialized setget set_initialized, get_initialized
 export(bool) var enabled setget set_enabled, get_enabled
 export(bool) var destroyed setget set_destroyed, get_destroyed
 
 var meta_data: Dictionary
-var saved_parent: EncodedObjectAsID
-var saved_self: EncodedObjectAsID
 
 
 func _init():
 	resource_local_to_scene = true
 	meta_data = {
+		"ref_self": null,
+		"ref_parent": null,
+		"id": 0,
+		"parent_id": 0,
 		"name": "",
 		"state":
 		{
-			"has_parent": false,
-			"is_cached": false,
+			"saved": false,
+			"saved_parent": false,
+			"has_id": false,
+			"has_parent_id": false,
 			"has_name": false,
 			"initialized": false,
 			"enabled": false,
 			"destroyed": false
 		}
 	}
-	saved_parent.object_id = 0
-	saved_self.object_id = 0
 
 
 # setters, getters functions
-func set_parent(_parent: Object):
-	saved_parent.object_id = _save(saved_parent.object_id, self.has_parent, _parent, _parent.get_instance_id())
+func set_ref_self(_ref_self: Object):
+	if not self.saved:
+		if IDUtility.object_is_valid(_ref_self):
+			meta_data.ref_self = _ref_self
+			meta_data.id = meta_data.ref_self.get_instance_id()
+			meta_data.state.saved = true
+			if not self.has_name:
+				var _name = meta_data.ref_self.get_class()
+				if StringUtility.is_valid(_name):
+					meta_data.name = _name
+					meta_data.state.has_name = true
 
 
-func get_parent():
-	if self.has_parent:
-		return instance_from_id(saved_parent.object_id)
+func get_ref_self():
+	if self.saved:
+		return meta_data.ref_self
 
 
-func set_cached(_cached: Object):
-	saved_self.object_id = _save(saved_self.object_id, self.is_cached, _cached, _cached.get_instance_id())
+func set_ref_parent(_ref_parent: Object):
+	if not self.saved_parent:
+		if IDUtility.object_is_valid(_ref_parent):
+			meta_data.ref_parent = _ref_parent
+			meta_data.parent_id = meta_data.ref_parent.get_instance_id()
+			meta_data.state.saved_parent = true
 
 
-func get_cached():
-	if self.is_cached:
-		return instance_from_id(saved_self.object_id)
+func get_ref_parent():
+	if self.saved_parent:
+		return meta_data.ref_parent
 
 
-func set_name(_name: String):
-	if not self.has_name && StringUtility.is_valid(_name):
-		meta_data.name = _name
+func get_id():
+	if self.saved:
+		return meta_data.id
+
+
+func get_parent_id():
+	if self.saved_parent:
+		return meta_data.parent_id
 
 
 func get_name():
@@ -65,26 +87,28 @@ func get_name():
 		return meta_data.name
 
 
-func get_parent_id():
-	if self.has_parent:
-		return saved_parent.object_id
+func get_saved():
+	if not meta_data.state.saved:
+		meta_data.state.saved = IDUtility.object_is_valid(meta_data.ref_self)
+	return meta_data.state.saved
 
 
-func get_id():
-	if self.is_cached:
-		return saved_self.object_id
+func get_saved_parent():
+	if not meta_data.state.saved_parent:
+		meta_data.state.saved_parent = IDUtility.object_is_valid(meta_data.ref_parent)
+	return meta_data.state.saved_parent
 
 
-func get_has_parent():
-	if not meta_data.state.has_parent:
-		meta_data.state.has_parent = IDUtility.is_valid(saved_parent.object_id)
-	return meta_data.state.has_parent
+func get_has_id():
+	if not meta_data.state.has_id:
+		meta_data.state.has_id = IDUtility.is_valid(meta_data.id)
+	return meta_data.state.has_id
 
 
-func get_is_cached():
-	if not meta_data.state.is_cached:
-		meta_data.state.is_cached = IDUtility.is_valid(saved_self.object_id)
-	return meta_data.state.is_cached
+func get_has_parent_id():
+	if not meta_data.state.has_parent_id:
+		meta_data.state.has_parent_id = IDUtility.is_valid(meta_data.parent_id)
+	return meta_data.state.has_parent_id
 
 
 func get_has_name():
@@ -94,12 +118,12 @@ func get_has_name():
 
 
 func set_initialized(_initialized: bool):
-	if _initialized && not self.initialized && self.is_cached && self.has_name:
+	if _initialized && not self.initialized && self.is_saved && self.has_name:
 		meta_data.state.initialized = _initialized
 
 
 func get_initialized():
-	return meta_data.initialized
+	return meta_data.state.initialized
 
 
 func set_enabled(_enabled: bool):
@@ -120,11 +144,3 @@ func set_destroyed(_destroyed: bool):
 
 func get_destroyed():
 	return meta_data.state.destroyed
-
-
-# setters, getters helper functions
-func _save(_init_obj_id: int, _has_obj: bool, _obj: Object, _obj_id: int):
-	var _id = _init_obj_id
-	if not _has_obj && _obj != null && IDUtility.is_valid(_obj_id):
-		_id = _obj_id
-	return _id
