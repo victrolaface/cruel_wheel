@@ -184,22 +184,6 @@ func added(_signal_item: SignalItem, _valid = false):
 """
 
 
-func _deduped(_signal_item_col: ResourceCollection, _signal_item: SignalItem):
-	var props = _signal_item_col.get_property_list()
-	var check_dupes = props.count() > 0
-	var add_kvp = not check_dupes
-	if check_dupes:
-		var is_dupe = false
-		while check_dupes:
-			for p in props:
-				if p == _signal_item.signal_name:
-					is_dupe = true
-				check_dupes = not is_dupe
-			check_dupes = false
-		add_kvp = not is_dupe
-	return add_kvp
-
-
 # setters, getters functions
 func get_manager():
 	if self.has_manager:

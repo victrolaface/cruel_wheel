@@ -1,7 +1,7 @@
 class_name SignalItemUtility
 
 
-static func is_valid(_signal_item: SignalItem):
+static func is_valid(_signal_item):
 	return (
 		_is_class_valid(_signal_item)
 		&& is_params_valid(
