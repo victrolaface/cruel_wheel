@@ -1,3 +1,4 @@
+"""
 tool
 class_name SignalItem extends Item
 
@@ -59,7 +60,7 @@ func _init(
 			"connected": false,
 		}
 	}
-	var valid = SignalItemUtility.is_params_valid(_signal_name, _type, _obj_from, _obj_to, _method, _arguments, _flags)
+	var valid = SignalUtility.is_params_valid(_signal_name, _type, _obj_from, _obj_to, _method, _arguments, _flags)
 	if valid:
 		data.signal_name = _signal_name
 		data.type = _type
@@ -182,3 +183,4 @@ func get_connected():
 	if not data.state.connected:
 		on_connected()
 	return data.state.connected
+"""

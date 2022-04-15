@@ -1,5 +1,4 @@
-tool
-class_name StringUtility extends Resource
+class_name StringUtility
 
 
 static func is_valid(_str: String):

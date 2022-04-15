@@ -1,3 +1,4 @@
+"""
 extends Resource
 class_name ComponentMetaData
 
@@ -15,3 +16,4 @@ func _init():
 	state = ComponentMetaStateData.new()
 	connected = ComponentMetaConnectionsData.new()
 	resource_local_to_scene = true
+"""

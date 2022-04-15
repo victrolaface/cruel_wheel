@@ -1,3 +1,4 @@
+"""
 extends Resource
 class_name ComponentMetaConnectionsData
 
@@ -15,3 +16,4 @@ func _init():
 	destroyed = false
 	parented = false
 	initialized = false
+"""

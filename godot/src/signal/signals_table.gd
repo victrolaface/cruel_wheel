@@ -1,3 +1,4 @@
+"""
 class_name SignalsTable extends Item
 
 export(Resource) var deferred setget , get_deferred
@@ -197,3 +198,4 @@ func get_has_oneshot():
 
 func get_has_reference_counted():
 	return data.state.has_reference_counted
+"""

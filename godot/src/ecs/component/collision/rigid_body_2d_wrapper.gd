@@ -1,5 +1,4 @@
-tool
-class_name RigidBody2DWrapper extends Resource
+#class_name RigidBody2DWrapper extends Resource
 
 """
 changed()
@@ -9,11 +8,11 @@ body_shape_entered ( RID body_rid, Node body, int body_shape_index, int local_sh
 body_shape_exited ( RID body_rid, Node body, int body_shape_index, int local_shape_index )
 sleeping_state_changed ( )
 """
-
-signal rigid_body_changed()
-signal received_rigid_body()
-signal received_collider()
-signal received_physics_override()
+"""
+signal rigid_body_changed
+signal received_rigid_body
+signal received_collider
+signal received_physics_override
 signal body_entered(body)
 signal body_exited(body)
 signal body_shape_entered(body_rid, body, body_shape_index, local_shape_index)
@@ -388,7 +387,9 @@ func get_linear_velocity():
 
 
 # getters, setters helper functions
-func _validate_physics_material(_physics_material: PhysicsMaterial, _absorbent: bool, _bounce: float, _friction: float, _rough: bool):
+func _validate_physics_material(
+	_physics_material: PhysicsMaterial, _absorbent: bool, _bounce: float, _friction: float, _rough: bool
+):
 	var valid_amount = 0
 	valid_amount = _valid_physics_material(valid_amount, rb.physics_material_override.absorent != _absorbent)
 	valid_amount = _valid_physics_material(valid_amount, rb.physics_material_override.bounce != _bounce)
@@ -465,3 +466,4 @@ func test_motion(_motion: Vector2, _infinite_inertia = true, _margin = 0.08, _re
 	if not has_rb:
 		return
 	return rb.test_motion(_motion, _infinite_inertia, _margin, _result)
+"""

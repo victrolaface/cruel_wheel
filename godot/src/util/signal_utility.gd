@@ -1,6 +1,7 @@
-class_name SignalItemUtility
+class_name SignalUtility
 
 
+# public methods
 static func is_valid(_signal_item):
 	return (
 		_is_class_valid(_signal_item)
@@ -27,9 +28,9 @@ static func is_params_valid(
 ):
 	var valid = false
 	var name_valid = StringUtility.is_valid(_signal_name)
-	var type_valid = is_valid_type(_type)
-	var objs_valid = IDUtility.object_is_valid(_obj_from) && IDUtility.object_is_valid(_obj_to)
-	var flags_valid = is_valid_flags(_flags)
+	var type_valid = is_type_valid(_type)
+	var objs_valid = ObjectUtility.is_valid(_obj_from) && ObjectUtility.is_valid(_obj_to)
+	var flags_valid = is_flags_valid(_flags)
 	var can_connect = name_valid && type_valid && objs_valid && flags_valid
 	if can_connect:
 		valid = _obj_from.is_connected(_signal_name, _obj_to, _method)
@@ -40,24 +41,43 @@ static func is_params_valid(
 	return valid
 
 
+static func is_connect_valid(
+	_signal_name = "",
+	_object_from = null,
+	_object_to = null,
+	_method = "",
+	_arguments = [],
+	_flags = Object.CONNECT_DEFERRED
+):
+	var valid = false
+	if not _object_from == null && _object_to == null:
+		_object_to = _object_from
+	if not _signal_name == "" && not _method == "":
+		valid = _object_from.is_connected(_signal_name, _object_to, _method)
+		if not valid:
+			valid = _object_from.connect(_signal_name, _object_to, _method, _arguments, _flags)
+	return valid
+
+
 static func _is_class_valid(_i):
-	return _i.get_class() == "SignalItem" && IDUtility.object_is_valid(_i)
+	return _i.get_class() == "SignalItem" && ObjectUtility.object_is_valid(_i)
 
 
-static func is_valid_type(_type):
+static func is_type_valid(_type):
 	var valid = SignalItemTypes.valid_signal_types()
 	var invalid = SignalItemTypes.invalid_signal_type()
-	return _is_valid_type_or_flag(_type, valid, invalid)
+	return _is_type_or_flags_valid(_type, valid, invalid)
 
 
-static func is_valid_flags(_flags):
+static func is_flags_valid(_flags):
 	var valid = SignalItemTypes.valid_signal_flag_types()
 	var invalid = SignalItemTypes.invalid_signal_flag_type()
-	return _is_valid_type_or_flag(_flags, valid, invalid)
+	return _is_type_or_flags_valid(_flags, valid, invalid)
 
 
-static func _is_valid_type_or_flag(_i, _valid, _invalid):
-	var valid = _i != _invalid  #false
+# private methods
+static func _is_type_or_flags_valid(_i, _valid, _invalid):
+	var valid = not _i == _invalid
 	if valid:
 		var amt = _valid.count()
 		if amt > 0:

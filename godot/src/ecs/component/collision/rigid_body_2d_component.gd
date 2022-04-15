@@ -1,7 +1,7 @@
 #warning-ignore-all:unused_signal
-tool
-extends Component
-class_name RigidBody2dComponent
+#tool
+#extends Component
+#class_name RigidBody2dComponent
 
 """
 signal received_collider(name, id)
