@@ -1,152 +1,115 @@
+"""
 class_name Item extends Resource
 
-signal named
-signal entity_id_received
-signal init_meta
-signal is_init
+# signals
+signal is_initialized
 signal is_enabled
 signal is_disabled
 signal is_destroyed
 
+# properties
 export(String) var name setget , get_name
-export(int) var entity_id setget set_entity_id, get_entity_id
 export(bool) var initialized setget , get_initialized
 export(bool) var enabled setget , get_enabled
 export(bool) var destroyed setget , get_destroyed
 
-var meta_data: Dictionary
+# fields
+var itm_data: Dictionary
 
 
-# signal methods
-func _on_cached():
-	meta_data.state.cached = true
-
-
-func _on_named():
-	meta_data.state.named = true
-
-
-func _on_entity_id_received():
-	meta_data.state.has_entity_id = true
-	if not meta_data.state.init_meta && meta_data.state.cached && meta_data.state.named:
-		emit_signal("init_meta")
-
-
-func _on_init_meta():
-	meta_data.state.meta_init = true
-	emit_signal("is_init")
-
-
-func _on_init():
-	meta_data.state.init = true
-	emit_signal("is_enabled")
-
-
-func _on_enabled():
-	meta_data.state.enabled = true
-
-
-func _on_disabled():
-	meta_data.state.enabled = false
-
-
-func _on_destroyed():
-	meta_data.state.destroyed = true
-
-
+# default methods
 func _init(_name = "", _ref_self = null):
-	resource_local_to_scene = true
-	var cache_connect = _init_connect("cached", "_on_cached", CONNECT_ONESHOT)
-	var name_connect = _init_connect("named", "_on_named", CONNECT_ONESHOT)
-	var ent_id_connect = _init_connect("entity_id_received", "_on_entity_id_received", CONNECT_ONESHOT)
-	var meta_init_connect = _init_connect("init_meta", "_on_init_meta", CONNECT_ONESHOT)
-	var init_connect = _init_connect("is_init", "_on_init", CONNECT_ONESHOT)
-	var enable_connect = _init_connect("is_enabled", "_on_enabled", CONNECT_DEFERRED)
-	var disable_connect = _init_connect("is_disabled", "_on_disabled", CONNECT_DEFERRED)
-	var destroy_connect = _init_connect("is_destroyed", "_on_destroyed", CONNECT_ONESHOT)
-	meta_data = {
+	make_local()
+	var init_connect = SignalUtility.is_self_connect_valid("is_initialized", self, "_on_initialized", CONNECT_ONESHOT)
+	var enable_connect = SignalUtility.is_self_connect_valid("is_enabled", self, "_on_enabled", CONNECT_DEFERRED)
+	var disable_connect = SignalUtility.is_self_connect_valid("is_disabled", self, "_on_disabled", CONNECT_DEFERRED)
+	var destroy_connect = SignalUtility.is_self_connect_valid("is_destroyed", self, "_on_destroyed", CONNECT_ONESHOT)
+	itm_data = {
 		"name": _name,
 		"ref_self": _ref_self,
-		"entity_id": 0,
 		"state":
 		{
-			"cached_connected": cache_connect,
-			"named_connected": name_connect,
-			"entity_id_received_connected": ent_id_connect,
-			"init_meta_connected": meta_init_connect,
-			"is_init_connected": init_connect,
-			"is_enabled_connected": enable_connect,
-			"is_disabled_connected": disable_connect,
-			"is_destroyed_connected": destroy_connect,
-			"named": false,
-			"has_entity_id": false,
-			"cached": false,
-			"meta_init": false,
-			"init": false,
+			"initialized_connected": init_connect,
+			"enabled_connected": enable_connect,
+			"disabled_connected": disable_connect,
+			"destroyed_connected": destroy_connect,
+			"initialized": false,
 			"enabled": false,
 			"destroyed": false
 		}
 	}
 	var init_valid = (
-		meta_data.state.cached_connected
-		&& meta_data.state.named_connected
-		&& meta_data.state.entity_id_received_connected
-		&& meta_data.state.init_meta_connected
-		&& meta_data.state.is_init_connected
-		&& meta_data.state.is_enabled_connected
-		&& meta_data.state.is_disabled_connected
-		&& meta_data.state.is_destroyed_connected
+		ObjectUtility.is_valid(itm_data.ref_self)
+		&& StringUtility.is_valid(itm_data.name)
+		&& itm_data.state.initialized_connected
+		&& itm_data.state.enabled_connected
+		&& itm_data.state.disabled_connected
+		&& itm_data.state.destroyed_connected
 	)
 	if init_valid:
-		emit_signal("cached")
-		emit_signal("named")
+		emit_signal("is_initialized")
 
 
-# _init helper methods
-func _init_connect(_signal_name: String, _method: String, _flags: int):
-	return SignalUtility.is_connect_valid(_signal_name, self, null, _method, [], _flags)
+# helper methods
+func _can_enable(_enabled: bool):
+	return not _enabled == itm_data.state.enabled && itm_data.state.initialized && not itm_data.state.destroyed
 
 
-# public methods
-func enable():
-	if not self.enabled && self.initialized && not self.destroyed:
+# signal methods
+func _on_initialized():
+	itm_data.state.initialized = true
+	if not itm_data.state.enabled && not itm_data.state.destroyed:
 		emit_signal("is_enabled")
 
 
-func disable():
-	if self.enabled && self.initialized && not self.destroyed:
-		emit_signal("is_disabled")
+func _on_enabled():
+	itm_data.state.enabled = true
 
 
-func destroy():
-	disable()
-	emit_signal("is_destroyed")
+func _on_disabled():
+	itm_data.state.enabled = false
+
+
+func _on_destroyed():
+	itm_data.state.destroyed = true
 
 
 # setters, getters functions
 func get_name():
-	if meta_data.state.named:
-		return meta_data.name
-
-
-func set_entity_id(_entity_id: int):
-	if not meta_data.state.has_entity_id && EntityUtility.is_valid(_entity_id):
-		meta_data.entity_id = _entity_id
-		emit_signal("entity_id_received")
-
-
-func get_entity_id():
-	if meta_data.state.has_entity_id:
-		return meta_data.entity_id
+	if self.initialized:
+		return itm_data.name
 
 
 func get_initialized():
-	return meta_data.state.init
+	return itm_data.state.init
 
 
 func get_enabled():
-	return meta_data.state.enabled
+	return itm_data.state.enabled
 
 
 func get_destroyed():
-	return meta_data.state.destroyed
+	return itm_data.state.destroyed
+
+
+# public methods
+func make_local():
+	if not resource_local_to_scene:
+		resource_local_to_scene = true
+
+
+func enable():
+	if _can_enable(true):
+		emit_signal("is_enabled")
+
+
+func disable():
+	if _can_enable(false):
+		emit_signal("is_disabled")
+
+
+func _destroy(_do: bool):
+	if _do:
+		disable()
+		emit_signal("is_destroyed")
+"""

@@ -41,6 +41,10 @@ static func is_params_valid(
 	return valid
 
 
+static func is_self_connect_valid(_signal_name: String, _ref_obj: Object, _method: String, _flags: int):
+	return is_connect_valid(_signal_name, _ref_obj, null, _method, [], _flags)
+
+
 static func is_connect_valid(
 	_signal_name = "",
 	_object_from = null,
