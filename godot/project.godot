@@ -54,12 +54,12 @@ _global_script_classes=[ {
 "language": "GDScript",
 "path": "res://src/ecs/component/component.gd"
 }, {
-"base": "CallbackDelegator",
+"base": "Resource",
 "class": "ComponentManager",
 "language": "GDScript",
 "path": "res://src/ecs/component/component_manager.gd"
 }, {
-"base": "Resource",
+"base": "ResourceSet",
 "class": "ComponentSet",
 "language": "GDScript",
 "path": "res://src/ecs/component/component_set.gd"
