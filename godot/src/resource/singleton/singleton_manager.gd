@@ -3,19 +3,30 @@ class_name SingletonManager extends Node
 
 const _DB = preload("res://data/singleton_db.tres")
 
+const _CLASS_NAME = "SingletonManager"
+
+
+func is_class(_class):
+	return _class == get_class() or _class == "Singleton"
+
+
+func get_class():
+	return _CLASS_NAME
+
+
+func _init():
+	if not _DB.enabled:
+		_DB.add(self, true)
+
+
+static func singleton(_singleton):
+	if _DB.has(_singleton):
+		pass
+	#return _DB.singleton(_singleton)
+
+
 #==============================================================================================================================
 """
-tool
-class_name Singletons
-extends Reference
-# author: xdgamestudios
-# license: MIT
-# description: An API for accessing singletons
-# deps:
-#	- singleton_cache.tres
-
-const SINGLETON_CACHE = preload("res://addons/godot-next/data/singleton_cache.tres")
-
 # Look up a singleton by its script. If it doesn't exist yet, make it.
 # If it's a Resource with a persistent file path, load it in from memory.
 static func fetch(p_script: Script) -> Object:
@@ -322,4 +333,20 @@ func _on_element_script_change(p_element: Resource) -> void:
 func _set_base_type_behavior() -> void:
 	_class_type.name = "Behavior"
 	_elements.set_base_type(_class_type.res)
+"""
+
+#====================================================================================================================
+"""
+tool
+class_name Singletons
+extends Reference
+# author: xdgamestudios
+# license: MIT
+# description: An API for accessing singletons
+# deps:
+#	- singleton_cache.tres
+
+const SINGLETON_CACHE = preload("res://addons/godot-next/data/singleton_cache.tres")
+
+
 """
