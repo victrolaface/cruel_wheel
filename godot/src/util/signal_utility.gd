@@ -3,17 +3,16 @@ class_name SignalUtility
 
 # public methods
 static func is_valid(_signal_item):
-	return (
-		_is_class_valid(_signal_item)
-		&& is_params_valid(
-			_signal_item.signal_name,
-			_signal_item.type,
-			_signal_item.object_from,
-			_signal_item.object_to,
-			_signal_item.method,
-			_signal_item.arguments,
-			_signal_item.flags
-		)
+	#_is_class_valid(_signal_item)
+	#&&
+	return is_params_valid(
+		_signal_item.signal_name,
+		_signal_item.type,
+		_signal_item.object_from,
+		_signal_item.object_to,
+		_signal_item.method,
+		_signal_item.arguments,
+		_signal_item.flags
 	)
 
 
@@ -29,7 +28,7 @@ static func is_params_valid(
 	var valid = false
 	var name_valid = StringUtility.is_valid(_signal_name)
 	var type_valid = is_type_valid(_type)
-	var objs_valid = ObjectUtility.is_valid(_obj_from) && ObjectUtility.is_valid(_obj_to)
+	var objs_valid = not _obj_from == null && not _obj_to == null
 	var flags_valid = is_flags_valid(_flags)
 	var can_connect = name_valid && type_valid && objs_valid && flags_valid
 	if can_connect:
@@ -63,8 +62,15 @@ static func is_connect_valid(
 	return valid
 
 
-static func _is_class_valid(_i):
-	return _i.get_class() == "SignalItem" && ObjectUtility.object_is_valid(_i)
+static func is_self_disconnect(_signal_name = "", _obj = null, _method = ""):
+	var disconnected = not _obj.is_connected(_signal_name, _obj, _method)
+	if not disconnected:
+		disconnected = _obj.disconnect(_signal_name, _obj, _method)
+	return disconnected
+
+
+#static func _is_class_valid(_i):
+#	return _i.get_class() == "SignalItem" && ObjectUtility.object_is_valid(_i)
 
 
 static func is_type_valid(_type):

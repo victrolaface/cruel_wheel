@@ -1,3 +1,4 @@
+tool
 class_name Component extends Resource
 
 # signals
@@ -14,11 +15,11 @@ export(String) var name setget , get_name
 export(Resource) var entity setget , get_parent_entity
 export(int) var entity_id setget , get_parent_entity_id
 export(bool) var initialized setget , get_initialized
-export(bool) var enabled setget , get_enabled
+export(bool) var enabled setget set_enabled, get_enabled
 export(bool) var destroyed setget , get_destroyed
 
 # fields
-var cmpnt_data: Dictionary
+var data: Dictionary
 const COMPONENT_TYPE = "Component"
 
 
@@ -32,7 +33,7 @@ func _init(_ref_entity = null, _entity_id = 0, _name = "", _ref_self = null):
 	var enbl = SignalUtility.is_self_connect_valid("is_enabled", self, "_on_enabled", CONNECT_DEFERRED)
 	var dsbl = SignalUtility.is_self_connect_valid("is_disabled", self, "_on_disabled", CONNECT_DEFERRED)
 	var dstr = SignalUtility.is_self_connect_valid("is_destroyed", self, "_on_destroyed", CONNECT_ONESHOT)
-	cmpnt_data = {
+	data = {
 		"name": _name,
 		"ref_self": _ref_self,
 		"ref_entity": _ref_entity,
@@ -56,17 +57,17 @@ func _init(_ref_entity = null, _entity_id = 0, _name = "", _ref_self = null):
 		}
 	}
 	var valid_init = (
-		StringUtility.is_valid(cmpnt_data.name)
-		&& ObjectUtility.is_valid(cmpnt_data.ref_self)
-		&& ObjectUtility.is_valid(cmpnt_data.ref_entity)
-		&& EntityUtility.is_id_valid(cmpnt_data.entity_id)
-		&& cmpnt_data.state.received_entity_connected
-		&& cmpnt_data.state.received_entity_id_connected
-		&& cmpnt_data.state.named_connected
-		&& cmpnt_data.state.initialized_connected
-		&& cmpnt_data.state.enabled_connected
-		&& cmpnt_data.state.disabled_connected
-		&& cmpnt_data.state.destroyed_connected
+		StringUtility.is_valid(data.name)
+		#&& ObjectUtility.is_valid(data.ref_self)
+		#&& ObjectUtility.is_valid(data.ref_entity)
+		#&& EntityUtility.is_id_valid(data.entity_id)
+		&& data.state.received_entity_connected
+		&& data.state.received_entity_id_connected
+		&& data.state.named_connected
+		&& data.state.initialized_connected
+		&& data.state.enabled_connected
+		&& data.state.disabled_connected
+		&& data.state.destroyed_connected
 	)
 	if valid_init:
 		emit_signal("received_entity")
@@ -77,42 +78,55 @@ func _init(_ref_entity = null, _entity_id = 0, _name = "", _ref_self = null):
 
 # helper methods
 func _can_enable(_enabled: bool):
-	return not _enabled == cmpnt_data.state.enabled && cmpnt_data.state.initialized && not cmpnt_data.state.destroyed
+	return not _enabled == data.state.enabled && data.state.initialized && not data.state.destroyed
 
 
 # signal methods
 func _on_received_parent_entity():
-	cmpnt_data.state.has_parent_entity = true
-	cmpnt_data.state.received_parent_entity_connected = false
+	data.state.has_parent_entity = true
+	data.state.received_parent_entity_connected = false
 
 
 func _on_received_entity_id():
-	cmpnt_data.state.has_entity_id = true
-	cmpnt_data.state.received_parent_entity_id_connected = false
+	data.state.has_entity_id = true
+	data.state.received_parent_entity_id_connected = false
 
 
 func _on_named():
-	cmpnt_data.state.has_name = true
-	cmpnt_data.state.named_connected = false
+	data.state.has_name = true
+	data.state.named_connected = false
 
 
 func _on_initialized():
-	cmpnt_data.state.initialized = true
-	if not cmpnt_data.state.enabled && not cmpnt_data.state.destroyed:
+	data.state.initialized = true
+	if not data.state.enabled && not data.state.destroyed:
 		emit_signal("is_enabled")
 
 
 func _on_enabled():
-	cmpnt_data.state.enabled = true
+	data.state.enabled = true
+	#func set_enabled(p_enable: bool) -> void:
+	#if data.state.enabled == _enabled#p_enable:
+	#	return
+	#enabled = _enabled#p_enable
+	#if _enabled#p_enable:
+	#	_on_enable()
+	#	owner._add_to_callbacks()
+	#else:
+	#	_on_disable()
+	#	owner._remove_from_callbacks()
+
+	#emit_signal("entity_add_to_components")
 
 
 func _on_disabled():
-	cmpnt_data.state.enabled = false
+	data.state.enabled = false
+	#emit_signal("entity_disable_from_components")
 
 
 func _on_destroyed():
-	cmpnt_data.state.destroyed = true
-	cmpnt_data.state.destroyed_connected = false
+	data.state.destroyed = true
+	data.state.destroyed_connected = false
 
 
 # setters, getters functions
@@ -121,30 +135,37 @@ func get_type():
 
 
 func get_parent_entity():
-	if cmpnt_data.state.has_parent_entity:
-		return cmpnt_data.ref_entity
+	if data.state.has_parent_entity:
+		return data.ref_entity
 
 
 func get_parent_entity_id():
-	if cmpnt_data.state.has_parent_entity_id:
-		return cmpnt_data.entity_id
+	if data.state.has_parent_entity_id:
+		return data.entity_id
 
 
 func get_name():
-	if cmpnt_data.state.initialized:
-		return cmpnt_data.name
+	if data.state.initialized:
+		return data.name
 
 
 func get_initialized():
-	return cmpnt_data.state.initialized
+	return data.state.initialized
+
+
+func set_enabled(_enabled: bool):
+	if _enabled && not data.state.enabled:
+		emit_signal("is_enabled")
+	elif not _enabled && data.state.enabled:
+		emit_signal("is_disabled")
 
 
 func get_enabled():
-	return cmpnt_data.state.enabled
+	return data.state.enabled
 
 
 func get_destroyed():
-	return cmpnt_data.state.destroyed
+	return data.state.destroyed
 
 
 # public methods

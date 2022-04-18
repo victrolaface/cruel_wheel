@@ -1,20 +1,13 @@
-[gd_scene load_steps=6 format=2]
+[gd_scene load_steps=4 format=2]
 
 [ext_resource path="res://src/ecs/component/component_manager.gd" type="Script" id=1]
-[ext_resource path="res://addons/godot-next/resources/resource_collections/resource_set.gd" type="Script" id=2]
 [ext_resource path="res://icon.png" type="Texture" id=3]
-
-[sub_resource type="Resource" id=1]
-resource_name = "[ Set ]"
-script = ExtResource( 2 )
 
 [sub_resource type="RectangleShape2D" id=2]
 extents = Vector2( 26, 28 )
 
 [node name="ComponentManager" type="Node"]
 script = ExtResource( 1 )
-id = null
-_elements = SubResource( 1 )
 
 [node name="RigidBody2D" type="RigidBody2D" parent="."]
 

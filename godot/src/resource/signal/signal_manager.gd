@@ -1,4 +1,4 @@
-class_name SignalManager extends Item
+class_name SignalManager extends Resource
 
 #export(int) var id setget , get_id
 #export(String) var name setget , get_name

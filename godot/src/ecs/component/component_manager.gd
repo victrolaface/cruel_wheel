@@ -1,3 +1,4 @@
+"""
 class_name ComponentManager extends Resource
 
 signal received_entity
@@ -17,7 +18,8 @@ signal destroyed
 export(Resource) var components setget , get_components
 
 var data: Dictionary
-
+#var callbacks: Dictionary
+#var class_type: ClassType
 
 func _init(_ref_entity = null, _entity_id = 0, _transform2D_component = null, _transform_component = null).():
 	if not resource_local_to_scene:
@@ -56,6 +58,8 @@ func _init(_ref_entity = null, _entity_id = 0, _transform2D_component = null, _t
 	data = {
 		"ref_entity": _ref_entity,
 		"entity_id": _entity_id,
+		"callbacks":,
+		"class_type":,
 		"components": ComponentSet.new(),
 		"to_be_added": ComponentSet.new(),
 		"to_be_enabled": ComponentSet.new(),
@@ -132,7 +136,8 @@ func _init(_ref_entity = null, _entity_id = 0, _transform2D_component = null, _t
 
 
 #func get():
-
+func has(_component_name: String):
+	pass#if data.
 
 func _on_added_component():
 	pass
@@ -153,7 +158,6 @@ func add(_component = null):
 		# var cmpnt_name = _component.get_class()
 	#pass
 
-
 func enable():
 	pass
 
@@ -172,3 +176,5 @@ func clear():
 
 func remove():
 	pass
+
+"""
