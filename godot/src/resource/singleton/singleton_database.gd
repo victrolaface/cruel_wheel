@@ -1,13 +1,14 @@
 tool
 class_name SingletonDatabase extends Resource
 
-var cache: Dictionary = {}
-var paths: Dictionary = {}
+# fields
+var _data = {"cache": {}, "paths": {}}
 
 
+# public methods
 func get_cache():
-	return cache
+	return _data.cache
 
 
 func get_paths():
-	return paths
+	return _data.paths
