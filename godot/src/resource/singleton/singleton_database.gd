@@ -82,78 +82,79 @@ func has(_singleton_or_path):
 		var is_valid_singleton_from_path = is_path && SingletonUtility.is_valid(singleton_from_path)
 		if not _data.state.has_singletons:
 			if is_valid_singleton:
-				_data.cache[singleton.name] = singleton
-				_on_add_singleton()
-				_data.paths[singleton.name] = singleton.path
-				_on_add_path()
-				dirty = false
+				dirty = _on_has_dirty(singleton)
 			elif is_valid_singleton_from_path:
-				_data.cache[singleton_from_path.name] = singleton_from_path
-				_on_add_singleton()
-				_data.paths[singleton_from_path.name] = singleton_from_path.path
-				_on_add_path()
-				dirty = false
+				dirty = _on_has_dirty(singleton_from_path)
 		else:
 			var has_singleton = false
 			var has_path = false
-			var singleton_compare = null
-			var path_compare = ""
 			if is_valid_singleton:
-				has_singleton = _data.cache.has(singleton.name)
-				has_path = _data.paths.has(singleton.name)
-				if not has_singleton:
-					_data.cache[singleton.name] = singleton
-					_on_add_singleton()
-					has_singleton = true
-				else:
-					singleton_compare = _data.cache[singleton.name]
-					if not SingletonUtility.is_copy(singleton, singleton_compare):
-						_data.cache[singleton.name] = singleton
-					has_singleton = true
-				if not has_path:
-					_data.paths[singleton.name] = singleton.path
-					_on_add_path()
-					has_path = true
-				else:
-					path_compare = _data.paths[singleton.name]
-					if not PathUtility.is_valid_copy(singleton.path, path_compare):
-						_data.paths[singleton.name] = singleton.path
-					has_path = true
+				has_singleton = _on_has_valid_singleton(singleton)
+				has_path = _on_has_valid_path(singleton)
 			elif is_valid_singleton_from_path:
-				has_singleton = _data.cache.has(singleton_from_path.name)
-				has_path = _data.paths.has(singleton_from_path.name)
-				if not has_singleton:
-					_data.cache[singleton_from_path.name] = singleton_from_path
-					_on_add_singleton()
-					has_singleton = true
-				else:
-					singleton_compare = _data.cache[singleton_from_path]
-					if not SingletonUtility.is_copy(singleton_from_path, singleton_compare):
-						_data.cache[singleton_from_path.name] = singleton_from_path
-					has_singleton = true
-				if not has_path:
-					_data.paths[singleton_from_path.name] = singleton_from_path.path
-					_on_add_path()
-					has_path = true
-				else:
-					path_compare = _data.paths[singleton_from_path.name]
-					if not PathUtility.is_valid_copy(singleton_from_path.path, path_compare):
-						_data.paths[singleton_from_path.name] = singleton_from_path.name
-					has_path = true
+				has_singleton = _on_has_valid_singleton(singleton_from_path)
+				has_path = _on_has_valid_path(singleton_from_path)
 			dirty = not has_singleton && not has_path
 	return not dirty
 
 
-func _on_add_singleton():
+func _on_has_dirty(_singleton):
+	return not _added_singleton(_singleton) && not _added_path(_singleton.name, _singleton.path)
+
+
+func _on_has_valid_singleton(_singleton):
+	var has_singleton = _data.cache.has(_singleton.name)
+	if not has_singleton:
+		has_singleton = _added_singleton(_singleton)
+	else:
+		if not SingletonUtility.is_copy(_singleton, _data.cache[_singleton.name]):  #singleton_compare):
+			_data.cache[_singleton.name] = _singleton
+		has_singleton = true
+	return has_singleton
+
+
+func _on_has_valid_path(_singleton):
+	var has_path = _data.paths.has(_singleton.name)
+	if not has_path:
+		has_path = _added_path(_singleton.name, _singleton.path)
+	else:
+		if not PathUtility.is_valid_copy(_singleton.path, _data.paths[_singleton.name]):
+			_data.paths[_singleton.name] = _singleton.path
+		has_path = true
+	return has_path
+
+
+func _added_singleton(_singleton):
+	_data.cached[_singleton.name] = _singleton
 	_data.cache_amount = _data.cache_amount + 1
 	if not _data.state.has_cache:
 		_data.state.has_cache = true
+	return _data.state.has_cache
 
 
-func _on_add_path():
+func _added_path(_singleton_name = "", _singleton_path = ""):
+	_data.paths[_singleton_name] = _singleton_path
 	_data.paths_amount = _data.paths_amount + 1
 	if not _data.state.has_paths:
 		_data.state.has_paths = true
+	return _data.state.has_paths
+
+
+# tbd
+func cache_from_singleton_or_path(_singleton_or_path):
+	# determine singleton or path
+	var singleton_name = ""
+	return _data.cache[singleton_name]
+
+
+# tbd
+func has_name(_singleton_name):
+	return false
+
+
+# tbd
+func cache_from_name(_singleton_name):
+	return null
 
 
 # Look up a singleton by its script. If it doesn't exist yet, make it.

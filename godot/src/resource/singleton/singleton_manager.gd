@@ -18,10 +18,22 @@ func _init():
 	if not _DB.initialized:
 		_DB.initialize()
 
-static func singleton(_singleton):
-	if _DB.has(_singleton):
-		pass
-	#return _DB.singleton(_singleton)
+
+# tbd
+static func singleton(_singleton_or_path):
+	var cached_from_singleton_or_path = null
+	if _DB.has(_singleton_or_path):
+		cached_from_singleton_or_path = _DB.cache_from_singleton_or_path(_singleton_or_path)
+	return cached_from_singleton_or_path
+
+
+# can combine below to above - _singleton_or_path_or_name
+# tbd
+static func singleton_from_name(_singleton_name):
+	var cached_singleton_from_name = null
+	if _DB.has_name(_singleton_name):
+		cached_singleton_from_name = _DB.cache_from_name(_singleton_name)
+	return cached_singleton_from_name
 
 
 #==============================================================================================================================
