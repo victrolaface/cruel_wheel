@@ -4,13 +4,14 @@ class_name Singleton extends Resource
 # properties
 export(bool) var enabled setget , get_enabled
 export(bool) var is_editor_only setget , get_is_editor_only
+export(bool) var has_name setget , get_has_name
+export(bool) var has_path setget , get_has_path
+export(bool) var cached setget , get_cached
+export(bool) var has_manager setget , get_has_manager
+export(String) var name setget , get_name
+export(String) var path setget , get_path
 
 # fields
-var _has_name setget , _get_has_name
-var _has_path setget , _get_has_path
-var _cached setget , _get_cached
-var _cached_manager setget , _get_cached_manager
-
 const _BASE_CLASS_NAME = "Singleton"
 
 var _data = {
@@ -18,24 +19,39 @@ var _data = {
 	"path": "",
 	"self_ref": null,
 	"manager_ref": null,
-	"state": {"is_editor_only": false, "initialized": false, "enabled": false, "destroyed": false}
+	"state":
+	{
+		"is_editor_only": false,
+		"has_name": false,
+		"has_path": false,
+		"cached": false,
+		"has_manager": false,
+		"initialized": false,
+		"enabled": false,
+		"destroyed": false
+	}
 }
 
 
 # inherited methods private
-func _init(_name = "", _path = "", _self_ref = null, _mgr_ref = null, _editor_only = false, _enbl = false):
-	_data.name = _name
-	_data.path = _path
-	_data.self_ref = _self_ref
-	_data.manager_ref = _mgr_ref
-	_data.state.is_editor_only = _editor_only
-	_data.initialized = self._has_name && self._has_path && self._cached && self._cached_manager
-	_data.enabled = _data.initialized && _enbl
+func _init(_name = "", _path = "", _self_ref = null, _mgr_ref = null, _editor_only = false):
+	if SingletonUtility.is_params_valid(_name, _path, _self_ref, _mgr_ref):
+		_data.name = _name
+		_data.path = _path
+		_data.self_ref = _self_ref
+		_data.manager_ref = _mgr_ref
+		_data.state.is_editor_only = _editor_only
+		_data.state.has_name = true
+		_data.state.has_path = true
+		_data.state.cached = true
+		_data.state.has_manager = true
+		_data.state.initialized = true
+		_data.state.enabled = true
 
 
 # public methods
 func is_class(_class):
-	return (self._has_name && _class == _data.name) || _class == _BASE_CLASS_NAME
+	return (_data.state.has_name && _class == _data.name) || _class == _BASE_CLASS_NAME
 
 
 func get_class():
@@ -88,26 +104,33 @@ func unhandled_key_input(_event: InputEvent):
 
 
 # setters, getters public
-func get_enabled():
-	return _data.state.enabled
+func get_name():
+	return _data.name
+
+
+func get_path():
+	return _data.path
 
 
 func get_is_editor_only():
 	return _data.state.is_editor_only
 
 
-# setters, getters private
-func _get_has_name():
-	return StringUtility.is_valid(_data.name)
+func get_has_name():
+	return _data.state.has_name
 
 
-func _get_has_path():
-	return PathUtility.is_valid(_data.path)
+func get_has_path():
+	return _data.state.has_path
 
 
-func _get_cached():
-	return SingletonUtility.is_valid(_data.self_ref)
+func get_cached():
+	return _data.state.cached
 
 
-func _get_cached_manager():
-	return SingletonUtility.is_manager_valid(_data.manager_ref)
+func get_has_manager():
+	return _data.state.has_manager
+
+
+func get_enabled():
+	return _data.state.enabled

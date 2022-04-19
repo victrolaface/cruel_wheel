@@ -15,9 +15,8 @@ func get_class():
 
 
 func _init():
-	if not _DB.enabled:
-		_DB.add(self, true)
-
+	if not _DB.initialized:
+		_DB.initialize()
 
 static func singleton(_singleton):
 	if _DB.has(_singleton):
