@@ -10,9 +10,11 @@ export(bool) var cached setget , get_cached
 export(bool) var has_manager setget , get_has_manager
 export(String) var name setget , get_name
 export(String) var path setget , get_path
+export(String) var persistent_path setget , get_persistent_path
 
 # fields
 const _BASE_CLASS_NAME = "Singleton"
+const _PERSISTENT_PATH = "res://data/singleton_db.tres"
 
 var _data = {
 	"name": "",
@@ -110,6 +112,10 @@ func get_name():
 
 func get_path():
 	return _data.path
+
+
+func get_persistent_path():
+	return _PERSISTENT_PATH
 
 
 func get_is_editor_only():

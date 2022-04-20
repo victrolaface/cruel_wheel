@@ -45,6 +45,16 @@ _global_script_classes=[ {
 "path": "res://addons/godot-next/nodes/callback_delegator.gd"
 }, {
 "base": "Reference",
+"class": "ClassReference",
+"language": "GDScript",
+"path": "res://src/reference/class_reference.gd"
+}, {
+"base": "Reference",
+"class": "ClassReferenceUtility",
+"language": "GDScript",
+"path": "res://src/util/class_reference_utility.gd"
+}, {
+"base": "Reference",
 "class": "ClassType",
 "language": "GDScript",
 "path": "res://addons/godot-next/references/class_type.gd"
@@ -312,6 +322,8 @@ _global_script_class_icons={
 "Bitset": "",
 "CSVFile": "",
 "CallbackDelegator": "",
+"ClassReference": "",
+"ClassReferenceUtility": "",
 "ClassType": "",
 "Component": "",
 "ComponentSet": "",

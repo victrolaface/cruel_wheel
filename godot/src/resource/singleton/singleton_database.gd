@@ -70,21 +70,27 @@ func get_cache():
 	return _data.cache
 
 
-func has(_singleton_or_path):
+func has(_singleton_name_or_path):
 	var dirty = true
 	if _data.state.enabled:
-		var is_singleton = _singleton_or_path.is_class("Singleton")
-		var is_path = not is_singleton && PathUtility.is_valid(_singleton_or_path)
-		var singleton = _singleton_or_path if is_singleton else null
-		var path = _singleton_or_path if is_path else null
+		var is_singleton = _singleton_name_or_path.is_class("Singleton")
+		var is_path = not is_singleton && PathUtility.is_valid(_singleton_name_or_path)
+		var is_name = not is_singleton && not is_path
+		var singleton = _singleton_name_or_path if is_singleton else null
+		var path = _singleton_name_or_path if is_path else null
+		var name = _singleton_name_or_path if is_name else null
 		var singleton_from_path = ResourceLoader.load(path) if is_path else null
+		var singleton_from_name = ClassReference.from_name(name) if is_name else null
 		var is_valid_singleton = is_singleton && SingletonUtility.is_valid(singleton)
 		var is_valid_singleton_from_path = is_path && SingletonUtility.is_valid(singleton_from_path)
+		var is_valid_singleton_from_name = is_name && SingletonUtility.is_valid(singleton_from_name)
 		if not _data.state.has_singletons:
 			if is_valid_singleton:
 				dirty = _on_has_dirty(singleton)
 			elif is_valid_singleton_from_path:
 				dirty = _on_has_dirty(singleton_from_path)
+			elif is_valid_singleton_from_name:
+				dirty = _on_has_dirty(singleton_from_name)
 		else:
 			var has_singleton = false
 			var has_path = false
@@ -94,6 +100,9 @@ func has(_singleton_or_path):
 			elif is_valid_singleton_from_path:
 				has_singleton = _on_has_valid_singleton(singleton_from_path)
 				has_path = _on_has_valid_path(singleton_from_path)
+			elif is_valid_singleton_from_name:
+				has_singleton = _on_has_valid_singleton(singleton_from_name)
+				has_path = _on_has_valid_path(singleton_from_name)
 			dirty = not has_singleton && not has_path
 	return not dirty
 
@@ -140,38 +149,7 @@ func _added_path(_singleton_name = "", _singleton_path = ""):
 	return _data.state.has_paths
 
 
-# tbd
-func cache_from_singleton_or_path(_singleton_or_path):
-	# determine singleton or path
-	var singleton_name = ""
-	return _data.cache[singleton_name]
-
-
-# tbd
-func has_name(_singleton_name):
-	return false
-
-
-# tbd
-func cache_from_name(_singleton_name):
+# wip
+func singleton(_singleton_name_or_path):
+	# determine if singleton, name, or path
 	return null
-
-
-# Look up a singleton by its script. If it doesn't exist yet, make it.
-# If it's a Resource with a persistent file path, load it in from memory.
-"""
-static func fetch(p_script: Script) -> Object:
-	var cache: Dictionary = SINGLETON_CACHE.get_cache()
-	if not cache.has(p_script):
-		if p_script is Resource:
-			var path = _get_persistent_path(p_script)
-			if path:
-				var paths: Dictionary = SINGLETON_CACHE.get_paths()
-				cache[p_script] = ResourceLoader.load(path) if ResourceLoader.exists(path) else p_script.new()
-				paths[p_script] = path
-			else:
-				cache[p_script] = p_script.new()
-		else:
-			cache[p_script] = p_script.new()
-	return cache[p_script]
-"""

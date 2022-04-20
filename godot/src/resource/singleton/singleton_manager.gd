@@ -19,25 +19,81 @@ func _init():
 		_DB.initialize()
 
 
-# tbd
-static func singleton(_singleton_or_path):
-	var cached_from_singleton_or_path = null
-	if _DB.has(_singleton_or_path):
-		cached_from_singleton_or_path = _DB.cache_from_singleton_or_path(_singleton_or_path)
-	return cached_from_singleton_or_path
+# wip
+static func singleton(_singleton_name_or_path):
+	var s = null
+	if _DB.has(_singleton_name_or_path):
+		s = _DB.singleton(_singleton_name_or_path)
+	return s
 
 
-# can combine below to above - _singleton_or_path_or_name
-# tbd
-static func singleton_from_name(_singleton_name):
-	var cached_singleton_from_name = null
-	if _DB.has_name(_singleton_name):
-		cached_singleton_from_name = _DB.cache_from_name(_singleton_name)
-	return cached_singleton_from_name
+# wip
+static func singleton_editor_only(_singleton_editor_only_class_name: GDScriptNativeClass):
+	return null
+
+
+static func destroy(_singleton: Singleton):
+	# rem from cache, paths, confirm
+	return true  # destroyed
+
+
+static func save(_singleton: Singleton):
+	# save to cache, paths, confirm
+	return true  # saved
+
+
+static func persistent_path(_singleton: Singleton):
+	#--->_singleton.get("persistent_path")<---
+	# ret path from singleton
+	return ""
+
+
+static func register_editor_singletons(_plugin: EditorPlugin):
+	# register editor only singletons in cache
+	return true  # registered
 
 
 #==============================================================================================================================
 """
+
+static func save(p_script: Script) -> void:
+	var paths: Dictionary = SINGLETON_CACHE.get_paths()
+	if not paths.has(p_script):
+		return
+	var cache: Dictionary = SINGLETON_CACHE.get_cache()
+	#warning-ignore:return_value_discarded
+	ResourceSaver.save(paths[p_script], cache[p_script])
+
+
+static func save_all() -> void:
+	var cache: Dictionary = SINGLETON_CACHE.get_cache()
+	var paths: Dictionary = SINGLETON_CACHE.get_paths()
+	for a_script in paths:
+		#warning-ignore:return_value_discarded
+		ResourceSaver.save(paths[a_script], cache[a_script])
+
+
+static func _get_persistent_path(p_script: Script):
+	return p_script.get("SELF_RESOURCE")
+
+
+# Register all editor-only singletons.
+static func _register_editor_singletons(plugin: EditorPlugin):
+	var cache: Dictionary = SINGLETON_CACHE.get_cache()
+
+	cache[UndoRedo] = plugin.get_undo_redo()
+
+	cache[EditorInterface] = plugin.get_editor_interface()
+
+	cache[ScriptEditor] = plugin.get_editor_interface().get_script_editor()
+	cache[EditorSelection] = plugin.get_editor_interface().get_selection()
+	cache[EditorSettings] = plugin.get_editor_interface().get_editor_settings()
+	cache[EditorFileSystem] = plugin.get_editor_interface().get_resource_filesystem()
+	cache[EditorResourcePreview] = plugin.get_editor_interface().get_resource_previewer()
+
+
+===============================================================================================================================
+
 # Look up a singleton by its script. If it doesn't exist yet, make it.
 # If it's a Resource with a persistent file path, load it in from memory.
 static func fetch(p_script: Script) -> Object:
@@ -84,43 +140,6 @@ static func erase(p_script: Script) -> bool:
 	#warning-ignore:return_value_discarded
 	paths.erase(p_script)
 	return erased
-
-
-static func save(p_script: Script) -> void:
-	var paths: Dictionary = SINGLETON_CACHE.get_paths()
-	if not paths.has(p_script):
-		return
-	var cache: Dictionary = SINGLETON_CACHE.get_cache()
-	#warning-ignore:return_value_discarded
-	ResourceSaver.save(paths[p_script], cache[p_script])
-
-
-static func save_all() -> void:
-	var cache: Dictionary = SINGLETON_CACHE.get_cache()
-	var paths: Dictionary = SINGLETON_CACHE.get_paths()
-	for a_script in paths:
-		#warning-ignore:return_value_discarded
-		ResourceSaver.save(paths[a_script], cache[a_script])
-
-
-static func _get_persistent_path(p_script: Script):
-	return p_script.get("SELF_RESOURCE")
-
-
-# Register all editor-only singletons.
-static func _register_editor_singletons(plugin: EditorPlugin):
-	var cache: Dictionary = SINGLETON_CACHE.get_cache()
-
-	cache[UndoRedo] = plugin.get_undo_redo()
-
-	cache[EditorInterface] = plugin.get_editor_interface()
-
-	cache[ScriptEditor] = plugin.get_editor_interface().get_script_editor()
-	cache[EditorSelection] = plugin.get_editor_interface().get_selection()
-	cache[EditorSettings] = plugin.get_editor_interface().get_editor_settings()
-	cache[EditorFileSystem] = plugin.get_editor_interface().get_resource_filesystem()
-	cache[EditorResourcePreview] = plugin.get_editor_interface().get_resource_previewer()
-
 """
 #=============================================================================================================================================================
 """
