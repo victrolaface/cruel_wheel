@@ -19,38 +19,40 @@ func _init():
 		_DB.initialize()
 
 
-# wip
 static func singleton(_singleton_name_or_path):
-	var s = null
-	if _DB.has(_singleton_name_or_path):
-		s = _DB.singleton(_singleton_name_or_path)
-	return s
+	return _DB.singleton(_singleton_name_or_path)
 
 
-# wip
-static func singleton_editor_only(_singleton_editor_only_class_name: GDScriptNativeClass):
-	return null
+static func singleton_editor_only(_singleton_editor_only: GDScriptNativeClass):
+	return _DB.singleton_editor_only(_singleton_editor_only)
 
 
-static func destroy(_singleton: Singleton):
-	# rem from cache, paths, confirm
-	return true  # destroyed
+static func destroy(_singleton_to_destroy: Singleton):
+	return _DB.destroy(_singleton_to_destroy)
 
 
 static func save(_singleton: Singleton):
-	# save to cache, paths, confirm
-	return true  # saved
+	var saved = false
+	if _DB.has(_singleton):
+		saved = _DB.save(_singleton)
+	return saved
+
+
+static func save_all():
+	_DB.save_all()
 
 
 static func persistent_path(_singleton: Singleton):
-	#--->_singleton.get("persistent_path")<---
-	# ret path from singleton
-	return ""
+	var path = _singleton.persistent_path
+	if not PathUtility.is_valid(path):
+		path = ""
+	return path
 
 
 static func register_editor_singletons(_plugin: EditorPlugin):
-	# register editor only singletons in cache
-	return true  # registered
+	var registered = false
+	registered = _DB.register_editor_singletons()
+	return registered
 
 
 #==============================================================================================================================
@@ -80,17 +82,24 @@ static func _get_persistent_path(p_script: Script):
 # Register all editor-only singletons.
 static func _register_editor_singletons(plugin: EditorPlugin):
 	var cache: Dictionary = SINGLETON_CACHE.get_cache()
-
 	cache[UndoRedo] = plugin.get_undo_redo()
-
 	cache[EditorInterface] = plugin.get_editor_interface()
-
 	cache[ScriptEditor] = plugin.get_editor_interface().get_script_editor()
 	cache[EditorSelection] = plugin.get_editor_interface().get_selection()
 	cache[EditorSettings] = plugin.get_editor_interface().get_editor_settings()
 	cache[EditorFileSystem] = plugin.get_editor_interface().get_resource_filesystem()
 	cache[EditorResourcePreview] = plugin.get_editor_interface().get_resource_previewer()
 
+# Returns an editor-only singleton by its class name.
+#static func fetch_editor(p_class: GDScriptNativeClass) -> Object:
+#	if not Engine.editor_hint:
+#		push_warning("Cannot access '%s' (editor-only class) at runtime." % p_class.get_class())
+#		return null
+#
+#	var cache: Dictionary = SINGLETON_CACHE.get_cache()
+#	if cache.has(p_class):
+#		return cache[p_class]
+#	return null
 
 ===============================================================================================================================
 
