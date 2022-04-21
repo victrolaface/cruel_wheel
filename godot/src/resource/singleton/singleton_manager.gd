@@ -1,24 +1,45 @@
 tool
 class_name SingletonManager extends Node
 
-const _DB = preload("res://data/singleton_db.tres")
+const PATH = "res://src/resource/singleton/singleton_manager.gd"
+const CLASS_NAME = "SingletonManager"
 
-const _CLASS_NAME = "SingletonManager"
+export(bool) var is_singleton setget , get_is_singleton
+#export(String) var name setget , get_name
 
 
 func is_class(_class):
-	return _class == get_class() or _class == "Singleton"
+	return _class == CLASS_NAME or _class == SingletonUtility.BASE_CLASS_NAME
 
 
-func get_class():
-	return _CLASS_NAME
+func get_is_singleton():
+	return true
+
+
+func path():
+	return PATH
 
 
 func _init():
-	if not _DB.initialized:
-		_DB.initialize()
+	name = CLASS_NAME
+	self.resource_local_to_scene = false
+	#if not _DB.initialized:
+	#	_DB.initialize(self)
 
 
+#func get_name():
+#	return _CLASS_NAME
+
+#func name():
+#	return _CLASS_NAME
+
+#func get_class():
+#	return _CLASS_NAME
+
+#func resource_name():
+#	return _CLASS_NAME
+
+"""
 static func singleton(_singleton_name_or_path):
 	return _DB.singleton(_singleton_name_or_path)
 
@@ -32,21 +53,11 @@ static func destroy(_singleton_to_destroy: Singleton):
 
 
 static func save(_singleton: Singleton):
-	var saved = false
-	if _DB.has(_singleton):
-		saved = _DB.save(_singleton)
-	return saved
+	return _DB.save(_singleton)
 
 
 static func save_all():
-	_DB.save_all()
-
-
-static func persistent_path(_singleton: Singleton):
-	var path = _singleton.persistent_path
-	if not PathUtility.is_valid(path):
-		path = ""
-	return path
+	return _DB.save_all()
 
 
 static func register_editor_singletons(_plugin: EditorPlugin):
@@ -54,7 +65,7 @@ static func register_editor_singletons(_plugin: EditorPlugin):
 	registered = _DB.register_editor_singletons()
 	return registered
 
-
+"""
 #==============================================================================================================================
 """
 

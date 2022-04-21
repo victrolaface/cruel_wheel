@@ -2,7 +2,11 @@ tool
 class_name Singleton extends Resource
 
 # properties
+export(bool) var is_singleton setget , get_is_singleton
 export(bool) var enabled setget , get_enabled
+export(bool) var initialized setget , get_initialized
+export(bool) var destroyed setget , get_destroyed
+export(bool) var registered setget , get_registered
 export(bool) var is_editor_only setget , get_is_editor_only
 export(bool) var has_name setget , get_has_name
 export(bool) var has_path setget , get_has_path
@@ -13,7 +17,6 @@ export(String) var path setget , get_path
 export(String) var persistent_path setget , get_persistent_path
 
 # fields
-const _BASE_CLASS_NAME = "Singleton"
 const _PERSISTENT_PATH = "res://data/singleton_db.tres"
 
 var _data = {
@@ -30,16 +33,18 @@ var _data = {
 		"has_manager": false,
 		"initialized": false,
 		"enabled": false,
+		"registered": false,
 		"destroyed": false
 	}
 }
 
 
 # inherited methods private
-func _init(_name = "", _path = "", _self_ref = null, _mgr_ref = null, _editor_only = false):
-	if SingletonUtility.is_params_valid(_name, _path, _self_ref, _mgr_ref):
-		_data.name = _name
-		_data.path = _path
+func _init(_name = "", _self_ref = null, _mgr_ref = null, _editor_only = false):
+	resource_local_to_scene = false
+	if SingletonUtility.is_params_valid(_name, _self_ref, _mgr_ref):
+		_data.name = _name  #_self_ref.get_name()
+		_data.path = _self_ref.resource_path
 		_data.self_ref = _self_ref
 		_data.manager_ref = _mgr_ref
 		_data.state.is_editor_only = _editor_only
@@ -48,16 +53,42 @@ func _init(_name = "", _path = "", _self_ref = null, _mgr_ref = null, _editor_on
 		_data.state.cached = true
 		_data.state.has_manager = true
 		_data.state.initialized = true
-		_data.state.enabled = true
 
 
 # public methods
 func is_class(_class):
-	return (_data.state.has_name && _class == _data.name) || _class == _BASE_CLASS_NAME
+	return (_data.state.has_name && _class == _data.name) || _class == SingletonUtility.BASE_CLASS_NAME  #_BASE_CLASS_NAME
 
 
 func get_class():
-	return _BASE_CLASS_NAME
+	return SingletonUtility.BASE_CLASS_NAME
+
+
+func enable():
+	if _data.state.initialized && not _data.state.enabled:
+		_data.state.enabled = true
+
+
+func disable():
+	if _data.state.initialized && _data.state.enabled:
+		_data.state.enabled = false
+
+
+func register():
+	if _data.state.initialized && not _data.state.registered:
+		_data.state.registered = true
+
+
+func unregister():
+	if _data.state.initialized && _data.state.registered:
+		_data.state.registered = false
+
+
+func destroy():
+	if _data.state.enabled:
+		disable()
+	unregister()
+	_data.state.destroyed = true
 
 
 # callbacks
@@ -106,6 +137,10 @@ func unhandled_key_input(_event: InputEvent):
 
 
 # setters, getters public
+func get_is_singleton():
+	return true
+
+
 func get_name():
 	return _data.name
 
@@ -136,6 +171,18 @@ func get_cached():
 
 func get_has_manager():
 	return _data.state.has_manager
+
+
+func get_initialized():
+	return _data.state.initialized
+
+
+func get_destroyed():
+	return _data.state.destroyed
+
+
+func get_registered():
+	return _data.state.registered
 
 
 func get_enabled():
