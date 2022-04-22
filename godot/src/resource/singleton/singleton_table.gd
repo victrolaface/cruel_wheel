@@ -5,12 +5,16 @@ class_name SingletonTable extends Resource
 export(String) var name setget , get_name
 export(int) var items_amount setget , get_items_amount
 export(bool) var initialized setget , get_initialized
+export(bool) var cached setget , get_cached
+export(bool) var registered setget , get_registered
+export(bool) var saved setget , get_saved
 export(bool) var enabled setget , get_enabled
 export(bool) var destroyed setget , get_destroyed
 export(bool) var has_items setget , get_has_items
+export(bool) var has_name setget , get_has_name
 
 # fields
-const _BASE_CLASS_NAME = "SingletonTable"
+const BASE_CLASS_NAME = "SingletonTable"
 
 var _data = {
 	"name": "",
@@ -18,26 +22,37 @@ var _data = {
 	"items": {},
 	"amount": 0,
 	"state":
-	{"initialized": false, "has_name": false, "cached": false, "has_items": false, "enabled": false, "destroyed": false}
+	{
+		"initialized": false,
+		"registered": false,
+		"saved": false,
+		"has_name": false,
+		"cached": false,
+		"has_items": false,
+		"enabled": false,
+		"destroyed": false
+	}
 }
 
 
 # inherited private methods
-func _init(_name = "", _enable = false):
-	if StringUtility.is_valid(_name):
+func _init(_name = "", _self_ref = null, _enable = false):
+	if StringUtility.is_valid(_name) && not _self_ref == null:
 		_data.name = _name
-		_data.state.initialized = true
+		_data.self_ref = _self_ref
+		_data.cached = true
 		_data.state.has_name = true
+		_data.state.initialized = true
 		_data.state.enabled = _enable
 
 
 # inhertied public methods
 func is_class(_class: String):
-	return _class == SingletonUtility.BASE_CLASS_NAME or _class == _BASE_CLASS_NAME or _class == _data.name
+	return _class == SingletonUtility.BASE_CLASS_NAME or _class == BASE_CLASS_NAME or _class == _data.name
 
 
 func get_class():
-	return _BASE_CLASS_NAME
+	return BASE_CLASS_NAME
 
 
 # public methods
@@ -148,6 +163,18 @@ func get_initialized():
 	return _data.state.initialized
 
 
+func get_registered():
+	return _data.state.registered
+
+
+func get_cached():
+	return _data.state.cached
+
+
+func get_saved():
+	return _data.state.saved
+
+
 func get_enabled():
 	return _data.state.enabled
 
@@ -158,3 +185,7 @@ func get_destroyed():
 
 func get_has_items():
 	return _data.state.has_items
+
+
+func get_has_name():
+	return _data.state.has_name

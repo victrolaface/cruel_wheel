@@ -17,7 +17,7 @@ export(String) var path setget , get_path
 export(String) var persistent_path setget , get_persistent_path
 
 # fields
-const _PERSISTENT_PATH = "res://data/singleton_db.tres"
+const PERSISTENT_PATH = "res://data/singleton_db.tres"
 
 var _data = {
 	"name": "",
@@ -34,6 +34,7 @@ var _data = {
 		"initialized": false,
 		"enabled": false,
 		"registered": false,
+		"saved": false,
 		"destroyed": false
 	}
 }
@@ -42,7 +43,7 @@ var _data = {
 # inherited methods private
 func _init(_name = "", _self_ref = null, _mgr_ref = null, _editor_only = false):
 	resource_local_to_scene = false
-	if SingletonUtility.is_params_valid(_name, _self_ref, _mgr_ref):
+	if SingletonUtility.is_init_valid(_name, _self_ref, _mgr_ref):
 		_data.name = _name  #_self_ref.get_name()
 		_data.path = _self_ref.resource_path
 		_data.self_ref = _self_ref
@@ -57,7 +58,7 @@ func _init(_name = "", _self_ref = null, _mgr_ref = null, _editor_only = false):
 
 # public methods
 func is_class(_class):
-	return (_data.state.has_name && _class == _data.name) || _class == SingletonUtility.BASE_CLASS_NAME  #_BASE_CLASS_NAME
+	return (_data.state.has_name && _class == _data.name) || _class == SingletonUtility.BASE_CLASS_NAME
 
 
 func get_class():
@@ -150,7 +151,7 @@ func get_path():
 
 
 func get_persistent_path():
-	return _PERSISTENT_PATH
+	return PERSISTENT_PATH
 
 
 func get_is_editor_only():

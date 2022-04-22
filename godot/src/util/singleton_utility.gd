@@ -3,7 +3,7 @@ class_name SingletonUtility
 const BASE_CLASS_NAME = "Singleton"
 
 
-static func is_params_valid(_name = "", _self_ref = null, _mgr_ref = null):
+static func is_init_valid(_name = "", _self_ref = null, _mgr_ref = null):
 	return (
 		StringUtility.is_valid(_name)
 		&& not _self_ref == null
@@ -15,6 +15,15 @@ static func is_params_valid(_name = "", _self_ref = null, _mgr_ref = null):
 		&& _self_ref.is_singleton
 		&& _mgr_ref.is_singleton
 		&& _mgr_ref.name == "SingletonManager"
+	)
+
+
+static func is_valid(_singleton = null):
+	return (
+		not _singleton == null
+		&& _singleton.is_class(BASE_CLASS_NAME)
+		&& _singleton.is_singleton
+		&& _singleton.persistent_path == Singleton.PERSISTENT_PATH
 	)
 
 
