@@ -11,11 +11,12 @@ export(bool) var has_database setget , get_has_database
 
 # fields
 const _CLASS_NAME = "SingletonManager"
+const _BASE_CLASS_NAME = "Singleton"
 
 var _data = {
 	"self_ref": null,
-	"database": null,
-	"state": {"initialized": false, "cached": false, "enabled": false, "has_name": false, "has_database": false}
+	"db": null,
+	"state": {"initialized": false, "cached": false, "enabled": false, "has_name": false, "has_db": false}
 }
 
 
@@ -26,14 +27,15 @@ func _init():
 	_data.self_ref = self
 	_data.state.cached = true
 	_data.state.has_name = true
-	_data.database = SingletonDatabase.new(self, true)
-	_data.initialized = _data.database.enabled
-	_data.enabled = _data.initalized
+	_data.state.initialized = true
+	_data.db = SingletonDatabase.new(self, true)
+	_data.state.has_db = _data.db.enabled
+	_data.enabled = _data.state.has_db  #db.enabled#_data.initialized
 
 
 # public methods
 func is_class(_class):
-	return _class == _CLASS_NAME or _class == Singleton.CLASS_NAME
+	return _class == _CLASS_NAME or _class == _BASE_CLASS_NAME  #Singleton.CLASS_NAME
 
 
 func get_is_singleton():

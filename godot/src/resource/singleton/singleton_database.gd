@@ -12,10 +12,12 @@ export(bool) var registered setget , get_registered
 export(bool) var saved setget , get_saved
 export(bool) var enabled setget , get_enabled
 export(bool) var destroyed setget , get_destroyed
+export(bool) var first_initialization setget , get_first_initialization
 export(Resource) var cache setget , get_cache
 export(int) var database_amount setget , get_database_amount
 
 # fields
+const _BASE_CLASS_NAME = "Singleton"
 const _CLASS_NAME = "SingletonDatabase"
 const _PATH = "res://data/singleton_db.tres"
 
@@ -34,13 +36,18 @@ var _data = {
 		"registered": false,
 		"saved": false,
 		"enabled": false,
-		"destroyed": false
+		"destroyed": false,
+		"first_init": true
 	}
 }
 
 
 func get_name():
 	return _data.name
+
+
+func get_first_initialization():
+	return _data.state.first_init
 
 
 func get_database_amount():
@@ -52,77 +59,77 @@ func get_has_database():
 
 
 func is_class(_class: String):
-	return _class == Singleton.CLASS_NAME or _class == _CLASS_NAME
+	return _class == _CLASS_NAME or _class == _BASE_CLASS_NAME
 
 
 func get_class():
 	return _CLASS_NAME
 
 
-func _is_loaded_database_valid(_loaded_db = null):
-	return (
-		not _loaded_db == null
-		&& StringUtility.is_valid(_loaded_db.name)
-		&& _loaded_db.has_name
-		&& not _loaded_db.has_manager_ref
-		&& _loaded_db.initialized
-		&& not _loaded_db.cached
-		&& not _loaded_db.registered
-		&& _loaded_db.saved
-		&& not _loaded_db.enabled
-		&& not _loaded_db.destroyed
-		&& _loaded_db.has_database
-		&& _loaded_db.database_amount > 0
-	)
-
-
 func _init(_manager = null, _enable = false):
-	var loaded = ResourceLoader.load(_PATH)
-	if _is_loaded_database_valid(loaded):
-		_data.name = loaded.name
-		_data.cache_amount = loaded.cache_amount
-		_data.paths_amount = loaded.paths_amount
-		_data.state.has_database = loaded.has_database
-		_data.db = loaded.database
-		var has_invalid_item = false
-		var db_names = _data.db.keys
-		var invalid_item_names = []
-		for db_name in db_names:
-			if not SingletonTableUtility.is_item_valid(_data.db[db_name]):
-				has_invalid_item = true
-				invalid_item_names.append(db_name)
-		if has_invalid_item:
-			var has_item_to_fix = false
-			var has_item_to_delete = false
-			var invalid_item_to_fix_names = []
-			var invalid_item_to_delete_names = []
-			for invalid_name in invalid_item_names:
-				var invalid_item = _data.db[invalid_name]
-				if SingletonTableUtility.can_fix(invalid_item):
-					has_item_to_fix = true
-					invalid_item_to_fix_names.append(invalid_name)
-				else:
-					has_item_to_delete = true
-					invalid_item_to_delete_names.append(invalid_name)
-			if has_item_to_fix:
-				for fix_name in invalid_item_to_fix_names:
-					var item_fixed = SingletonTableUtility.fix(_data.db[fix_name])
-					if SingletonTableUtility.is_item_valid(item_fixed):
-						_data.db[fix_name] = item_fixed
-					elif not invalid_item_to_delete_names.has(fix_name):
-						has_item_to_delete = true
-						invalid_item_to_delete_names.append(fix_name)
-			if has_item_to_delete:
-				for del_name in invalid_item_to_delete_names:
-					if _data.db.erase(del_name):
-						continue
-					else:
-						push_error("unable to delete invalid database item.")
+	var db = ResourceLoader.load(_PATH)
+	if db.first_initialization && SingletonDatabaseUtility.is_init_valid(_manager):
+		_data.name = _CLASS_NAME
+		_data.manager_ref = _manager
+		# first init
+		var base_type = ClassType.from_name(_BASE_CLASS_NAME)
+		var singletons = base_type.get_inheritors_list()
+		if singletons.count() > 0:
+			for singleton_class_name in singletons:
+				var singleton = ClassType.from_name(singleton_class_name)
+				singleton.new(_manager)
 	else:
 		pass
-		# do default db init, reg
 
-	# final_init, self_ref, mgr_ref, enable
+
+"""
+var loaded = ResourceLoader.load(_PATH)
+if SingletonTableUtility.is_loaded_valid(loaded):
+	_data.name = loaded.name
+	_data.cache_amount = loaded.cache_amount
+	_data.paths_amount = loaded.paths_amount
+	_data.state.has_database = loaded.has_database
+	_data.db = loaded.database
+	var has_invalid_item = false
+	var db_names = _data.db.keys
+	var invalid_item_names = []
+	for db_name in db_names:
+		if not SingletonTableUtility.is_item_valid(_data.db[db_name]):
+			has_invalid_item = true
+			invalid_item_names.append(db_name)
+	if has_invalid_item:
+		var has_item_to_fix = false
+		var has_item_to_delete = false
+		var invalid_item_to_fix_names = []
+		var invalid_item_to_delete_names = []
+		for invalid_name in invalid_item_names:
+			var invalid_item = _data.db[invalid_name]
+			if SingletonTableUtility.can_fix(invalid_item):
+				has_item_to_fix = true
+				invalid_item_to_fix_names.append(invalid_name)
+			else:
+				has_item_to_delete = true
+				invalid_item_to_delete_names.append(invalid_name)
+		if has_item_to_fix:
+			for fix_name in invalid_item_to_fix_names:
+				var item_fixed = SingletonTableUtility.fix(_data.db[fix_name])
+				if SingletonTableUtility.is_item_valid(item_fixed):
+					_data.db[fix_name] = item_fixed
+				elif not invalid_item_to_delete_names.has(fix_name):
+					has_item_to_delete = true
+					invalid_item_to_delete_names.append(fix_name)
+		if has_item_to_delete:
+			for del_name in invalid_item_to_delete_names:
+				if _data.db.erase(del_name):
+					continue
+				else:
+					push_error("unable to delete invalid database item.")
+else:
+	pass
+"""
+# do default db init, reg
+
+# final_init, self_ref, mgr_ref, enable
 
 
 # setters, getters functions

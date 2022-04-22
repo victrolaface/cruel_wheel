@@ -1,17 +1,17 @@
 tool
 class_name Singleton extends Resource
 
-const CLASS_NAME = "Singleton"
+const _BASE_CLASS_NAME = "Singleton"
 
 # properties
 export(bool) var is_singleton setget , get_is_singleton
+export(bool) var saved setget , get_saved
 export(bool) var enabled setget , get_enabled
 export(bool) var initialized setget , get_initialized
 export(bool) var destroyed setget , get_destroyed
 export(bool) var registered setget , get_registered
-export(bool) var is_editor_only setget , get_is_editor_only
+export(bool) var editor_only setget , get_editor_only
 export(bool) var has_name setget , get_has_name
-export(bool) var has_path setget , get_has_path
 export(bool) var cached setget , get_cached
 export(bool) var has_manager setget , get_has_manager
 export(String) var name setget , get_name
@@ -24,9 +24,8 @@ var _data = {
 	"manager_ref": null,
 	"state":
 	{
-		"is_editor_only": false,
+		"editor_only": false,
 		"has_name": false,
-		"has_path": false,
 		"cached": false,
 		"has_manager": false,
 		"initialized": false,
@@ -39,28 +38,27 @@ var _data = {
 
 
 # inherited methods private
-func _init(_name = "", _self_ref = null, _mgr_ref = null, _editor_only = false):
-	resource_local_to_scene = false
-	if SingletonUtility.is_init_valid(_name, _self_ref, _mgr_ref):
-		_data.name = _name  #_self_ref.get_name()
+func _init(_self_ref = null, _mgr_ref = null, _enable = false, _editor_only = false):
+	if SingletonUtility.is_init_valid(_self_ref, _mgr_ref):
+		_data.name = _self_ref.resource_name
 		_data.path = _self_ref.resource_path
 		_data.self_ref = _self_ref
 		_data.manager_ref = _mgr_ref
-		_data.state.is_editor_only = _editor_only
 		_data.state.has_name = true
-		_data.state.has_path = true
 		_data.state.cached = true
 		_data.state.has_manager = true
 		_data.state.initialized = true
+		_data.state.editor_only = _editor_only
+		_data.state.enabled = _enable
 
 
 # public methods
 func is_class(_class):
-	return (_data.state.has_name && _class == _data.name) || _class == CLASS_NAME
+	return (_data.state.has_name && _class == _data.name) || _class == _BASE_CLASS_NAME
 
 
 func get_class():
-	return CLASS_NAME
+	return _BASE_CLASS_NAME
 
 
 func enable():
@@ -148,8 +146,8 @@ func get_path():
 	return _data.path
 
 
-func get_is_editor_only():
-	return _data.state.is_editor_only
+func get_editor_only():
+	return _data.state.editor_only
 
 
 func get_has_name():
@@ -170,6 +168,10 @@ func get_has_manager():
 
 func get_initialized():
 	return _data.state.initialized
+
+
+func get_saved():
+	return _data.state.saved
 
 
 func get_destroyed():

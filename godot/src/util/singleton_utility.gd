@@ -2,6 +2,7 @@ class_name SingletonUtility
 
 #const BASE_CLASS_NAME = "Singleton"
 #const CLASS_NAME = "Singleton"
+const _CLASS_NAME = "Singleton"
 
 
 static func is_init_valid(_name = "", _self_ref = null, _mgr_ref = null):
@@ -11,8 +12,8 @@ static func is_init_valid(_name = "", _self_ref = null, _mgr_ref = null):
 		&& not _mgr_ref == null
 		&& not _self_ref.resource_local_to_scene
 		&& not _mgr_ref.resource_local_to_scene
-		&& _self_ref.is_class(Singleton.CLASS_NAME)
-		&& _mgr_ref.is_class(Singleton.CLASS_NAME)
+		&& _self_ref.is_class(_CLASS_NAME)  #Singleton.CLASS_NAME)
+		&& _mgr_ref.is_class(_CLASS_NAME)  #Singleton.CLASS_NAME)
 		&& _self_ref.is_singleton
 		&& _mgr_ref.is_singleton
 		&& _mgr_ref.name == "SingletonManager"
@@ -20,7 +21,7 @@ static func is_init_valid(_name = "", _self_ref = null, _mgr_ref = null):
 
 
 static func is_valid(_singleton = null):
-	return not _singleton == null && _singleton.is_class(Singleton.CLASS_NAME) && _singleton.is_singleton
+	return not _singleton == null && _singleton.is_class(_CLASS_NAME) && _singleton.is_singleton
 
 
 """

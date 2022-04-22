@@ -1,7 +1,8 @@
 tool
 class_name SingletonTable extends Resource
 
-const CLASS_NAME = "SingletonTable"
+const _CLASS_NAME = "SingletonTable"
+const _BASE_CLASS_NAME = "Singleton"
 
 # properties
 export(String) var name setget , get_name
@@ -14,11 +15,13 @@ export(bool) var enabled setget , get_enabled
 export(bool) var destroyed setget , get_destroyed
 export(bool) var has_items setget , get_has_items
 export(bool) var has_name setget , get_has_name
+export(bool) var has_manager setget , get_has_manager
 
 # fields
 var _data = {
 	"name": "",
 	"self_ref": null,
+	"manager_ref": null,
 	"items": {},
 	"amount": 0,
 	"state":
@@ -28,6 +31,7 @@ var _data = {
 		"saved": false,
 		"has_name": false,
 		"cached": false,
+		"has_manager": false,
 		"has_items": false,
 		"enabled": false,
 		"destroyed": false
@@ -36,23 +40,26 @@ var _data = {
 
 
 # inherited private methods
-func _init(_name = "", _self_ref = null, _enable = false):
-	if StringUtility.is_valid(_name) && not _self_ref == null:
+func _init(_name = "", _self_ref = null, _manager = null, _enable = false):
+	resource_local_to_scene = false
+	if SingletonTableUtility.is_init_valid(_name, _self_ref, _manager):
 		_data.name = _name
 		_data.self_ref = _self_ref
+		_data.manager_ref = _manager
 		_data.cached = true
 		_data.state.has_name = true
 		_data.state.initialized = true
+		_data.state.has_manager = true
 		_data.state.enabled = _enable
 
 
 # inhertied public methods
 func is_class(_class: String):
-	return _class == Singleton.CLASS_NAME or _class == CLASS_NAME or _class == _data.name
+	return _class == _BASE_CLASS_NAME or _class == _CLASS_NAME or _class == _data.name  #Singleton.CLASS_NAME
 
 
 func get_class():
-	return CLASS_NAME
+	return _CLASS_NAME
 
 
 # public methods
@@ -189,3 +196,7 @@ func get_has_items():
 
 func get_has_name():
 	return _data.state.has_name
+
+
+func get_has_manager():
+	return _data.state.has_manager

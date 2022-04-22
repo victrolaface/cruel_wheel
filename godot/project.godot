@@ -19,6 +19,16 @@ _global_script_classes=[ {
 "language": "GDScript",
 "path": "res://addons/godot-next/resources/array_map.gd"
 }, {
+"base": "Singleton",
+"class": "BarSingleton",
+"language": "GDScript",
+"path": "res://src/foobarbaz/BarSingleton.gd"
+}, {
+"base": "Singleton",
+"class": "BazSingleton",
+"language": "GDScript",
+"path": "res://src/foobarbaz/BazSingleton.gd"
+}, {
 "base": "Resource",
 "class": "Behavior",
 "language": "GDScript",
@@ -239,6 +249,11 @@ _global_script_classes=[ {
 "language": "GDScript",
 "path": "res://src/resource/singleton/singleton_database.gd"
 }, {
+"base": "Reference",
+"class": "SingletonDatabaseUtility",
+"language": "GDScript",
+"path": "res://src/util/singleton_database_utility.gd"
+}, {
 "base": "Node",
 "class": "SingletonManager",
 "language": "GDScript",
@@ -322,6 +337,8 @@ _global_script_classes=[ {
 _global_script_class_icons={
 "Array2D": "",
 "ArrayMap": "",
+"BarSingleton": "",
+"BazSingleton": "",
 "Behavior": "",
 "BitFlag": "",
 "Bitset": "",
@@ -366,6 +383,7 @@ _global_script_class_icons={
 "SignalUtility": "",
 "Singleton": "",
 "SingletonDatabase": "",
+"SingletonDatabaseUtility": "",
 "SingletonManager": "",
 "SingletonTable": "",
 "SingletonTableUtility": "",

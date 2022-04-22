@@ -1,29 +1,86 @@
 class_name SingletonTableUtility
 
-#const CLASS_NAME = "SingletonTable"
+const _BASE_CLASS_NAME = "Singleton"
+const _CLASS_NAME = "SingletonTable"
+const _MGR_CLASS_NAME = "SingletonManager"
 
 
-static func is_loaded_valid(_singleton_table = null, _name = ""):
+static func is_loaded_valid(_singleton_table = null):
 	return (
-		SingletonUtility.is_valid(_singleton_table)
-		&& _singleton_table.is_class(SingletonTable.CLASS_NAME)
-		&& _singleton_table.name == _name
+		not _singleton_table == null
+		&& StringUtility.is_valid(_singleton_table.name)
+		&& _singleton_table.has_name
+		&& not _singleton_table.has_manager
 		&& _singleton_table.initialized
-		&& not _singleton_table.saved
+		&& not _singleton_table.cached
 		&& not _singleton_table.registered
+		&& _singleton_table.saved
 		&& not _singleton_table.enabled
 		&& not _singleton_table.destroyed
-		&& _singleton_table.has_name
-		&& _singleton_table.has_items
-		&& _singleton_table.items_amount > 0
+		&& _singleton_table.has_database
+		&& _singleton_table.database_amount > 0
 	)
+
+
+static func is_init_valid(_name = "", _self_ref = null, _manager = null):
+	return (
+		StringUtility.is_valid(_name)
+		&& not _self_ref == null
+		&& _self_ref.is_class(_BASE_CLASS_NAME)
+		&& _self_ref.is_class(_CLASS_NAME)
+		&& _self_ref.get_class() == _CLASS_NAME
+		&& _self_ref.is_singleton
+		&& not _self_ref.resource_local_to_scene
+		&& not _self_ref.cached
+		&& not _self_ref.saved
+		&& not _self_ref.enabled
+		&& not _self_ref.initialized
+		&& not _self_ref.destroyed
+		&& not _self_ref.registered
+		&& not _self_ref.has_name
+		&& not _self_ref.has_manager
+		&& _self_ref.items_amount == 0
+		&& not _manager == null
+		&& not _manager.resource_local_to_scene
+		&& _manager.is_class(_BASE_CLASS_NAME)
+		&& _manager.is_class(_MGR_CLASS_NAME)
+		&& _manager.get_class() == _MGR_CLASS_NAME
+		&& _manager.is_singleton
+		&& _manager.has_name
+		&& _manager.name == _MGR_CLASS_NAME
+		&& _manager.initialized
+		&& _manager.has_database
+		&& _manager.cached
+		&& _manager.enabled
+	)
+
+
+static func is_item_valid(_item = null):
+	return (
+		not _item == null
+		&& _item.is_singleton
+		&& not _item.enabled
+		&& _item.initialized
+		&& not _item.destroyed
+		&& not _item.registered
+		&& _item.saved
+		&& _item.has_name
+		&& _item.has_path
+		&& not _item.cached
+		&& not _item.has_manager
+	)
+
+
+#static func can_fix(_item = null):
+#	var can_fix = item == null
+#	if can_fix:
 
 
 static func is_loaded_cache_valid(_cache = null):
 	var valid = not _cache == null
 	if valid:
 		var cache_names = _cache.keys()
-		var base_name = ClassType.from_name(Singleton.CLASS_NAME)
+		var base_name = ClassType.from_name(_BASE_CLASS_NAME)  #Singleton.CLASS_NAME)
 		var valid_names = base_name.get_inheritors_list()
 		#var invalid_names = []
 		for n in cache_names:
