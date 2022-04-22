@@ -1,6 +1,8 @@
 tool
 class_name Singleton extends Resource
 
+const CLASS_NAME = "Singleton"
+
 # properties
 export(bool) var is_singleton setget , get_is_singleton
 export(bool) var enabled setget , get_enabled
@@ -14,10 +16,6 @@ export(bool) var cached setget , get_cached
 export(bool) var has_manager setget , get_has_manager
 export(String) var name setget , get_name
 export(String) var path setget , get_path
-export(String) var persistent_path setget , get_persistent_path
-
-# fields
-const PERSISTENT_PATH = "res://data/singleton_db.tres"
 
 var _data = {
 	"name": "",
@@ -58,11 +56,11 @@ func _init(_name = "", _self_ref = null, _mgr_ref = null, _editor_only = false):
 
 # public methods
 func is_class(_class):
-	return (_data.state.has_name && _class == _data.name) || _class == SingletonUtility.BASE_CLASS_NAME
+	return (_data.state.has_name && _class == _data.name) || _class == CLASS_NAME
 
 
 func get_class():
-	return SingletonUtility.BASE_CLASS_NAME
+	return CLASS_NAME
 
 
 func enable():
@@ -148,10 +146,6 @@ func get_name():
 
 func get_path():
 	return _data.path
-
-
-func get_persistent_path():
-	return PERSISTENT_PATH
 
 
 func get_is_editor_only():

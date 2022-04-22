@@ -1,6 +1,8 @@
 tool
 class_name SingletonTable extends Resource
 
+const CLASS_NAME = "SingletonTable"
+
 # properties
 export(String) var name setget , get_name
 export(int) var items_amount setget , get_items_amount
@@ -14,8 +16,6 @@ export(bool) var has_items setget , get_has_items
 export(bool) var has_name setget , get_has_name
 
 # fields
-const BASE_CLASS_NAME = "SingletonTable"
-
 var _data = {
 	"name": "",
 	"self_ref": null,
@@ -48,11 +48,11 @@ func _init(_name = "", _self_ref = null, _enable = false):
 
 # inhertied public methods
 func is_class(_class: String):
-	return _class == SingletonUtility.BASE_CLASS_NAME or _class == BASE_CLASS_NAME or _class == _data.name
+	return _class == Singleton.CLASS_NAME or _class == CLASS_NAME or _class == _data.name
 
 
 func get_class():
-	return BASE_CLASS_NAME
+	return CLASS_NAME
 
 
 # public methods

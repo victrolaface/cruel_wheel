@@ -33,7 +33,7 @@ func _init():
 
 # public methods
 func is_class(_class):
-	return _class == _CLASS_NAME or _class == SingletonUtility.BASE_CLASS_NAME
+	return _class == _CLASS_NAME or _class == Singleton.CLASS_NAME
 
 
 func get_is_singleton():

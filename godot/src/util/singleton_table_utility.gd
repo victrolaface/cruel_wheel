@@ -1,10 +1,12 @@
 class_name SingletonTableUtility
 
+#const CLASS_NAME = "SingletonTable"
+
 
 static func is_loaded_valid(_singleton_table = null, _name = ""):
 	return (
 		SingletonUtility.is_valid(_singleton_table)
-		&& _singleton_table.is_class(SingletonTable.BASE_CLASS_NAME)
+		&& _singleton_table.is_class(SingletonTable.CLASS_NAME)
 		&& _singleton_table.name == _name
 		&& _singleton_table.initialized
 		&& not _singleton_table.saved
@@ -21,7 +23,7 @@ static func is_loaded_cache_valid(_cache = null):
 	var valid = not _cache == null
 	if valid:
 		var cache_names = _cache.keys()
-		var base_name = ClassType.from_name("Singleton")  #$#new()
+		var base_name = ClassType.from_name(Singleton.CLASS_NAME)
 		var valid_names = base_name.get_inheritors_list()
 		#var invalid_names = []
 		for n in cache_names:

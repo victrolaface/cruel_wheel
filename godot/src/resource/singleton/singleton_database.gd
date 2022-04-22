@@ -5,9 +5,7 @@ class_name SingletonDatabase extends Resource
 export(String) var name setget , get_name
 export(bool) var has_name setget , get_has_name
 export(bool) var has_manager_ref setget , get_has_manager_ref
-export(bool) var has_singletons setget , get_has_singletons
-export(bool) var has_cache setget , get_has_cache
-export(bool) var has_paths setget , get_has_paths
+export(bool) var has_database setget , get_has_database
 export(bool) var initialized setget , get_initialized
 export(bool) var cached setget , get_cached
 export(bool) var registered setget , get_registered
@@ -15,9 +13,7 @@ export(bool) var saved setget , get_saved
 export(bool) var enabled setget , get_enabled
 export(bool) var destroyed setget , get_destroyed
 export(Resource) var cache setget , get_cache
-export(Resource) var paths setget , get_paths
-export(int) var cache_amount setget , get_cache_amount
-export(int) var paths_amount setget , get_paths_amount
+export(int) var database_amount setget , get_database_amount
 
 # fields
 const _CLASS_NAME = "SingletonDatabase"
@@ -26,17 +22,13 @@ const _PATH = "res://data/singleton_db.tres"
 var _data = {
 	"name": "",
 	"manager_ref": null,
-	"cache": null,
-	"paths": null,
-	"cache_amount": 0,
-	"paths_amount": 0,
+	"db": null,
+	"db_amount": 0,
 	"state":
 	{
 		"has_name": false,
 		"has_manager_ref": false,
-		"has_singletons": false,
-		"has_cache": false,
-		"has_paths": false,
+		"has_db": false,
 		"initialized": false,
 		"cached": false,
 		"registered": false,
@@ -51,32 +43,23 @@ func get_name():
 	return _data.name
 
 
+func get_database_amount():
+	return _data.db_amount
+
+
+func get_has_database():
+	return _data.state.has_db
+
+
 func is_class(_class: String):
-	return _class == SingletonUtility.BASE_CLASS_NAME or _class == _CLASS_NAME
+	return _class == Singleton.CLASS_NAME or _class == _CLASS_NAME
 
 
 func get_class():
 	return _CLASS_NAME
 
 
-func _validate_singleton(_singleton):
-	return SingletonUtility.is_valid(_singleton)
-
-
-func _validate_paths(_has_cache = false):
-	return false
-
-
-func _is_loaded_valid(_loaded: SingletonTable, _is_cache = false, _is_paths = false):  #=null):
-	var valid = false
-	if _is_cache:
-		valid = SingletonTableUtility.is_loaded_valid(_loaded) && SingletonTableUtility.is_loaded_cache_valid(_loaded)
-	elif _is_paths:
-		valid = SingletonTableUtility.is_loaded_valid(_loaded) && SingletonTableUtility.is_loaded_paths_valid(_loaded)
-	return valid
-
-
-func _valid_loaded_database(_loaded_db = null):
+func _is_loaded_database_valid(_loaded_db = null):
 	return (
 		not _loaded_db == null
 		&& StringUtility.is_valid(_loaded_db.name)
@@ -88,46 +71,58 @@ func _valid_loaded_database(_loaded_db = null):
 		&& _loaded_db.saved
 		&& not _loaded_db.enabled
 		&& not _loaded_db.destroyed
-		&& (_loaded_db.cache_amount > 0 or _loaded_db.paths_amount > 0)
-		&& (
-			(_loaded_db.has_singletons && _loaded_db.has_cache && _loaded_db.has_paths)
-			or (_loaded_db.has_cache or _loaded_db.has_paths)
-		)
+		&& _loaded_db.has_database
+		&& _loaded_db.database_amount > 0
 	)
 
 
 func _init(_manager = null, _enable = false):
 	var loaded = ResourceLoader.load(_PATH)
-	if not loaded:
-		push_error("cannot load resource.")
-	elif _valid_loaded_database(loaded):
+	if _is_loaded_database_valid(loaded):
 		_data.name = loaded.name
 		_data.cache_amount = loaded.cache_amount
 		_data.paths_amount = loaded.paths_amount
-		_data.state.has_cache = loaded.has_cache
-		_data.state.has_paths = loaded.has_paths
-		_data.state.has_singletons = loaded.has_singletons
-		var validate_cache = _data.state.has_singletons or _data.state.has_cache  # or
-		var validate_paths = _data.state.has_singletons or _data.state.has_paths
-		if validate_cache:
-			if _is_loaded_valid(loaded.cache, true):
-				_data.cache = loaded.cache
-			else:
-				_data.cache = SingletonTableUtility.valid_cache(loaded.cache)
-		if validate_paths:
-			if _is_loaded_valid(loaded.paths, false, true):
-				_data.paths = loaded.paths
-			else:
-				_data.paths = SingletonTableUtility.valid_paths(loaded.paths)
-		# validate, compare cache names and paths
+		_data.state.has_database = loaded.has_database
+		_data.db = loaded.database
+		var has_invalid_item = false
+		var db_names = _data.db.keys
+		var invalid_item_names = []
+		for db_name in db_names:
+			if not SingletonTableUtility.is_item_valid(_data.db[db_name]):
+				has_invalid_item = true
+				invalid_item_names.append(db_name)
+		if has_invalid_item:
+			var has_item_to_fix = false
+			var has_item_to_delete = false
+			var invalid_item_to_fix_names = []
+			var invalid_item_to_delete_names = []
+			for invalid_name in invalid_item_names:
+				var invalid_item = _data.db[invalid_name]
+				if SingletonTableUtility.can_fix(invalid_item):
+					has_item_to_fix = true
+					invalid_item_to_fix_names.append(invalid_name)
+				else:
+					has_item_to_delete = true
+					invalid_item_to_delete_names.append(invalid_name)
+			if has_item_to_fix:
+				for fix_name in invalid_item_to_fix_names:
+					var item_fixed = SingletonTableUtility.fix(_data.db[fix_name])
+					if SingletonTableUtility.is_item_valid(item_fixed):
+						_data.db[fix_name] = item_fixed
+					elif not invalid_item_to_delete_names.has(fix_name):
+						has_item_to_delete = true
+						invalid_item_to_delete_names.append(fix_name)
+			if has_item_to_delete:
+				for del_name in invalid_item_to_delete_names:
+					if _data.db.erase(del_name):
+						continue
+					else:
+						push_error("unable to delete invalid database item.")
 	else:
-		# default init
-		# save
 		pass
+		# do default db init, reg
 
-	# set manager_ref
-	# final init
-	# if enable, do enable
+	# final_init, self_ref, mgr_ref, enable
 
 
 # setters, getters functions
