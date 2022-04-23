@@ -96,8 +96,9 @@ func _init(_manager = null):
 		else:
 			data = _on_init_name_mgr(data, _manager)
 			if not data.db.enable(self, _manager):
-				data.db.remove_disabled()
-			if not data.db.valid():
+				if not data.db.remove_disabled(_manager):
+					push_error("unable to remove disabled items.")
+			if not data.db.validate():
 				data.db.remove_invalid()
 				#pass
 				# check for any invalid names, paths

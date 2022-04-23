@@ -47,6 +47,19 @@ func get_emit_changed_connected():
 
 # inherited methods private
 func _init(_self_ref = null):
+	_on_init(_self_ref)
+
+
+func _on_init(_self_ref = null):
+	var init_vals = {
+		"self_ref": _data.self_ref,
+		"has_self_ref": _data.state.has_self_ref,
+		"name": _data.name,
+		"has_name": _data.state.has_name,
+		"path": _data.path,
+		"has_path": _data.state.has_path,
+		"emit_changed_connected": _data.state.emit_changed_connected
+	}
 	_data.self_ref = _self_ref
 	_data.state.has_self_ref = not _data.self_ref == null
 	if _data.state.has_self_ref:
@@ -54,36 +67,101 @@ func _init(_self_ref = null):
 		_data.state.has_name = StringUtility.is_valid(_data.name)
 		_data.path = _self_ref.resource_path
 		_data.state.has_path = PathUtility.is_valid(_data.path)
-	_connect_emit_changed()
-	emit_changed()
-
-
-func _connect_emit_changed():
 	if not self.is_connected("emit_changed", self, "_on_changed"):
 		if self.connect("emit_changed", self, "_on_changed", [], CONNECT_DEFERRED):
 			_data.state.emit_changed_connected = true
+	var changed = _proc_changed(
+		[
+			init_vals.self_ref == _data.self_ref,
+			init_vals.has_self_ref == _data.state.has_self_ref,
+			init_vals.name == _data.name,
+			init_vals.has_name == _data.state.has_name,
+			init_vals.path == _data.path,
+			init_vals.has_path == _data.state.has_path,
+			init_vals.emit_changed_connected == _data.state.emit_changed_connected
+		]
+	)
+	if changed:
+		emit_changed()
 
 
-#func _on_init(_self_ref=null):
+func _proc_changed(_changes = []):
+	var changed = false
+	var proc_changed = _changes.count() > 0
+	if proc_changed:
+		while proc_changed:
+			for change in _changes:
+				changed = not change
+				proc_changed = not changed
+			proc_changed = false
+	return changed && _data.state.emit_changed_connected
 
 
 func init_from_manager(_manager = null):
+	var init_vals = {
+		"manager_ref": _data.manager_ref,
+		"has_manager_ref": _data.state.has_manager_ref,
+		"cached": _data.state.cached,
+		"initialized": _data.state.initialized
+	}
 	_data.manager_ref = _manager
 	_data.state.has_manager_ref = not _data.manager_ref == null
 	_data.state.cached = _data.state.has_name && _data.state.has_path && _data.state.has_manager_ref
 	_data.initialized = _data.state.cached && _data.state.emit_changed_connected
-	register()
-	emit_changed()
-	save()
+	var changed = _proc_changed(
+		[
+			init_vals.manager_ref == _data.manager_ref,
+			init_vals.has_manager_ref == _data.state.has_manager_ref,
+			init_vals.cached == _data.state.cached,
+			init_vals.initialized == _data.state.initialized
+		]
+	)
+	if changed && _data.initialized:
+		register()
+		emit_changed()
+		save()
+	init_vals = {"enabled": _data.state.enabled}
 	_data.state.enabled = _data.initialized && _data.state.registered && _data.state.saved
-	if _data.state.enabled:
+	changed = _proc_changed([init_vals.enabled == _data.state.enabled])
+	if changed && _data.state.enabled:
 		emit_changed()
 
 
-func enable(_manager = null):
-	_connect_emit_changed()
+func enable(_self_ref = null, _manager = null):
+	_on_init(_self_ref)
 	init_from_manager(_manager)
 	return _data.state.enabled
+
+
+func validate(_self_ref = null):
+	var valid = false
+	var validating = true
+	while validating:
+		var self_class_name = _self_ref.get_class()
+		#valid = not _self_ref.resource_local_to_scene && _self_ref.is_class(_BASE_CLASS_NAME) && _self_ref.is_singleton
+		#valid = StringUtility.is_valid(_data.name) && _data.state.has_name &&
+
+
+"""
+	"name": "",
+	"path": "",
+	"self_ref": null,
+	"manager_ref": null,
+	"state":
+	{
+		"editor_only": false,
+		"has_name": false,
+		"cached": false,
+		"has_manager_ref": false,
+		"has_self_ref": false,
+		"initialized": false,
+		"enabled": false,
+		"registered": false,
+		"saved": false,
+		"destroyed": false,
+		"emit_changed_connected": false
+	}
+"""
 
 
 func _on_changed():
