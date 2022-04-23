@@ -5,6 +5,15 @@ const _CLASS_NAME = "SingletonTable"
 const _MGR_CLASS_NAME = "SingletonManager"
 
 
+static func is_init_valid():
+	pass
+
+
+static func is_init_valid_on_added():
+	pass
+
+
+"""
 static func is_loaded_valid(_singleton_table = null):
 	return (
 		not _singleton_table == null
@@ -126,7 +135,6 @@ static func _is_cache_item_valid(_cache_item = null):
 #	var valid = false
 #	if SingletonUtility.is_valid(_singleton_item):
 #		_is_loaded_singleton_valid
-"""
 export(bool) var is_singleton setget , get_is_singleton
 export(bool) var enabled setget , get_enabled
 export(bool) var initialized setget , get_initialized
@@ -140,7 +148,6 @@ export(bool) var has_manager setget , get_has_manager
 export(String) var name setget , get_name
 export(String) var path setget , get_path
 export(String) var persistent_path setget , get_persistent_path
-"""
 #	return valid
 
 #static func is_paths_valid(_paths = null):
@@ -156,3 +163,4 @@ export(String) var persistent_path setget , get_persistent_path
 #	)
 #static func is_loaded_valid(_singleton_table=null):
 #
+"""

@@ -1,22 +1,35 @@
 class_name SingletonUtility
 
-#const BASE_CLASS_NAME = "Singleton"
-#const CLASS_NAME = "Singleton"
 const _CLASS_NAME = "Singleton"
+const _MGR_CLASS_NAME = "SingletonManager"
 
 
-static func is_init_valid(_name = "", _self_ref = null, _mgr_ref = null):
+static func is_init_valid(_name = "", _self_ref = null):
 	return (
 		StringUtility.is_valid(_name)
 		&& not _self_ref == null
-		&& not _mgr_ref == null
 		&& not _self_ref.resource_local_to_scene
-		&& not _mgr_ref.resource_local_to_scene
-		&& _self_ref.is_class(_CLASS_NAME)  #Singleton.CLASS_NAME)
-		&& _mgr_ref.is_class(_CLASS_NAME)  #Singleton.CLASS_NAME)
+		&& _self_ref.is_class(_CLASS_NAME)
 		&& _self_ref.is_singleton
-		&& _mgr_ref.is_singleton
-		&& _mgr_ref.name == "SingletonManager"
+	)
+
+
+static func is_init_from_mgr_valid(_self_ref = null, _mgr = null):
+	return (
+		is_init_valid(_self_ref.name, _self_ref)
+		&& _self_ref.has_name
+		&& _self_ref.has_path
+		&& _self_ref.cached
+		&& _self_ref.emit_changed_connected
+		&& PathUtility.is_valid(_self_ref.path)
+		&& not _self_ref.initialized
+		&& not _self_ref.enabled
+		&& not _mgr == null
+		&& not _mgr.resource_local_to_scene
+		&& _mgr.is_class(_CLASS_NAME)
+		&& _mgr.is_class(_MGR_CLASS_NAME)
+		&& _mgr.get_class() == _MGR_CLASS_NAME
+		&& _mgr.is_singleton
 	)
 
 

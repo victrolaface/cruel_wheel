@@ -1,5 +1,5 @@
 tool
-class_name SingletonManager extends Node
+class_name SingletonManager extends Node  #Node
 
 # properties
 export(bool) var is_singleton setget , get_is_singleton
@@ -10,27 +10,92 @@ export(bool) var has_name setget , get_has_name
 export(bool) var has_database setget , get_has_database
 
 # fields
+enum UPDATE_STATE { NONE = 0, PHYSICS_PROCESS = 1, PROCESS = 2, INPUT_EVENT = 3 }
 const _CLASS_NAME = "SingletonManager"
 const _BASE_CLASS_NAME = "Singleton"
 
 var _data = {
+	"name": "",
 	"self_ref": null,
 	"db": null,
-	"state": {"initialized": false, "cached": false, "enabled": false, "has_name": false, "has_db": false}
+	"state":
+	{
+		"initialized": false,
+		"cached": false,
+		"enabled": false,
+		"has_name": false,
+		"has_db": false,
+		"connected_tree_exiting": false
+	}
 }
 
 
 # inherited private methods
 func _init():
 	self.resource_local_to_scene = false
+	if not self.is_connected("tree_exiting", self, "_on_tree_exiting"):
+		if self.connect("tree_exiting", self, "_on_tree_exit", [], CONNECT_ONESHOT):
+			_data.state.connected_tree_exiting = true
 	name = _CLASS_NAME
+	_data.name = name
 	_data.self_ref = self
-	_data.state.cached = true
-	_data.state.has_name = true
-	_data.state.initialized = true
-	_data.db = SingletonDatabase.new(self, true)
+	_data.state.cached = not _data.self_ref == null
+	_data.state.has_name = StringUtility.is_valid(_data.name)
+	_data.db = SingletonDatabase.new(self)
+	_on_init_db_enabled()
+
+
+func _on_init_db_enabled():
 	_data.state.has_db = _data.db.enabled
-	_data.enabled = _data.state.has_db  #db.enabled#_data.initialized
+	_data.state.initialized = _data.state.connected_tree_exiting && _data.cached && _data.has_name && _data.state.has_db
+	_data.state.enabled = _data.state.initialized
+
+
+func _on_enable():
+	if not _data.state.enabled:
+		_data.db.enable(self)
+		_on_init_db_enabled()
+
+
+func _enter_tree():
+	_on_update()
+
+
+func _ready():
+	_on_update()
+
+
+func _physics_process(_delta):
+	_on_update(UPDATE_STATE.PHYSICS_PROCESS, _delta)
+
+
+func _process(_delta):
+	_on_update(UPDATE_STATE.PROCESS, _delta)
+
+
+func _on_update(_update_state = UPDATE_STATE.NONE, _delta = null):
+	_on_enable()
+	if _data.state.enabled:
+		match _update_state:
+			_:
+				pass
+
+
+func _on_tree_exiting():
+	if _data.state.enabled:
+		if _data.db.disable():
+			name = ""
+			_data.name = name
+			_data.self_ref = null
+			_data.db = null
+			_data.state.has_name = false
+			_data.state.cached = false
+			_data.state.has_db = false
+			_data.state.initialized = false
+			if self.is_connected("tree_exiting", self, "_on_tree_exiting"):
+				self.disconnect("tree_exiting", self, "_on_tree_exiting")
+			_data.state.connected_tree_exiting = false
+			_data.state.enabled = false
 
 
 # public methods

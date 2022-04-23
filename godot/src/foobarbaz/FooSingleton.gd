@@ -5,8 +5,7 @@ const _CLASS_NAME = "FooSingleton"
 const _PATH = "res://src/foobarbaz/FooSingleton.gd"
 
 
-func _init(_manager = null):
-	self.resource_local_to_scene = false
+func _init():
 	self.resource_name = _CLASS_NAME
 	self.resource_path = _PATH
-	._init(self, _manager, true)
+	._init(self)

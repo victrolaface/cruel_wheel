@@ -55,7 +55,7 @@ func _init(_name = "", _self_ref = null, _manager = null, _enable = false):
 
 # inhertied public methods
 func is_class(_class: String):
-	return _class == _BASE_CLASS_NAME or _class == _CLASS_NAME or _class == _data.name  #Singleton.CLASS_NAME
+	return _class == _BASE_CLASS_NAME or _class == _CLASS_NAME or _class == _data.name
 
 
 func get_class():
@@ -63,16 +63,36 @@ func get_class():
 
 
 # public methods
-func enable():
-	_data.state.enabled = true
-
-
 func add(_key: String, _value):
 	var added = false
 	if not _data.items.has(_key):
 		_data.items[_key] = _on_item(_key, _value)
 		added = _on_add()
 	return added
+
+
+func register_all():
+	var _reg_all = false
+	var _cannot_register = false
+	var names = _data.items.keys
+	for n in names:
+		if not _data.items[n].register():
+			_cannot_register = true
+			break
+	_reg_all = not _cannot_register
+	return _reg_all
+
+
+func save_all():
+	var _save_all = false
+	var _cannot_save = false
+	var names = _data.items.keys
+	for n in names:
+		if not _data.items[n].save():
+			_cannot_save = true
+			break
+	_save_all = not _cannot_save
+	return _save_all
 
 
 func set_item(_key: String, _value):
@@ -113,8 +133,30 @@ func clear():
 		_on_has_no_items()
 
 
+func enable():
+	var _enabled = false
+	var enable = false
+	var names = _data.items.keys
+	for n in names:
+		enable = _data.items[n].enable()
+		if not enable:
+			push_warning("unable to enable item.")
+			break
+	_enabled = not enable
+	return _enabled
+
+
 func disable():
-	_data.state.enabled = false
+	var disabled = false
+	var disable = false
+	var names = _data.items.keys
+	for n in names:  #data.items:
+		disable = _data.items[n].disable()
+		if not disable:
+			push_warning("unable to disable item.")
+			break
+	disabled = not disable
+	return disabled
 
 
 func destroy():
