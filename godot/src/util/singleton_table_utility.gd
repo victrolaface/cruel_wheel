@@ -4,31 +4,12 @@ const _BASE_CLASS_NAME = "Singleton"
 const _CLASS_NAME = "SingletonTable"
 const _MGR_CLASS_NAME = "SingletonManager"
 
-
-static func is_init_valid():
-	pass
+#static func is_init_valid():
+#	pass
 
 
 static func is_init_valid_on_added():
 	pass
-
-
-"""
-static func is_loaded_valid(_singleton_table = null):
-	return (
-		not _singleton_table == null
-		&& StringUtility.is_valid(_singleton_table.name)
-		&& _singleton_table.has_name
-		&& not _singleton_table.has_manager
-		&& _singleton_table.initialized
-		&& not _singleton_table.cached
-		&& not _singleton_table.registered
-		&& _singleton_table.saved
-		&& not _singleton_table.enabled
-		&& not _singleton_table.destroyed
-		&& _singleton_table.has_database
-		&& _singleton_table.database_amount > 0
-	)
 
 
 static func is_init_valid(_name = "", _self_ref = null, _manager = null):
@@ -61,6 +42,24 @@ static func is_init_valid(_name = "", _self_ref = null, _manager = null):
 		&& _manager.has_database
 		&& _manager.cached
 		&& _manager.enabled
+	)
+
+
+"""
+static func is_loaded_valid(_singleton_table = null):
+	return (
+		not _singleton_table == null
+		&& StringUtility.is_valid(_singleton_table.name)
+		&& _singleton_table.has_name
+		&& not _singleton_table.has_manager
+		&& _singleton_table.initialized
+		&& not _singleton_table.cached
+		&& not _singleton_table.registered
+		&& _singleton_table.saved
+		&& not _singleton_table.enabled
+		&& not _singleton_table.destroyed
+		&& _singleton_table.has_database
+		&& _singleton_table.database_amount > 0
 	)
 
 

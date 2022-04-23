@@ -5,17 +5,17 @@ const _CLASS_NAME = "SingletonTable"
 const _BASE_CLASS_NAME = "Singleton"
 
 # properties
-export(String) var name setget , get_name
-export(int) var items_amount setget , get_items_amount
-export(bool) var initialized setget , get_initialized
-export(bool) var cached setget , get_cached
-export(bool) var registered setget , get_registered
-export(bool) var saved setget , get_saved
 export(bool) var enabled setget , get_enabled
-export(bool) var destroyed setget , get_destroyed
 export(bool) var has_items setget , get_has_items
-export(bool) var has_name setget , get_has_name
-export(bool) var has_manager setget , get_has_manager
+export(int) var items_amount setget , get_items_amount
+#export(String) var name setget , get_name
+#export(bool) var initialized setget , get_initialized
+#export(bool) var cached setget , get_cached
+#export(bool) var registered setget , get_registered
+#export(bool) var saved setget , get_saved
+#export(bool) var destroyed setget , get_destroyed
+#export(bool) var has_name setget , get_has_name
+#export(bool) var has_manager setget , get_has_manager
 
 # fields
 var _data = {
@@ -31,7 +31,8 @@ var _data = {
 		"saved": false,
 		"has_name": false,
 		"cached": false,
-		"has_manager": false,
+		"has_manager_ref": false,
+		"has_self_ref": false,
 		"has_items": false,
 		"enabled": false,
 		"destroyed": false
@@ -40,17 +41,21 @@ var _data = {
 
 
 # inherited private methods
-func _init(_name = "", _self_ref = null, _manager = null, _enable = false):
+func _init(_name = "", _self_ref = null, _manager = null):
 	resource_local_to_scene = false
-	if SingletonTableUtility.is_init_valid(_name, _self_ref, _manager):
-		_data.name = _name
-		_data.self_ref = _self_ref
-		_data.manager_ref = _manager
-		_data.cached = true
-		_data.state.has_name = true
-		_data.state.initialized = true
-		_data.state.has_manager = true
-		_data.state.enabled = _enable
+	_data.name = _name
+	_data.state.has_name = StringUtility.is_valid(_data.name)
+	_on_init(_self_ref, _manager)
+
+
+func _on_init(_self_ref = null, _manager = null):
+	_data.self_ref = _self_ref
+	_data.state.has_self_ref = not _data.self_ref == null
+	_data.manager_ref = _manager
+	_data.state.has_manager_ref = not _data.manager_ref == null
+	_data.state.cached = _data.state.has_name && _data.state.has_manager_ref && _data.state.has_self_ref  #$_on_cached()#
+	_data.state.initialized = _data.state.cached
+	_data.state.enabled = _data.state.initialized
 
 
 # inhertied public methods
@@ -69,6 +74,39 @@ func add(_key: String, _value):
 		_data.items[_key] = _on_item(_key, _value)
 		added = _on_add()
 	return added
+
+
+func enable(_self_ref = null, _manager = null):
+	_on_init(_self_ref, _manager)
+	var _enabled = _data.state.enabled
+	if _enabled:
+		var cannot_enable = false
+		var names = _data.items.keys
+		for n in names:
+			if _data.items[n].enable(_manager):
+				continue
+			push_warning("unable to enable item.")
+			if not cannot_enable:
+				cannot_enable = true
+		_enabled = not cannot_enable
+	return _enabled
+
+
+func remove_disabled():
+	return true
+
+
+func remove_invalid():
+	return true
+
+
+#func enable_all():
+#	var _enabled = false
+#	var enable = false
+#	var cannot_enable = false
+#	var names = _data.items.keys
+#	for n
+#	return _enabled
 
 
 func register_all():
@@ -110,14 +148,6 @@ func get_item(_key: String):
 	return item
 
 
-func keys():
-	return _data.items.keys
-
-
-func values():
-	return _data.items.values
-
-
 func remove(_key: String):
 	var removed = false
 	if _on_get_kvp(_key):
@@ -131,19 +161,6 @@ func clear():
 		_data.items.clear()
 		_data.amount = 0
 		_on_has_no_items()
-
-
-func enable():
-	var _enabled = false
-	var enable = false
-	var names = _data.items.keys
-	for n in names:
-		enable = _data.items[n].enable()
-		if not enable:
-			push_warning("unable to enable item.")
-			break
-	_enabled = not enable
-	return _enabled
 
 
 func disable():
@@ -200,45 +217,37 @@ func _on_has_no_items():
 
 
 # setters, getters functions
-func get_name():
-	return _data.name
-
-
-func get_items_amount():
-	return _data.amount
-
-
-func get_initialized():
-	return _data.state.initialized
-
-
-func get_registered():
-	return _data.state.registered
-
-
-func get_cached():
-	return _data.state.cached
-
-
-func get_saved():
-	return _data.state.saved
-
-
 func get_enabled():
 	return _data.state.enabled
-
-
-func get_destroyed():
-	return _data.state.destroyed
 
 
 func get_has_items():
 	return _data.state.has_items
 
 
-func get_has_name():
-	return _data.state.has_name
+func get_items_amount():
+	return _data.amount
 
+#func get_name():
+#	return _data.name
 
-func get_has_manager():
-	return _data.state.has_manager
+#func get_initialized():
+#	return _data.state.initialized
+
+#func get_registered():
+#	return _data.state.registered
+
+#func get_cached():
+#	return _data.state.cached
+
+#func get_saved():
+#	return _data.state.saved
+
+#func get_destroyed():
+#	return _data.state.destroyed
+
+#func get_has_name():
+#	return _data.state.has_name
+
+#func get_has_manager():
+#	return _data.state.has_manager

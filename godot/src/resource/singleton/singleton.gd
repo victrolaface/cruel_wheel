@@ -47,29 +47,43 @@ func get_emit_changed_connected():
 
 # inherited methods private
 func _init(_self_ref = null):
-	if SingletonUtility.is_init_valid(_self_ref):
+	_data.self_ref = _self_ref
+	_data.state.has_self_ref = not _data.self_ref == null
+	if _data.state.has_self_ref:
 		_data.name = _self_ref.resource_name
+		_data.state.has_name = StringUtility.is_valid(_data.name)
 		_data.path = _self_ref.resource_path
-		_data.self_ref = _self_ref
-		_data.state.has_self_ref = true
-		_data.state.has_path = true
-		_data.state.has_name = true
-		_data.state.cached = true
-		if not self.is_connected("emit_changed", self, "_on_changed"):
-			if self.connect("emit_changed", self, "_on_changed", [], CONNECT_DEFERRED):
-				_data.state.emit_changed_connected = true
+		_data.state.has_path = PathUtility.is_valid(_data.path)
+	_connect_emit_changed()
+	emit_changed()
+
+
+func _connect_emit_changed():
+	if not self.is_connected("emit_changed", self, "_on_changed"):
+		if self.connect("emit_changed", self, "_on_changed", [], CONNECT_DEFERRED):
+			_data.state.emit_changed_connected = true
+
+
+#func _on_init(_self_ref=null):
+
+
+func init_from_manager(_manager = null):
+	_data.manager_ref = _manager
+	_data.state.has_manager_ref = not _data.manager_ref == null
+	_data.state.cached = _data.state.has_name && _data.state.has_path && _data.state.has_manager_ref
+	_data.initialized = _data.state.cached && _data.state.emit_changed_connected
+	register()
+	emit_changed()
+	save()
+	_data.state.enabled = _data.initialized && _data.state.registered && _data.state.saved
+	if _data.state.enabled:
 		emit_changed()
 
 
-func init_from_manager(_mgr_ref = null, _enable = false):
-	if SingletonUtility.is_init_from_mgr_valid(self, _mgr_ref):
-		_data.manager_ref = _mgr_ref
-		_data.has_manager = true
-		_data.state.initialized = true
-		_data.state.enabled = _enable
-		register()
-		emit_changed()
-		save()
+func enable(_manager = null):
+	_connect_emit_changed()
+	init_from_manager(_manager)
+	return _data.state.enabled
 
 
 func _on_changed():
@@ -86,10 +100,10 @@ func get_class():
 	return _BASE_CLASS_NAME
 
 
-func enable():
-	if _data.state.initialized && not _data.state.enabled:
-		_data.state.enabled = true
-		emit_changed()
+#func enable():
+#	if _data.state.initialized && not _data.state.enabled:
+#		_data.state.enabled = true
+#		emit_changed()
 
 
 func disable():

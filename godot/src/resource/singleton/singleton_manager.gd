@@ -4,10 +4,6 @@ class_name SingletonManager extends Node  #Node
 # properties
 export(bool) var is_singleton setget , get_is_singleton
 export(bool) var initialized setget , get_initialized
-export(bool) var enabled setget , get_enabled
-export(bool) var cached setget , get_cached
-export(bool) var has_name setget , get_has_name
-export(bool) var has_database setget , get_has_database
 
 # fields
 enum UPDATE_STATE { NONE = 0, PHYSICS_PROCESS = 1, PROCESS = 2, INPUT_EVENT = 3 }
@@ -23,6 +19,7 @@ var _data = {
 		"initialized": false,
 		"cached": false,
 		"enabled": false,
+		"has_self_ref": false,
 		"has_name": false,
 		"has_db": false,
 		"connected_tree_exiting": false
@@ -39,46 +36,29 @@ func _init():
 	name = _CLASS_NAME
 	_data.name = name
 	_data.self_ref = self
-	_data.state.cached = not _data.self_ref == null
+	_data.state.has_self_ref = not _data.self_ref == null
+	_data.state.cached = _data.state.has_name && _data.state.has_self_ref
 	_data.state.has_name = StringUtility.is_valid(_data.name)
+	_data.state.initialized = _data.state.connected_tree_exiting && _data.state.cached
 	_data.db = SingletonDatabase.new(self)
-	_on_init_db_enabled()
-
-
-func _on_init_db_enabled():
 	_data.state.has_db = _data.db.enabled
-	_data.state.initialized = _data.state.connected_tree_exiting && _data.cached && _data.has_name && _data.state.has_db
-	_data.state.enabled = _data.state.initialized
-
-
-func _on_enable():
-	if not _data.state.enabled:
-		_data.db.enable(self)
-		_on_init_db_enabled()
-
-
-func _enter_tree():
-	_on_update()
+	_data.state.enabled = _data.db.enabled
 
 
 func _ready():
-	_on_update()
+	pass
+
+
+func _enter_tree():
+	pass
 
 
 func _physics_process(_delta):
-	_on_update(UPDATE_STATE.PHYSICS_PROCESS, _delta)
+	pass
 
 
 func _process(_delta):
-	_on_update(UPDATE_STATE.PROCESS, _delta)
-
-
-func _on_update(_update_state = UPDATE_STATE.NONE, _delta = null):
-	_on_enable()
-	if _data.state.enabled:
-		match _update_state:
-			_:
-				pass
+	pass
 
 
 func _on_tree_exiting():
@@ -103,6 +83,10 @@ func is_class(_class):
 	return _class == _CLASS_NAME or _class == _BASE_CLASS_NAME  #Singleton.CLASS_NAME
 
 
+func get_class():
+	return _CLASS_NAME
+
+
 func get_is_singleton():
 	return true
 
@@ -110,22 +94,6 @@ func get_is_singleton():
 # setters, getters functions
 func get_initialized():
 	return _data.state.initialized
-
-
-func get_enabled():
-	return _data.state.enabled
-
-
-func get_cached():
-	return _data.state.cached
-
-
-func get_has_name():
-	return _data.state.has_name
-
-
-func get_has_database():
-	return _data.state.has_database
 
 
 """

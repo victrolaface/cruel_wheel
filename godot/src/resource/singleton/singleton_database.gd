@@ -2,18 +2,18 @@ tool
 class_name SingletonDatabase extends Resource
 
 # properties
-export(String) var name setget , get_name
-export(bool) var has_name setget , get_has_name
-export(bool) var has_manager setget , get_has_manager
-export(bool) var has_database setget , get_has_database
-export(bool) var has_singletons setget , get_has_singletons
-export(bool) var initialized setget , get_initialized
-export(bool) var cached setget , get_cached
 export(bool) var enabled setget , get_enabled
-export(bool) var destroyed setget , get_destroyed
-export(bool) var first_initialization setget , get_first_initialization
-export(Resource) var database setget , get_database
-export(int) var singletons_amount setget , get_singletons_amount
+#export(String) var name setget , get_name
+#export(bool) var has_name setget , get_has_name
+#export(bool) var has_manager setget , get_has_manager
+#export(bool) var has_database setget , get_has_database
+#export(bool) var has_singletons setget , get_has_singletons
+#export(bool) var initialized setget , get_initialized
+#export(bool) var cached setget , get_cached
+#export(bool) var destroyed setget , get_destroyed
+#export(bool) var first_initialization setget , get_first_initialization
+#export(Resource) var database setget , get_database
+#export(int) var singletons_amount setget , get_singletons_amount
 
 # fields
 const _BASE_CLASS_NAME = "Singleton"
@@ -39,21 +39,17 @@ var _data = {
 	}
 }
 
+#func get_name():
+#	return _data.name
 
-func get_name():
-	return _data.name
+#func get_first_initialization():
+#	return _data.state.first_init
 
+#func get_has_manager():
+#	return _data.state.has_manager_ref
 
-func get_first_initialization():
-	return _data.state.first_init
-
-
-func get_has_manager():
-	return _data.state.has_manager_ref
-
-
-func get_has_database():
-	return _data.state.has_db
+#func get_has_database():
+#	return _data.state.has_db
 
 
 func is_class(_class: String):
@@ -65,47 +61,54 @@ func get_class():
 
 
 func _init(_manager = null):
-	var data = ResourceLoader.load(_PATH)
-	if data.first_initialization && SingletonDatabaseUtility.is_init_valid(_manager):
-		data = _on_init_name_mgr(data, _manager)
-		var base_type = ClassType.from_name(_BASE_CLASS_NAME)
-		var singleton_class_names = base_type.get_inheritors_list()
-		var singleton_class_names_amt = singleton_class_names.count()
-		if singleton_class_names_amt > 0:
-			var db_init = SingletonTable.new(_CLASS_NAME, self, _manager, true)
-			# SingletonTableUtil.is_init_valid()
-			if db_init.cached && db_init.has_name && db_init.has_manager && db_init.initialized && db_init.enabled:
-				var added_amt = 0
-				for singleton_class_name in singleton_class_names:
-					var singleton = ClassType.from_name(singleton_class_name)
-					singleton._init()
-					singleton.init_from_manager(_manager, true)
-					# SingletonDatabaseUtil.is_init_valid_on_added
+	if _manager.initialized:
+		var data = ResourceLoader.load(_PATH)
+		if data.first_initialization:
+			data = _on_init_name_mgr(data, _manager)
+			var base_type = ClassType.from_name(_BASE_CLASS_NAME)
+			var singleton_class_names = base_type.get_inheritors_list()
+			var singleton_class_names_amt = singleton_class_names.count()
+			if singleton_class_names_amt > 0:
+				var db_init = SingletonTable.new(_CLASS_NAME, self, _manager)
+				if db_init.enabled:
+					var added_amt = 0
+					for singleton_class_name in singleton_class_names:
+						var singleton = ClassType.from_name(singleton_class_name)
+						singleton._init()
+						singleton.init_from_manager(_manager)
+						if singleton.enabled && db_init.add(singleton.name, singleton):
+							added_amt = added_amt + 1
 					if (
-						singleton.initialized
-						&& singleton.enabled
-						&& singleton.registered
-						&& singleton.saved
-						&& db_init.add(singleton.name, singleton)
+						db_init.has_items
+						&& db_init.items_amount == singleton_class_names_amt
+						&& db_init.items_amount == added_amt
 					):
-						added_amt = added_amt + 1
-				# SingletonTableUtil.is_init_valid_on_added
-				if db_init.has_items && db_init.amount == singleton_class_names_amt && db_init.amount == added_amt:
-					_data.db = db_init
-					_data.state.has_db = true
-					_data.self_ref = self
-					_data.state.cached = not _data.self_ref == null
-					_data.state.first_init = not _data.state.cached
-					_data.state.enabled = not _data.state.first_init
-					if _data.state.enabled:
-						ResourceLoader.save(_PATH, self)
+						_data.db = db_init
+						_data.state.has_db = true
+						_data.self_ref = self
+						_data.state.has_self_ref = not _data.self_ref == null
+						_data.state.cached = _data.state.has_name && _data.state.has_self_ref && _data.state.has_manager_ref
+						_data.state.initialized = _data.state.cached
+						_data.state.first_init = not _data.state.initialized
+						_data.state.enabled = _data.state.initialized
+						if _data.state.enabled:
+							ResourceLoader.save(_PATH, self)
+		else:
+			data = _on_init_name_mgr(data, _manager)
+			if not data.db.enable(self, _manager):
+				data.db.remove_disabled()
+			if not data.db.valid():
+				data.db.remove_invalid()
+				#pass
+				# check for any invalid names, paths
+				# check file sys for any non-added singletons
 
 
 func _on_init_name_mgr(_loaded_data, _mgr):
 	_loaded_data.name = _CLASS_NAME
-	_loaded_data.has_name = true
+	_loaded_data.has_name = StringUtility.is_valid(_loaded_data.has_name)
 	_loaded_data.manager_ref = _mgr
-	_loaded_data.has_manager_ref = true
+	_loaded_data.has_manager_ref = not _loaded_data.manager_ref == null
 	return _loaded_data
 
 
@@ -164,41 +167,33 @@ func disable():
 
 
 # setters, getters functions
-func get_has_name():
-	return _data.state.has_name
-
-
-func get_has_manager_ref():
-	return _data.state.has_manager_ref
-
-
-func get_cached():
-	return _data.state.cached
-
-
-func get_singletons_amount():
-	return _data.db.items_amount  #amount
-
-
-func get_database():
-	return _data.db
-
-
-func get_destroyed():
-	return _data.destroyed
-
-
-func get_initialized():
-	return _data.state.initialized
-
-
-func get_has_singletons():
-	return _data.db.has_items
-
-
 func get_enabled():
 	return _data.state.enabled
 
+
+#func get_has_name():
+#	return _data.state.has_name
+
+#func get_has_manager_ref():
+#	return _data.state.has_manager_ref
+
+#func get_cached():
+#	return _data.state.cached
+
+#func get_singletons_amount():
+#	return _data.db.items_amount  #amount
+
+#func get_database():
+#	return _data.db
+
+#func get_destroyed():
+#	return _data.destroyed
+
+#func get_initialized():
+#	return _data.state.initialized
+
+#func get_has_singletons():
+#	return _data.db.has_items
 
 """
 #if _data.state.has_singletons:
