@@ -60,29 +60,33 @@ func get_class():
 	return _CLASS_NAME
 
 
+func _class_names():
+	return ClassType.from_name(_BASE_CLASS_NAME).get_inheritors_list()
+
+
 func _init(_manager = null):
 	if _manager.initialized:
 		var data = ResourceLoader.load(_PATH)
+		var db_valid = false
+		var class_names = _class_names()
+		var class_names_amt = class_names.count()
+		var has_class_names = class_names_amt > 0
 		if data.first_initialization:
 			data = _on_init_name_mgr(data, _manager)
-			var base_type = ClassType.from_name(_BASE_CLASS_NAME)
-			var singleton_class_names = base_type.get_inheritors_list()
-			var singleton_class_names_amt = singleton_class_names.count()
-			if singleton_class_names_amt > 0:
+			if has_class_names:
 				var db_init = SingletonTable.new(_CLASS_NAME, self, _manager)
 				if db_init.enabled:
 					var added_amt = 0
-					for singleton_class_name in singleton_class_names:
-						var singleton = ClassType.from_name(singleton_class_name)
-						singleton._init()
-						singleton.init_from_manager(_manager)
-						if singleton.enabled && db_init.add(singleton.name, singleton):
+					for cn in class_names:
+						var s = ClassType.from_name(cn)
+						s._init()
+						s.init_from_manager(_manager)
+						if s.enabled && db_init.add(s.name, s):
 							added_amt = added_amt + 1
-					if (
-						db_init.has_items
-						&& db_init.items_amount == singleton_class_names_amt
-						&& db_init.items_amount == added_amt
-					):
+					var items_is_cn_amt = db_init.items_amount == class_names_amt
+					var items_is_added_amt = db_init.items_amount == added_amt
+					db_valid = db_init.has_items && items_is_cn_amt && items_is_added_amt
+					if db_valid:
 						_data.db = db_init
 						_data.state.has_db = true
 						_data.self_ref = self
@@ -95,14 +99,59 @@ func _init(_manager = null):
 							ResourceLoader.save(_PATH, self)
 		else:
 			data = _on_init_name_mgr(data, _manager)
-			if not data.db.enable(self, _manager):
-				if not data.db.remove_disabled(_manager):
-					push_error("unable to remove disabled items.")
-			if not data.db.validate():
-				data.db.remove_invalid()
-				#pass
-				# check for any invalid names, paths
-				# check file sys for any non-added singletons
+			if not data.db.enable(self, _manager) && not data.db.remove_disabled(_manager):
+				push_error("unable to remove disabled items.")
+			if not data.db.validate() && not data.db.remove_invalid():
+				push_error("unable to remove invalid items.")
+			if not has_class_names && data.db.items_amount > 0:
+				if not data.db.remove_all():
+					push_error("unable to remove all items")
+			if has_class_names:
+				if not data.db.has_keys(class_names):
+					var idx_to_keep = []
+					var idx = 0
+					for cn in class_names:
+						if not data.db.has_key(cn):
+							idx_to_keep.append(idx)
+						idx = idx + 1
+					if idx_to_keep.count() > 0:
+						var names_to_keep = []
+						for i in idx_to_keep:
+							names_to_keep.append(class_names[i])
+						if names_to_keep.count() > 0:
+							class_names = PoolStringArray(names_to_keep)
+							if class_names.size() > 0:
+								var added_amt = 0
+								for cn in class_names:
+									var s = ClassType.from_name(cn)
+									s._init()
+									s.init_from_manager(_manager)
+									if s.enabled && data.db.add(s.name, s):
+										added_amt = added_amt + 1
+				else:
+					# verify that all singletons are of type
+					if data.db.has_keys_sans(class_names):
+						var keys_sans = data.db.keys_sans(class_names)
+						if keys_sans.size() > 0:
+							if not data.db.remove_keys(keys_sans):
+								push_error("unable to remove invalid items.")
+
+								#if (
+								#	db_init.has_items
+								#	&& db_init.items_amount == singleton_class_names_amt
+								#	&& db_init.items_amount == added_amt
+								#):
+						#var foo = PoolStringArray.from()
+
+					#var classes_to_add = []
+
+			#var base_type = ClassType.from_name(_BASE_CLASS_NAME)
+			#var singleton_class_names = base_type.get_inheritors_list()
+			#var singleton_class_names_amt = singleton_class_names.count()
+
+			#pass
+			# check for any invalid names, paths
+			# check file sys for any non-added singletons
 
 
 func _on_init_name_mgr(_loaded_data, _mgr):

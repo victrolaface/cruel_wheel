@@ -117,6 +117,20 @@ func remove(_key: String):
 	return removed
 
 
+func remove_keys(_keys: PoolStringArray):
+	var removed_keys = false
+	var exists = false
+	if _keys.size() > 0:
+		for k in _keys:
+			if _data.items.erase(k):
+				continue
+			push_warning("unable to erase item.")
+			if not exists:
+				exists = true
+	removed_keys = not exists
+	return removed_keys
+
+
 func _on_no_items():
 	if _data.amount == 0:
 		_data.state.has_items = false
@@ -137,7 +151,22 @@ func validate():
 
 
 func remove_invalid():
-	return true
+	var removed = false
+	var names = _data.items.keys()
+	var invalid_names = []
+	for n in names:
+		if not _data.items[n].validate():
+			invalid_names.append(n)
+	var amt = invalid_names.count()
+	if amt > 0:
+		var removed_amt = 0
+		for n in invalid_names:
+			if _data.items.erase(n):
+				removed_amt = removed_amt + 1
+			else:
+				push_warning("unable to remove item.")
+		removed = removed_amt == amt
+	return removed
 
 
 #func register_all():
@@ -170,11 +199,57 @@ func remove_invalid():
 #	return set
 
 
-func clear():
+func remove_all():
+	var removed_all = false
 	if _on_en_items():
 		_data.items.clear()
 		_data.amount = 0
 		_on_no_items()
+		removed_all = true
+	return removed_all
+
+
+func has_key(_key: String):
+	return _data.items.has(_key)
+
+
+func has_keys(_keys: PoolStringArray):
+	var has = false
+	if _keys.size() > 0:
+		for k in _keys:
+			has = _data.items.has(k)
+			if not has:
+				break
+	return has
+
+
+func has_keys_sans(_keys: PoolStringArray):
+	var names = _data.items.keys()
+	var has_sans = false
+	if _keys.size() > 0:
+		for n in names:
+			for k in _keys:
+				has_sans = not n == k
+				if has_sans:
+					break
+			if has_sans:
+				break
+	return has_sans
+
+
+func keys_sans(_keys: PoolStringArray):
+	var names = _data.items.keys()
+	var names_sans_keys = []
+	if _keys.size() > 0:
+		for n in names:
+			for k in _keys:
+				if not n == k:
+					names_sans_keys.append(n)
+		if names_sans_keys.count() > 0:
+			names_sans_keys = PoolStringArray(names_sans_keys)
+		else:
+			names_sans_keys = PoolStringArray()
+	return names_sans_keys
 
 
 func disable():
@@ -191,7 +266,7 @@ func disable():
 
 
 func destroy():
-	clear()
+	remove_all()
 	disable()
 	_data.state.destroyed = true
 

@@ -39,6 +39,8 @@ var _data = {
 		"emit_changed_connected": false
 	}
 }
+var _invalid_params = {}
+var _init_vals = {}
 
 
 func get_emit_changed_connected():
@@ -51,15 +53,10 @@ func _init(_self_ref = null):
 
 
 func _on_init(_self_ref = null):
-	var init_vals = {
-		"self_ref": _data.self_ref,
-		"has_self_ref": _data.state.has_self_ref,
-		"name": _data.name,
-		"has_name": _data.state.has_name,
-		"path": _data.path,
-		"has_path": _data.state.has_path,
-		"emit_changed_connected": _data.state.emit_changed_connected
-	}
+	_invalid_params = _data
+	_invalid_params.state.saved = true
+	_invalid_params.state.destroyed = true
+	_init_vals = _data
 	_data.self_ref = _self_ref
 	_data.state.has_self_ref = not _data.self_ref == null
 	if _data.state.has_self_ref:
@@ -72,13 +69,13 @@ func _on_init(_self_ref = null):
 			_data.state.emit_changed_connected = true
 	var changed = _proc_changed(
 		[
-			init_vals.self_ref == _data.self_ref,
-			init_vals.has_self_ref == _data.state.has_self_ref,
-			init_vals.name == _data.name,
-			init_vals.has_name == _data.state.has_name,
-			init_vals.path == _data.path,
-			init_vals.has_path == _data.state.has_path,
-			init_vals.emit_changed_connected == _data.state.emit_changed_connected
+			_init_vals.self_ref == _data.self_ref,
+			_init_vals.has_self_ref == _data.state.has_self_ref,
+			_init_vals.name == _data.name,
+			_init_vals.has_name == _data.state.has_name,
+			_init_vals.path == _data.path,
+			_init_vals.has_path == _data.state.has_path,
+			_init_vals.emit_changed_connected == _data.state.emit_changed_connected
 		]
 	)
 	if changed:
@@ -98,31 +95,25 @@ func _proc_changed(_changes = []):
 
 
 func init_from_manager(_manager = null):
-	var init_vals = {
-		"manager_ref": _data.manager_ref,
-		"has_manager_ref": _data.state.has_manager_ref,
-		"cached": _data.state.cached,
-		"initialized": _data.state.initialized
-	}
+	_init_vals = _data
 	_data.manager_ref = _manager
 	_data.state.has_manager_ref = not _data.manager_ref == null
 	_data.state.cached = _data.state.has_name && _data.state.has_path && _data.state.has_manager_ref
 	_data.initialized = _data.state.cached && _data.state.emit_changed_connected
 	var changed = _proc_changed(
 		[
-			init_vals.manager_ref == _data.manager_ref,
-			init_vals.has_manager_ref == _data.state.has_manager_ref,
-			init_vals.cached == _data.state.cached,
-			init_vals.initialized == _data.state.initialized
+			_init_vals.manager_ref == _data.manager_ref,
+			_init_vals.has_manager_ref == _data.state.has_manager_ref,
+			_init_vals.cached == _data.state.cached,
+			_init_vals.initialized == _data.state.initialized
 		]
 	)
 	if changed && _data.initialized:
 		register()
 		emit_changed()
 		save()
-	init_vals = {"enabled": _data.state.enabled}
 	_data.state.enabled = _data.initialized && _data.state.registered && _data.state.saved
-	changed = _proc_changed([init_vals.enabled == _data.state.enabled])
+	changed = _proc_changed([_init_vals.enabled == _data.state.enabled])
 	if changed && _data.state.enabled:
 		emit_changed()
 
@@ -133,35 +124,28 @@ func enable(_self_ref = null, _manager = null):
 	return _data.state.enabled
 
 
-func validate(_self_ref = null):
-	var valid = false
+func validate():
+	var invalid = false
 	var validating = true
+	var invalid_params_keys = _invalid_params.keys
+	var invalid_params_state_keys = _invalid_params.state.keys()
 	while validating:
-		var self_class_name = _self_ref.get_class()
-		#valid = not _self_ref.resource_local_to_scene && _self_ref.is_class(_BASE_CLASS_NAME) && _self_ref.is_singleton
-		#valid = StringUtility.is_valid(_data.name) && _data.state.has_name &&
-
-
-"""
-	"name": "",
-	"path": "",
-	"self_ref": null,
-	"manager_ref": null,
-	"state":
-	{
-		"editor_only": false,
-		"has_name": false,
-		"cached": false,
-		"has_manager_ref": false,
-		"has_self_ref": false,
-		"initialized": false,
-		"enabled": false,
-		"registered": false,
-		"saved": false,
-		"destroyed": false,
-		"emit_changed_connected": false
-	}
-"""
+		for k in invalid_params_keys:
+			var on_non_state = not k == "state"
+			var on_invalid_params_non_state = _invalid_params[k] == _data[k]
+			if on_non_state:
+				if k == "path":
+					invalid = on_invalid_params_non_state or not PathUtility.is_valid(_data[k])
+				else:
+					invalid = on_invalid_params_non_state
+			else:
+				for s in invalid_params_state_keys:
+					invalid = _invalid_params.state[s] == _data.state[s]
+					if invalid:
+						break
+			validating = not invalid
+		validating = false
+	return not invalid
 
 
 func _on_changed():
