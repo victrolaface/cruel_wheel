@@ -212,12 +212,6 @@ func disable():
 	return disabled
 
 
-func destroy():
-	remove_all()
-	disable()
-	_data.state.destroyed = true
-
-
 # private helper methods
 func _on_init(_self_ref = null, _manager = null):
 	_data.self_ref = _self_ref
@@ -262,67 +256,3 @@ func get_has_items():
 
 func get_items_amount():
 	return _data.amount
-
-#func _on_get_kvp(_key: String):
-#	return _on_en_items() && _data.items.has(_key)
-#export(String) var name setget , get_name
-#export(bool) var initialized setget , get_initialized
-#export(bool) var cached setget , get_cached
-#export(bool) var registered setget , get_registered
-#export(bool) var saved setget , get_saved
-#export(bool) var destroyed setget , get_destroyed
-#export(bool) var has_name setget , get_has_name
-#export(bool) var has_manager setget , get_has_manager
-
-#func register_all():
-#	var _reg_all = false
-#	var _cannot_register = false
-#	var names = _data.items.keys
-#	for n in names:
-#		if not _data.items[n].register():
-#			_cannot_register = true
-#			break
-#	_reg_all = not _cannot_register
-#	return _reg_all
-
-#func save_all():
-#	var _save_all = false
-#	var _cannot_save = false
-#	var names = _data.items.keys
-#	for n in names:
-#		if not _data.items[n].save():
-#			_cannot_save = true
-#			break
-#	_save_all = not _cannot_save
-#	return _save_all
-
-#func set_item(_key: String, _value):
-#	var set = false
-#	if _data.items.has(_key):
-#		_data.items[_key] = _on_item(_key, _value)
-#		set = true
-#	return set
-
-#func get_name():
-#	return _data.name
-
-#func get_initialized():
-#	return _data.state.initialized
-
-#func get_registered():
-#	return _data.state.registered
-
-#func get_cached():
-#	return _data.state.cached
-
-#func get_saved():
-#	return _data.state.saved
-
-#func get_destroyed():
-#	return _data.state.destroyed
-
-#func get_has_name():
-#	return _data.state.has_name
-
-#func get_has_manager():
-#	return _data.state.has_manager
