@@ -8,14 +8,6 @@ const _BASE_CLASS_NAME = "Singleton"
 export(bool) var enabled setget , get_enabled
 export(bool) var has_items setget , get_has_items
 export(int) var items_amount setget , get_items_amount
-#export(String) var name setget , get_name
-#export(bool) var initialized setget , get_initialized
-#export(bool) var cached setget , get_cached
-#export(bool) var registered setget , get_registered
-#export(bool) var saved setget , get_saved
-#export(bool) var destroyed setget , get_destroyed
-#export(bool) var has_name setget , get_has_name
-#export(bool) var has_manager setget , get_has_manager
 
 # fields
 var _data = {
@@ -46,16 +38,6 @@ func _init(_name = "", _self_ref = null, _manager = null):
 	_data.name = _name
 	_data.state.has_name = StringUtility.is_valid(_data.name)
 	_on_init(_self_ref, _manager)
-
-
-func _on_init(_self_ref = null, _manager = null):
-	_data.self_ref = _self_ref
-	_data.state.has_self_ref = not _data.self_ref == null
-	_data.manager_ref = _manager
-	_data.state.has_manager_ref = not _data.manager_ref == null
-	_data.state.cached = _data.state.has_name && _data.state.has_manager_ref && _data.state.has_self_ref
-	_data.state.initialized = _data.state.cached
-	_data.state.enabled = _data.state.initialized
 
 
 # inhertied public methods
@@ -110,7 +92,7 @@ func remove_disabled():
 
 
 func remove(_key: String):
-	var removed = _data.items.erase(_key)  #false
+	var removed = _data.items.erase(_key)
 	if removed:
 		_data.amount = _data.amount - 1
 		_on_no_items()
@@ -129,11 +111,6 @@ func remove_keys(_keys: PoolStringArray):
 				exists = true
 	removed_keys = not exists
 	return removed_keys
-
-
-func _on_no_items():
-	if _data.amount == 0:
-		_data.state.has_items = false
 
 
 func validate():
@@ -167,36 +144,6 @@ func remove_invalid():
 				push_warning("unable to remove item.")
 		removed = removed_amt == amt
 	return removed
-
-
-#func register_all():
-#	var _reg_all = false
-#	var _cannot_register = false
-#	var names = _data.items.keys
-#	for n in names:
-#		if not _data.items[n].register():
-#			_cannot_register = true
-#			break
-#	_reg_all = not _cannot_register
-#	return _reg_all
-
-#func save_all():
-#	var _save_all = false
-#	var _cannot_save = false
-#	var names = _data.items.keys
-#	for n in names:
-#		if not _data.items[n].save():
-#			_cannot_save = true
-#			break
-#	_save_all = not _cannot_save
-#	return _save_all
-
-#func set_item(_key: String, _value):
-#	var set = false
-#	if _data.items.has(_key):
-#		_data.items[_key] = _on_item(_key, _value)
-#		set = true
-#	return set
 
 
 func remove_all():
@@ -272,6 +219,16 @@ func destroy():
 
 
 # private helper methods
+func _on_init(_self_ref = null, _manager = null):
+	_data.self_ref = _self_ref
+	_data.state.has_self_ref = not _data.self_ref == null
+	_data.manager_ref = _manager
+	_data.state.has_manager_ref = not _data.manager_ref == null
+	_data.state.cached = _data.state.has_name && _data.state.has_manager_ref && _data.state.has_self_ref
+	_data.state.initialized = _data.state.cached
+	_data.state.enabled = _data.state.initialized
+
+
 func _on_item(_key: String, _value):
 	var item = _data.items[_key]
 	if _data.state.enabled && StringUtility.is_valid(_key) && not _value == null:
@@ -279,12 +236,12 @@ func _on_item(_key: String, _value):
 	return item
 
 
-func _on_get_kvp(_key: String):
-	return _on_en_items() && _data.items.has(_key)
-
-
 func _on_en_items():
 	return _data.state.enabled && _data.has_items
+
+
+func _on_no_items():
+	_data.state.has_items = not _data.amount == 0
 
 
 func _on_add():
@@ -305,6 +262,46 @@ func get_has_items():
 
 func get_items_amount():
 	return _data.amount
+
+#func _on_get_kvp(_key: String):
+#	return _on_en_items() && _data.items.has(_key)
+#export(String) var name setget , get_name
+#export(bool) var initialized setget , get_initialized
+#export(bool) var cached setget , get_cached
+#export(bool) var registered setget , get_registered
+#export(bool) var saved setget , get_saved
+#export(bool) var destroyed setget , get_destroyed
+#export(bool) var has_name setget , get_has_name
+#export(bool) var has_manager setget , get_has_manager
+
+#func register_all():
+#	var _reg_all = false
+#	var _cannot_register = false
+#	var names = _data.items.keys
+#	for n in names:
+#		if not _data.items[n].register():
+#			_cannot_register = true
+#			break
+#	_reg_all = not _cannot_register
+#	return _reg_all
+
+#func save_all():
+#	var _save_all = false
+#	var _cannot_save = false
+#	var names = _data.items.keys
+#	for n in names:
+#		if not _data.items[n].save():
+#			_cannot_save = true
+#			break
+#	_save_all = not _cannot_save
+#	return _save_all
+
+#func set_item(_key: String, _value):
+#	var set = false
+#	if _data.items.has(_key):
+#		_data.items[_key] = _on_item(_key, _value)
+#		set = true
+#	return set
 
 #func get_name():
 #	return _data.name
