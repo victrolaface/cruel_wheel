@@ -219,6 +219,11 @@ _global_script_classes=[ {
 "language": "GDScript",
 "path": "res://src/resource/data/resource_database.gd"
 }, {
+"base": "Resource",
+"class": "ResourceItem",
+"language": "GDScript",
+"path": "res://src/resource/data/resource_item.gd"
+}, {
 "base": "ResourceCollection",
 "class": "ResourceSet",
 "language": "GDScript",
@@ -387,6 +392,7 @@ _global_script_class_icons={
 "ResourceArray": "",
 "ResourceCollection": "",
 "ResourceDatabase": "",
+"ResourceItem": "",
 "ResourceSet": "",
 "ResourceTable": "",
 "ResourceUtility": "",

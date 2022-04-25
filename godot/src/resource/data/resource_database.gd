@@ -32,6 +32,8 @@ var _data = {
 		"has_item_type": false,
 		"has_table_type": false,
 		"has_db": false,
+		"db_init": false,
+		"db_enabled": false,
 		"cached": false,
 		"initialized": false,
 		"saved": false,
@@ -81,31 +83,39 @@ func _init(_self_ref = null, _manager = null):
 		var class_names = ClassType.from_name(_data.item_type).get_inheritors_list()
 		var class_names_amt = class_names.size()
 		var has_class_names = class_names_amt > 0
-		var first_init = loaded.first_initialization
-		if loaded == null or first_init:
+		if not has_class_names:
+			_on_warning("cannot find items of class type for database.", true)
+		var first_init = loaded == null or loaded.first_initialization
+		if first_init:
 			_data.db = ClassType.from_name(_data.table_type)
 			_data.db._init()
 			var is_db = not _data.db == null
-			if first_init && _data.db.init_from_manager(_data.self_ref, _data.manager_ref):
-				is_db = is_db && _data.db.enabled && _data.db.get_class() == _data.table_type
-			var classes = [_data.table_type, _data.base_class_names[0], _data.base_class_names[1]]
+			if is_db:
+				if _data.db.has_self_ref && _data.db.has_name:
+					_data.state.db_init = _data.db.init_from_manager(_data.self_ref, _data.manager_ref)
+				elif _data.db.has_self_ref && not _data.db.has_name:
+					_data.state.db_init = _data.db.init_from_manager(_data.self_ref, _data.manager_ref, _data.table_type)
+				elif _data.db.has_name && not _data.db.has_self_ref:
+					_data.state.db_init = _data.db.init_from_manager(_data.self_ref, _data.manager_ref, "", _data.db)
+				_data.state.db_enabled = _data.state.db_init && _data.db.enabled
+				if not _data.state.db_enabled:
+					_on_cannot_enable_warning(not _data.state.db_enabled)
+			is_db = _data.state.db_enabled && _data.db.get_class() == _data.table_type
+			if not is_db:
+				_on_db_not_of_class_type_warning()
+				_on_cannot_enable_warning(true)
+			var classes = [_data.table_type]
+			for base_class_name in _data.base_class_names:
+				classes.append(base_class_name)
 			var is_class = false
 			for c in classes:
 				is_class = _data.db.is_class(c)
 				if not is_class:
+					_on_db_not_of_class_type_warning(not is_class)
 					break
-			if has_class_names:
-				if is_db:
-					if is_class:
-						var added_valid = _init_added_valid(class_names_amt, class_names)
-						_data.state.has_db = _data.db.has_items && added_valid
-						_init_on_has_db(first_init)
-					else:
-						_on_warning("database not of class type.", true)
-				else:
-					_on_cannot_enable_warning(true)
-			else:
-				_on_warning("cannot find items of class type for database.", true)
+			var added_valid = _init_added_valid(class_names_amt, class_names)
+			_data.state.has_db = _data.db.has_items && added_valid
+			_init_on_has_db(first_init)
 		else:
 			_data.db = loaded.db
 			if _data.db.enable(_data.self_ref, _data.manager_ref):
@@ -117,6 +127,10 @@ func _init(_self_ref = null, _manager = null):
 				else:
 					_on_warning("cannot remove disabled items from database.", false)
 					_init_reset_db(false, has_class_names, class_names)
+
+
+func _on_db_not_of_class_type_warning(_push_err = false):
+	_on_warning("database not of class type.", _push_err)
 
 
 # public methods
@@ -146,6 +160,38 @@ func disable():
 
 
 # private helper methods
+func _on_init_has(_has_item = false, _self_has_item = false, _item = null):
+	var item = null
+	if not _has_item && _self_has_item:
+		item = _item
+	return item
+
+
+func _set_has_item_type(_item_type = ""):
+	_data.state.has_item_type = StringUtility.is_valid(_item_type)
+
+
+func _set_has_table_type(_table_type = ""):
+	_data.state.has_table_type = StringUtility.is_valid(_table_type)
+
+
+func _set_has_db_path(_db_path = ""):
+	_data.state.has_db_path = PathUtility.is_valid(_db_path)
+
+
+func _can_load_db():
+	return (
+		_data.state.has_self_ref
+		&& _data.state.has_name
+		&& _data.state.has_base_class_names
+		&& _data.state.has_manager_ref
+		&& _data.manager_ref.initialized
+		&& _data.state.has_item_type
+		&& _data.state.has_table_type
+		&& _data.state.has_db_path
+	)
+
+
 func _on_init(_push_err = false, _has_class_names = false, _class_names = null):
 	if _push_err:
 		push_error(_EN_DB_ERROR)
@@ -258,38 +304,6 @@ func _init_on_has_db(_first_init = false):
 			_on_cannot_enable_warning(true)
 	else:
 		_on_added_invalid_warning(true)
-
-
-func _can_load_db():
-	return (
-		_data.state.has_self_ref
-		&& _data.state.has_name
-		&& _data.state.has_base_class_names
-		&& _data.state.has_manager_ref
-		&& _data.manager_ref.initialized
-		&& _data.state.has_item_type
-		&& _data.state.has_table_type
-		&& _data.state.has_db_path
-	)
-
-
-func _on_init_has(_has_item = false, _self_has_item = false, _item = null):
-	var item = null
-	if not _has_item && _self_has_item:
-		item = _item
-	return item
-
-
-func _set_has_item_type(_item_type = ""):
-	_data.state.has_item_type = StringUtility.is_valid(_item_type)
-
-
-func _set_has_table_type(_table_type = ""):
-	_data.state.has_table_type = StringUtility.is_valid(_table_type)
-
-
-func _set_has_db_path(_db_path = ""):
-	_data.state.has_db_path = PathUtility.is_valid(_db_path)
 
 
 func _on_warning(_message = "", _push_err = true):
