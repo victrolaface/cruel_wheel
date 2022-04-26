@@ -85,13 +85,13 @@ func remove_disabled():
 	var rem_amt = 0
 	if amt > 0:
 		for n in names_to_remove:
-			if remove(n):
+			if _remove(n):
 				rem_amt = rem_amt + 1
 		removed = rem_amt == amt
 	return removed
 
 
-func remove(_key: String):
+func _remove(_key: String):
 	var removed = _data.items.erase(_key)
 	if removed:
 		_data.amount = _data.amount - 1
