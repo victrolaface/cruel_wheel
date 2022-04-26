@@ -20,7 +20,13 @@ var _data = {
 	"table_type": "",
 	"item_type": "",
 	"db_path": "",
-	"db": null,
+	"db": [],
+	"db_tables_amt": 0,
+	"validator":
+	{
+		"item": null,
+		"is_valid": false,
+	},
 	"state":
 	{
 		"first_init": true,
@@ -45,13 +51,8 @@ const _EN_DB_ERROR = "cannot enable database."
 
 
 # public inherited methods
-func is_class(_class: String):
-	var is_base_class = false
-	for b in _data.base_class_names:
-		is_base_class = _class == b
-		if is_base_class:
-			break
-	return _class == _data.name && is_base_class
+func is_class(_class = ""):
+	ClassNameUtility.is_class_name(_class, _data.name, _data.base_class_names)
 
 
 func get_class():
@@ -65,8 +66,7 @@ func _init(_self_ref = null, _manager = null):
 	_data.name = _data.self_ref.resource_name()
 	_data.state.has_name = StringUtility.is_valid(_data.name)
 	_data.state.has_base_class_names = _data.state.has_name
-	if _data.state.has_base_class_names:
-		_data.base_class_names.append(_data.name)
+	_data.base_class_names = ClassNameUtility.init_base_class_names(_data.state.has_name, _data.name, _data.base_class_names)
 	_data.manager_ref = _manager
 	_data.state.has_manager_ref = not _data.manager_ref == null
 	if _data.has_self_ref:
@@ -87,21 +87,19 @@ func _init(_self_ref = null, _manager = null):
 			_on_warning("cannot find items of class type for database.", true)
 		var first_init = loaded == null or loaded.first_initialization
 		if first_init:
-			_data.db = ClassType.from_name(_data.table_type)
-			_data.db._init()
-			var is_db = not _data.db == null
-			if is_db:
-				if _data.db.has_self_ref && _data.db.has_name:
-					_data.state.db_init = _data.db.init_from_manager(_data.self_ref, _data.manager_ref)
-				elif _data.db.has_self_ref && not _data.db.has_name:
-					_data.state.db_init = _data.db.init_from_manager(_data.self_ref, _data.manager_ref, _data.table_type)
-				elif _data.db.has_name && not _data.db.has_self_ref:
-					_data.state.db_init = _data.db.init_from_manager(_data.self_ref, _data.manager_ref, "", _data.db)
-				_data.state.db_enabled = _data.state.db_init && _data.db.enabled
+			var table_init = ClassType.from_name(_data.table_type)
+			var is_table = not table_init == null
+			if is_table:
+				table_init._init()
+				if table_init.has_self_ref && table_init.has_name:
+					_data.state.db_init = table_init.init_from_manager(_data.self_ref, _data.manager_ref)
+				elif table_init.has_self_ref && not table_init.has_name:
+					_data.state.db_init = table_init.init_from_manager(_data.self_ref, _data.manager_ref, _data.table_type)
+				_data.state.db_enabled = _data.state.db_init && table_init.enabled
 				if not _data.state.db_enabled:
 					_on_cannot_enable_warning(not _data.state.db_enabled)
-			is_db = _data.state.db_enabled && _data.db.get_class() == _data.table_type
-			if not is_db:
+			is_table = _data.state.db_enabled && table_init.get_class() == _data.table_type
+			if not is_table:
 				_on_db_not_of_class_type_warning()
 				_on_cannot_enable_warning(true)
 			var classes = [_data.table_type]
@@ -109,24 +107,52 @@ func _init(_self_ref = null, _manager = null):
 				classes.append(base_class_name)
 			var is_class = false
 			for c in classes:
-				is_class = _data.db.is_class(c)
+				is_class = table_init.is_class(c)
 				if not is_class:
 					_on_db_not_of_class_type_warning(not is_class)
 					break
-			var added_valid = _init_added_valid(class_names_amt, class_names)
-			_data.state.has_db = _data.db.has_items && added_valid
-			_init_on_has_db(first_init)
+			_data.validator = _init_added_valid(_data.validator, table_init, class_names_amt, class_names)
+			var added_valid = _data.validator.is_valid
+			if added_valid:
+				table_init = _data.validator.item
+			_data.state.has_db = table_init.has_items && added_valid
+			_init_on_has_db(first_init, table_init)
 		else:
-			_data.db = loaded.db
-			if _data.db.enable(_data.self_ref, _data.manager_ref):
-				_init_validate(false, false, has_class_names, class_names)
+			var table_loaded = loaded.db[0]
+			if table_loaded.enable(_data.self_ref, _data.manager_ref):
+				_init_validate(table_loaded, false, false, has_class_names, class_names)
 			else:
 				_on_cannot_enable_warning()
-				if _data.db.remove_disabled():
-					_init_validate(false, false, has_class_names, class_names)
+				if table_loaded.remove_disabled():
+					_init_validate(table_loaded, false, false, has_class_names, class_names)
 				else:
 					_on_warning("cannot remove disabled items from database.", false)
-					_init_reset_db(false, has_class_names, class_names)
+					_init_reset_db(table_loaded, false, has_class_names, class_names)
+
+
+func _init_added_valid(_validator = null, _table = null, _to_add_amt = 0, _class_names = null):
+	var added_valid = false
+	var init_amt = _table.items_amount  #_data.db.items_amount
+	var added_amt = 0
+	for n in _class_names:
+		var i = ClassType.from_name(n)
+		i._init()
+		if i.init_from_manager(_data.self_ref, _data.manager_ref):
+			if i.enabled && _table.add(i.name, i):
+				added_amt = added_amt + 1
+			else:
+				_on_warning("cannot add item to database.", false)
+	var init_to_add_amt = init_amt + _to_add_amt
+	var init_added_amt = init_amt + added_amt
+	var amts = [init_to_add_amt, init_added_amt, added_amt]
+	for amt in amts:
+		added_valid = _table.items_amount == amt
+		if not added_valid:
+			_on_warning("cannot validate amount of added items to database.", false)
+			break
+	_validator.item = _table
+	_validator.is_valid = added_valid
+	return _validator
 
 
 func _on_db_not_of_class_type_warning(_push_err = false):
@@ -136,7 +162,15 @@ func _on_db_not_of_class_type_warning(_push_err = false):
 # public methods
 func disable():
 	if _data.state.enabled:
-		if _data.db.disable():
+		var disabled = false
+		if _data.db.count() > 1:
+			for t in _data.db:
+				disabled = t.disable()
+				if not disabled:
+					break
+		else:
+			disabled = _data.db[0].disable()
+		if disabled:
 			_data.manager_ref = null
 			_data.self_ref = null
 			_data.state.has_db_path = false
@@ -152,6 +186,8 @@ func disable():
 			_data.state.saved = true
 			if ResourceSaver.save(_data.db_path, self):
 				_data.state.saved = false
+				_data.db.clear()
+				_data.db = null
 			else:
 				_on_cannot_save_warning()
 		else:
@@ -192,7 +228,7 @@ func _can_load_db():
 	)
 
 
-func _on_init(_push_err = false, _has_class_names = false, _class_names = null):
+func _on_init(_table = null, _push_err = false, _has_class_names = false, _class_names = null):
 	if _push_err:
 		push_error(_EN_DB_ERROR)
 	if _has_class_names:
@@ -200,11 +236,11 @@ func _on_init(_push_err = false, _has_class_names = false, _class_names = null):
 		var proc_added = false
 		var rem_valid = false
 		var proc_rem = false
-		if not _data.db.has_keys(_class_names):
+		if not _table.has_keys(_class_names):
 			var idx_to_keep = []
 			var idx = 0
 			for n in _class_names:
-				if not _data.db.has_key(n):
+				if not _table.has_key(n):
 					idx_to_keep.append(idx)
 				idx = idx + 1
 			if idx_to_keep.count() > 0:
@@ -215,17 +251,20 @@ func _on_init(_push_err = false, _has_class_names = false, _class_names = null):
 					_class_names = PoolStringArray(names_to_keep)
 					var class_names_amt = _class_names.size()
 					if class_names_amt > 0:
-						added_valid = _init_added_valid(class_names_amt, _class_names)
+						_data.validator = _init_added_valid(_data.validator, _table, class_names_amt, _class_names)
+						added_valid = _data.validator.is_valid
+						if added_valid:
+							_table = _data.validator.item
 						if not added_valid:
 							_on_added_invalid_warning()
 						proc_added = true
-		if _data.db.has_keys_sans(_class_names):
-			var init_amt = _data.db.items_amount
-			var keys_sans = _data.db.keys_sans(_class_names)
+		if _table.has_keys_sans(_class_names):
+			var init_amt = _table.items_amount
+			var keys_sans = _table.keys_sans(_class_names)
 			var keys_sans_amt = keys_sans.size()
-			if keys_sans_amt > 0 && _data.db.remove_keys(keys_sans):
+			if keys_sans_amt > 0 && _table.remove_keys(keys_sans):
 				var rem_amt = init_amt - keys_sans_amt
-				rem_valid = _data.db.items_amount == rem_amt
+				rem_valid = _table.items_amount == rem_amt
 				proc_rem = true
 		var proc_added_valid = proc_added && added_valid
 		var proc_rem_valid = proc_rem && rem_valid
@@ -236,62 +275,42 @@ func _on_init(_push_err = false, _has_class_names = false, _class_names = null):
 		var added_sans_rem_valid = proc_added_valid && sans_rem_valid
 		var rem_sans_added_valid = proc_rem_valid && sans_added_valid
 		var db_valid = init_valid or proc_added_rem_valid or added_sans_rem_valid or rem_sans_added_valid
-		_data.state.has_db = _data.db.has_items && db_valid
-		_init_on_has_db()
+		_data.state.has_db = _table.has_items && db_valid
+		_init_on_has_db(false, _table)
 
 
-func _init_added_valid(_to_add_amt = 0, _class_names = null):
-	var added_valid = false
-	var init_amt = _data.db.items_amount
-	var added_amt = 0
-	for n in _class_names:
-		var i = ClassType.from_name(n)
-		i._init()
-		if i.init_from_manager(_data.self_ref, _data.manager_ref):
-			if i.enabled && _data.db.add(i.name, i):
-				added_amt = added_amt + 1
-			else:
-				_on_warning("cannot add item to database.", false)
-	var init_to_add_amt = init_amt + _to_add_amt
-	var init_added_amt = init_amt + added_amt
-	var amts = [init_to_add_amt, init_added_amt, added_amt]
-	for amt in amts:
-		added_valid = _data.db.items_amount == amt
-		if not added_valid:
-			_on_warning("cannot validate amount of added items to database.", false)
-			break
-	return added_valid
-
-
-func _init_validate(_from_rem_invalid = false, _from_rem_all = false, _has_class_names = false, _class_names = null):
-	if _data.db.validate():
-		_on_init(false, _has_class_names, _class_names)
+func _init_validate(_table = null, _from_rem = false, _from_rem_all = false, _has_class_names = false, _class_names = null):
+	if _table.validate():
+		_on_init(_table, false, _has_class_names, _class_names)
 	else:
 		_on_warning("cannot validate database.", false)
 		if _from_rem_all:
-			_on_init(_from_rem_all)
-		elif _from_rem_invalid:
-			_init_reset_db(_from_rem_invalid, _has_class_names, _class_names)
-		if _data.db.remove_invalid():
-			_from_rem_invalid = true
-			_init_validate(_from_rem_invalid, false, _has_class_names, _class_names)
+			_on_init(null, _from_rem_all)
+		elif _from_rem:
+			_init_reset_db(_table, _from_rem, _has_class_names, _class_names)
+		if _table.remove_invalid():
+			_from_rem = true
+			_init_validate(_table, _from_rem, false, _has_class_names, _class_names)
 		else:
 			_on_warning("cannot remove invalid items from database.", false)
-			_init_reset_db(true, _has_class_names, _class_names)
+			_init_reset_db(_table, true, _has_class_names, _class_names)
 
 
-func _init_reset_db(_reset_db = false, _has_class_names = false, _class_names = null):
+func _init_reset_db(_table = null, _reset_db = false, _has_class_names = false, _class_names = null):
 	if not _reset_db:
-		_reset_db = not _has_class_names && _data.db.items_amount > 0
+		_reset_db = not _has_class_names && _table.items_amount > 0
 	if _reset_db:
-		if _data.db.remove_all():
-			_init_validate(false, true, _has_class_names, _class_names)
+		if _table.remove_all():
+			_init_validate(_table, false, true, _has_class_names, _class_names)
 		else:
 			_on_warning("cannot remove all invalid items from database.", true)
 
 
-func _init_on_has_db(_first_init = false):
+func _init_on_has_db(_first_init = false, _table = null):
 	if _data.state.has_db:
+		if _data.db.count() > 0:
+			_data.db.clear()
+		_data.db.append(_table)
 		_data.state.first_init = not _first_init if _first_init else _first_init
 		_data.state.cached = _data.state.has_db
 		_data.state.initialized = _data.state.cached
@@ -309,7 +328,7 @@ func _init_on_has_db(_first_init = false):
 func _on_warning(_message = "", _push_err = true):
 	push_warning(_message)
 	if _push_err:
-		_on_init(_push_err)
+		_on_init(null, _push_err)
 
 
 func _on_cannot_save_warning(_push_err = false):
