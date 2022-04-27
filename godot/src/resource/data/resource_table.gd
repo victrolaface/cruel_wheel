@@ -1,70 +1,78 @@
 tool
-class_name ResourceTable extends Resource
+class_name ResourceTable extends ResourceItem  #Resource
 
 # properties
-export(String) var name setget set_name, get_name
-export(bool) var has_name setget , get_has_name
-export(bool) var has_self_ref setget , get_has_self_ref
-export(bool) var enabled setget , get_enabled
-export(bool) var has_items setget , get_has_items
-export(int) var items_amount setget , get_items_amount
-export(Resource) var self_ref setget set_self_ref, get_self_ref
+#export(bool) var enabled setget, get enabled
+#export(String) var name setget set_name, get_name
+#export(bool) var has_name setget , get_has_name
+#export(bool) var has_self_ref setget , get_has_self_ref
+#export(bool) var enabled setget , get_enabled
+#export(bool) var has_items setget , get_has_items
+#export(int) var items_amount setget , get_items_amount
+#export(Resource) var self_ref setget set_self_ref, get_self_ref
+
+#func get_enabled():
+#	return self.enabled
 
 # fields
-var _data = {
-	"name": "",
-	"self_ref": null,
-	"db_ref": null,
-	"manager_ref": null,
-	"base_class_names": ["ResourceTable", "Resource"],
+var data = {
 	"items": {},
 	"items_amount": 0,
-	"state":
-	{
-		"has_name": false,
-		"has_self_ref": false,
-		"has_db_ref": false,
-		"has_manager_ref": false,
-		"cached": false,
-		"initialized": false,
-		"enabled": false
-	}
 }
+#"name": "",
+#"self_ref": null,
+#"db_ref": null,
+#"manager_ref": null,
+#"base_class_names": ["ResourceTable", "Resource"],
+#"state":
+#{
+#	"has_name": false,
+#	"has_self_ref": false,
+#	"has_db_ref": false,
+#	"has_manager_ref": false,
+#	"cached": false,
+#	"initialized": false,
+#	"enabled": false
+#}
+#}
 
 
 # private inherited methods
-func _init(_self_ref = null):
-	_data.self_ref = _self_ref
-	_data.name = _init_name()
-	_data.state.has_name = _init_has_name()
-	_data.state.has_self_ref = _init_has_self_ref()
+func _init():  #_self_ref = null):
+	._init(self)
+	#var foo = self.enabled  #.get_enabled()
+
+	#_data.self_ref = _self_ref
+	#_data.name = _init_name()
+	#_data.state.has_name = _init_has_name()
+	#_data.state.has_self_ref = _init_has_self_ref()
 
 
 # inherited public methods
-func is_class(_class):
-	return ClassNameUtility.is_class_name(_class, _data.name, _data.base_class_names)
+#func is_class(_class):
+#return ClassNameUtility.is_class_name(_class, _data.name, _data.base_class_names)
 
-
-func get_class():
-	return _data.name
-
+#func get_class():
+#	return _data.name
 
 # public methods
-func init_from_manager(_db_ref = null, _manager_ref = null):
-	_data.db_ref = _db_ref
-	_data.manager_ref = _manager_ref
-	_data.state.has_db_ref = _is_obj_valid(_data.db_ref)
-	_data.state.has_manager_ref = _is_obj_valid(_data.manager_ref)
-	var ds = _data.state
-	_data.state.cached = ds.has_name && ds.has_self_ref && ds.has_db_ref && ds.has_manager_ref
-	_data.state.initialized = _data.state.cached
-	_data.state.enabled = _data.state.initialized
-	return _data.state.enabled
+#func init_from_manager(_db_ref = null, _manager_ref = null):
+#	_data.db_ref = _db_ref
+#	_data.manager_ref = _manager_ref
+#	_data.state.has_db_ref = _is_obj_valid(_data.db_ref)
+#	_data.state.has_manager_ref = _is_obj_valid(_data.manager_ref)
+#	var ds = _data.state
+#	_data.state.cached = ds.has_name && ds.has_self_ref && ds.has_db_ref && ds.has_manager_ref
+#	_data.state.initialized = _data.state.cached
+#	_data.state.enabled = _data.state.initialized
+#	return _data.state.enabled
 
 
 func enable(_self_ref = null, _db_ref = null, _manager = null):
-	_init(_self_ref)
-	var _enabled = init_from_manager(_db_ref, _manager)
+	.enable(_db_ref, _manager, _self_ref)
+
+	#_init(_self_ref)
+	#var _enabled = init_from_manager(_db_ref, _manager)
 	if _enabled:
 		var cannot_enable = false
 		var names = _data.items.keys()
@@ -289,8 +297,8 @@ func get_self_ref():
 	return _data.self_ref
 
 
-func get_enabled():
-	return _data.state.enabled
+#func get_enabled():
+#	return _data.state.enabled
 
 
 func get_has_items():

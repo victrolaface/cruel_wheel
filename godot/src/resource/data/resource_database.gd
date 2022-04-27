@@ -91,7 +91,7 @@ func _init(_self_ref = null, _manager = null):
 			var is_table = not table_init == null
 			if is_table:
 				table_init._init()
-				if table_init.has_self_ref && table_init.has_name:
+				if table_init.enabled:  #table_init.has_self_ref && table_init.has_name:
 					_data.state.db_init = table_init.init_from_manager(_data.self_ref, _data.manager_ref)
 				elif table_init.has_self_ref && not table_init.has_name:
 					_data.state.db_init = table_init.init_from_manager(_data.self_ref, _data.manager_ref, _data.table_type)
@@ -262,11 +262,15 @@ func _init_added_valid(_validator = null, _table = null, _to_add_amt = 0, _class
 	for n in _class_names:
 		var i = ClassType.from_name(n)
 		i._init()
-		if i.init_from_manager(_data.self_ref, _data.manager_ref):
-			if i.enabled && _table.add(i.name, i):
-				added_amt = added_amt + 1
-			else:
-				_on_warning("cannot add item to database.", false)
+		var post_init = (
+			i.init_from_manager(_data.self_ref, _data.manager_ref, i)
+			if not i.has_self_ref
+			else i.init_from_manager(_data.self_ref, _data.manager_ref)
+		)
+		if post_init && i.enabled && _table.add(i.name, i):
+			added_amt = added_amt + 1
+		else:
+			_on_warning("cannot add item to database.", false)
 	var init_to_add_amt = init_amt + _to_add_amt
 	var init_added_amt = init_amt + added_amt
 	var amts = [init_to_add_amt, init_added_amt, added_amt]
