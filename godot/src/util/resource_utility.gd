@@ -13,8 +13,8 @@ static func init_from_manager(_db_ref = null, _mgr_ref = null, _self_ref = null,
 	var data = _on_init_default(_self_ref, _data)
 	data.db_ref = _db_ref
 	data.mgr_ref = _mgr_ref
-	data.state.has_db_ref = _obj_is_valid(_data.db_ref)
-	data.state.has_mgr_ref = _obj_is_valid(_data.mgr_ref)
+	data.state.has_db_ref = obj_is_valid(_data.db_ref)
+	data.state.has_mgr_ref = obj_is_valid(_data.mgr_ref)
 	data.state.cached = _init_cached(data.state, false)
 	data = _init_enabled(data)
 	return data
@@ -41,7 +41,7 @@ static func data_is_valid(_data = null):
 		for s in str_arr:
 			valid = StringUtility.is_valid(s)  #str(s)
 		for o in obj_arr:
-			valid = _obj_is_valid(o)  #obj(o)
+			valid = obj_is_valid(o)  #obj(o)
 		valid = _state_is_valid(_data.state)
 	return valid
 
@@ -67,13 +67,15 @@ static func disable_data(_data = null):
 
 
 # private helper methods
-static func _obj_is_valid(_obj = null):
+static func obj_is_valid(_obj = null):
 	return not _obj == null
 
 
 static func _on_init_default(_self_ref = null, _data = null):
-	_data.self_ref = _self_ref
-	_data.state.has_self_ref = _obj_is_valid(_data.self_ref)
+	if not _data.state.has_self_ref:
+		_data.self_ref = _self_ref
+	_data.state.has_self_ref = obj_is_valid(_data.self_ref)
+	_data.state.is_local = _data.self_ref.resource_local_to_scene
 	_data.name = _data.self_ref.resource_name()
 	_data.state.has_name = StringUtility.is_valid(_data.name)
 	_data.state.has_base_class_names = _data.base_class_names.size() > 0
