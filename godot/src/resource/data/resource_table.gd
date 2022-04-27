@@ -38,17 +38,11 @@ func enable(_self_ref = null, _db_ref = null, _manager = null):
 				if data.items[n].enable_from_manager(_db_ref, _manager, data.items[n]):
 					continue
 				else:
-					push_warning("cannot enable item in table.")
+					_on_item_warning()
 					enabled = not enabled
+	else:
+		_on_table_warning()
 	return enabled
-
-
-func _names():
-	return PoolStringArray(data.items.keys())
-
-
-func _has_names(_names = []):
-	return _names.size() > 0
 
 
 func disable():
@@ -60,8 +54,10 @@ func disable():
 				if data.items[n].disable():
 					continue
 				else:
-					push_warning("cannot disable item in table.")
+					_on_item_warning(false)
 					disabled = not disabled
+	else:
+		_on_table_warning(false)
 	return disabled
 
 
@@ -73,7 +69,7 @@ func add(_key = "", _value = null):
 		if not data.state.has_items:
 			data.state.has_items = true
 	else:
-		push_warning("cannot add item to table.")
+		_on_add_item_warning()
 	return added
 
 
@@ -93,29 +89,37 @@ func remove_disabled():
 			if removed:
 				rem_amt = rem_amt + 1
 			else:
-				push_warning("cannot remove disabled item from table.")
+				_on_add_item_warning(false, "disabled")
 		var items_amt = data.items_amount
 		var init_sans_rem = init_amt - rem_amt
 		var init_sans_amt = init_amt - amt
 		removed = rem_amt == amt && items_amt == init_sans_rem && items_amt == init_sans_amt
 		if not removed:
-			push_warning("invalid amount of disabled items removed from table.")
+			_on_add_items_warning(false, "disabled")
+	else:
+		_on_no_items_rem_warning()
 	return removed
 
 
 func remove_keys(_keys: PoolStringArray):
-	return false
-	#var removed_keys = false
-	#var exists = false
-	#if _keys.size() > 0:
-	#	for k in _keys:
-	#		if _data.items.erase(k):
-	#			continue
-	#		push_warning("unable to erase item.")
-	#		if not exists:
-	#			exists = true
-	#removed_keys = not exists
-	#return removed_keys
+	var removed_keys = _keys.size() > 0
+	if removed_keys:
+		for k in _keys:
+			if _on_removed(k):
+				continue
+			else:
+				_on_add_item_warning(false)
+				if removed_keys:
+					removed_keys = not removed_keys
+		if not removed_keys:
+			_on_add_items_warning(false)
+	else:
+		_on_no_items_rem_warning()
+	return removed_keys
+
+
+func _on_no_items_rem_warning():
+	push_warning("no items to remove.")
 
 
 func remove_invalid():
@@ -134,16 +138,19 @@ func remove_invalid():
 			else:
 				push_warning("unable to remove item.")
 		removed = removed_amt == amt
+	else:
+		_on_no_items_rem_warning()
 	return removed
 
 
 func remove_all():
 	var removed_all = false
-	if _data.state.enabled && _data.has_items:
+	if _data.has_items:
 		_data.items.clear()
 		_data.items_amount = 0
-		#_on_no_items()
 		removed_all = true
+	else:
+		_on_no_items_rem_warning()
 	return removed_all
 
 
@@ -205,11 +212,21 @@ func keys_sans(_keys: PoolStringArray):
 
 
 # private helper methods
+func _names():
+	return PoolStringArray(data.items.keys())
+
+
+func _has_names(_names = []):
+	return _names.size() > 0
+
+
 func _on_removed(_key = ""):
-	var removed = data.items.erase(_key)
+	var removed = data.items.has(_key)
 	if removed:
-		data.items_amount = data.items_amount - 1
-		_on_cleared()
+		removed = data.items.erase(_key)
+		if removed:
+			data.items_amount = data.items_amount - 1
+			_on_cleared()
 	return removed
 
 
@@ -217,9 +234,58 @@ func _on_cleared():
 	_data.state.has_items = not _data.items_amount == 0
 
 
+func _on_table_warning(_enabled = true):
+	var do = _on_do(_enabled)
+	push_warning("cannot " + do + "table.")
+
+
+func _on_item_warning(_enabled = true):
+	var do = _on_do(_enabled)
+	push_warning("cannot " + do + " item in table.")
+
+
+func _on_do(_enabled = true):
+	return "enable" if _enabled else "disable"
+
+
+func _on_add_item_warning(_add = true, _item_is = ""):
+	var warning = "cannot "
+	if _add:
+		warning = warning + "add "
+		warning = _on_warning_is_type(_item_is, warning)
+		warning = warning + "to "
+	else:
+		warning = warning + "remove "
+		warning = _on_warning_is_type(_item_is, warning)
+		warning = warning + "from "
+	warning = warning + "table."
+	push_warning(warning)
+
+
+func _on_warning_is_type(_item_is = "", _warning = ""):
+	if StringUtility.is_valid(_item_is):
+		_warning = _warning + _item_is + " item "
+	else:
+		_warning = _warning + "item "
+	return _warning
+
+
+func _on_add_items_warning(_add = true, _item_is = ""):
+	var warning = "invalid amount of "
+	if StringUtility.is_valid(_item_is):
+		warning = warning + _item_is + " "
+	warning = warning + "items "
+	if _add:
+		warning = warning + "added to "
+	else:
+		warning = warning + "removed from "
+	warning = warning + "table."
+	push_warning(warning)
+
+
 # setters, getters functions
 func get_has_items():
-	return data.state.has_items  #data.items_amount > 0
+	return data.state.has_items
 
 
 func get_items_amount():
