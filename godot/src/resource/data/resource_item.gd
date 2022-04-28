@@ -67,12 +67,14 @@ func disable():
 
 
 # setters, getters functions
-func set_self_ref(_self_ref=null):
+func set_self_ref(_self_ref = null):
 	if not _data.state.has_self_ref && ResourceUtility.obj_is_valid(_self_ref):
 		_data.self_ref = _self_ref
 
+
 func get_self_ref():
 	return _data.self_ref
+
 
 func set_base_class_name(_class_name = ""):
 	_on_set_base_class_names([_class_name])
