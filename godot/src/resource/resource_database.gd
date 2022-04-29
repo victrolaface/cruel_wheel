@@ -1,4 +1,26 @@
 tool
+class_name ResourceDatabase extends ResourceItem
+
+# fields
+var data = {
+	"db_path": "res://data/resource_db.tres",
+	"db": [],
+	"db_tables_amount": 0,
+	"base_class_name": "ResourceDatabase",
+	"table_types": [],
+	"state":
+	{
+		"first_init": true,
+		"db_init": false,
+		"has_db": false,
+		"has_table": false,
+	}
+}
+
+"""
+
+
+tool
 class_name ResourceDatabase extends Resource
 
 # properties
@@ -426,3 +448,4 @@ func get_db_path():
 
 func get_has_db_path():
 	return _data.state.has_db_path
+"""

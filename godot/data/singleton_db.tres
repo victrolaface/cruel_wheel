@@ -5,12 +5,5 @@
 [resource]
 resource_name = "SingletonDatabase"
 script = ExtResource( 1 )
-name = ""
-has_cache = false
-has_paths = false
-initialized = false
 enabled = false
-has_singletons = false
-destroyed = null
-cache_amount = 0
-paths_amount = 0
+first_initialization = true
