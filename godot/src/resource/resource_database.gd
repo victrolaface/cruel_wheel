@@ -2,20 +2,26 @@ tool
 class_name ResourceDatabase extends ResourceItem
 
 # fields
-var data = {
+var _db = {
+	"path": "res://src/resource/resource_db.gd",
 	"db_path": "res://data/resource_db.tres",
 	"db": [],
 	"db_tables_amount": 0,
-	"base_class_name": "ResourceDatabase",
+	"class_names": PoolStringArray(["ResourceDatabase"]),
 	"table_types": [],
 	"state":
 	{
 		"first_init": true,
-		"db_init": false,
-		"has_db": false,
-		"has_table": false,
 	}
 }
+
+
+func _init(_local = true, _path = "", _editor_only = false, _class_names = []):
+	_db.class_names = ResourceItemUtility.init_class_names(_class_names, _db.class_names)
+	
+	#ClassNameUtility.class_names(_class_names, _db.class_names)
+	#._init(_local, _path, _editor_only, _t.class_names)
+
 
 """
 

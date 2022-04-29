@@ -25,7 +25,9 @@ var _t = {
 
 # private inherited methods
 func _init(_local = true, _path = "", _editor_only = false, _class_names = []):
-	_t.class_names = ClassNameUtility.class_names(_class_names, _i.class_names)
+	_t.class_names = ResourceItemUtility.init_class_names(_class_names, _t.class_names)
+
+	#ClassNameUtility.class_names(_class_names, _i.class_names)
 	._init(_local, _path, _editor_only, _t.class_names)
 
 

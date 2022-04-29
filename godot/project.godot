@@ -55,11 +55,6 @@ _global_script_classes=[ {
 "path": "res://addons/godot-next/nodes/callback_delegator.gd"
 }, {
 "base": "Reference",
-"class": "ClassNameUtility",
-"language": "GDScript",
-"path": "res://src/util/class_name_utility.gd"
-}, {
-"base": "Reference",
 "class": "ClassType",
 "language": "GDScript",
 "path": "res://addons/godot-next/references/class_type.gd"
@@ -229,11 +224,6 @@ _global_script_classes=[ {
 "language": "GDScript",
 "path": "res://src/resource/resource_item.gd"
 }, {
-"base": "Reference",
-"class": "ResourceItemUtility",
-"language": "GDScript",
-"path": "res://src/util/resource_item_utility.gd"
-}, {
 "base": "ResourceCollection",
 "class": "ResourceSet",
 "language": "GDScript",
@@ -364,7 +354,6 @@ _global_script_class_icons={
 "Bitset": "",
 "CSVFile": "",
 "CallbackDelegator": "",
-"ClassNameUtility": "",
 "ClassType": "",
 "Component": "",
 "ComponentSet": "",
@@ -399,7 +388,6 @@ _global_script_class_icons={
 "ResourceCollection": "",
 "ResourceDatabase": "",
 "ResourceItem": "",
-"ResourceItemUtility": "",
 "ResourceSet": "",
 "ResourceTable": "",
 "SignalItemTypes": "",
