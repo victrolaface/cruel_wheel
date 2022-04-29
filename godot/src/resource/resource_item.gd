@@ -6,7 +6,7 @@ export(bool) var enabled setget , get_enabled
 
 # fields
 var _i = {
-	"class_names": PoolStringArray(["Resource", "ResourceItem"]),
+	"class_names": PoolStringArray(["ResourceItem, Resource"]),
 	"path": "res://src/resource/resource_item.gd",
 	"state":
 	{
@@ -17,11 +17,14 @@ var _i = {
 
 
 # private inherited methods
-func _init(_local = true, _editor_only = false, _class_names = []):
-	init_resource(_local, self.resource_local_to_scene, _i.class_names[1], self.resource_name, _i.path, self.resource_path)
-	_i.class_names = ClassNameUtility.class_names(_class_names, _i.class_names)
-	_i.state.editor_only = _editor_only
-	_i.state.enabled = _is_enabled(_i.class_names)
+func _init(_local = true, _path = "", _editor_only = false, _class_names = []):
+	_i.class_names = ResourceItemUtility.init_class_names(_class_names, _i.class_names)
+	_i.state.editor_only = ResourceItemUtility.init_editor_only(_editor_only, _i.editor_only)
+	self.resource_name = _class_name()
+	self.resource_local_to_scene = ResourceItemUtility.init_res_local(_local, self.resource_local_to_scene)
+	self.resource_path = ResourceItemUtility.init_res_path(_path, self.resource_path, _i.path)
+	_i.path = ResourceItemUtility.init_path(_path, _i.path)
+	_enable(true)
 
 
 # public inherited methods
@@ -30,26 +33,10 @@ func is_class(_class):
 
 
 func get_class():
-	return self.resource_name
+	return _class_name()
 
 
 # public methods
-func init_resource(_local = true, _r_local = true, _name = "", _r_name = "", _path = "", _r_path = ""):
-	var init_res_local = self.resource_local_to_scene
-	var init_res_name = self.resource_local_to_scene
-	var init_res_path = self.resource_local_to_scene
-	var dif = false
-	self.resource_local_to_scene = ResourceItemUtility.local_to_scene(_local, _r_local)
-	self.resource_name = ResourceItemUtility.name(_name, _r_name)
-	self.resource_path = ResourceItemUtility.path(_path, _r_path, self.resource_name)
-	var local_dif = not init_res_local == self.resource_local_to_scene
-	var name_dif = not init_res_name == self.resource_name
-	var path_dif = not init_res_path == self.resource_path
-	var name_path_dif = name_dif && path_dif
-	dif = local_dif or name_path_dif
-	return dif
-
-
 func enable():
 	return _enable(true)
 
@@ -63,14 +50,13 @@ func validate(_enabled = true):
 
 
 # private helper methods
+func _class_name():
+	return _i.class_names[0]
+
+
 func _enable(_enabled = true):
-	_i.state.managed = _enabled
 	_i.state.enabled = _enabled
 	return _i.state.enabled
-
-
-func _is_enabled(_class_names = []):
-	return _class_names.size() > 1
 
 
 # setters, getters functions

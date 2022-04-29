@@ -24,13 +24,9 @@ var _t = {
 
 
 # private inherited methods
-func _init(_local = true, _editor_only = false, _class_names = []):
-	.init_resource(_local, self.resource_local_to_scene, _t.class_names[0], self.resource_name, _t.path, self.resource_path)
-	var size = _class_names.size()
-	if size > 0:
-		_t.type = _class_names[size - 1]
-	_t.class_names = ClassNameUtility.class_names(_class_names, _t.class_names)
-	.init(_local, _editor_only, _t.class_names)
+func _init(_local = true, _path = "", _editor_only = false, _class_names = []):
+	_t.class_names = ClassNameUtility.class_names(_class_names, _i.class_names)
+	._init(_local, _path, _editor_only, _t.class_names)
 
 
 func has_key(_key = ""):
