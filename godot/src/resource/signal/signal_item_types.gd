@@ -1,3 +1,4 @@
+"""
 class_name SignalItemTypes
 
 enum SignalType {
@@ -65,3 +66,4 @@ static func get_valid_signal_types():
 
 static func get_valid_signal_flag_types():
 	return VALID_SIGNAL_FLAG_TYPES
+"""

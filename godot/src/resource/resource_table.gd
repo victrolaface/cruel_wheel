@@ -24,11 +24,9 @@ var _t = {
 
 
 # private inherited methods
-func _init(_local = true, _path = "", _editor_only = false, _class_names = []):
-	_t.class_names = ResourceItemUtility.init_class_names(_class_names, _t.class_names)
-
-	#ClassNameUtility.class_names(_class_names, _i.class_names)
-	._init(_local, _path, _editor_only, _t.class_names)
+func _init(_local = true, _path = "", _editor_only = false, _class_names = [], _id = 0):
+	_t.class_names = .init_class_names(_class_names, _t.class_names)
+	._init(.init_local_param(_local, _id), .init_path_param(_path, _t.path), _editor_only, _t.class_names, _id)
 
 
 func has_key(_key = ""):
@@ -47,7 +45,7 @@ func disable():
 
 
 func add(_k = "", _v = null):
-	var added = StringUtility.is_valid(_k) && ResourceItemUtility.item_is_valid(_v) && not has_key(_k)
+	var added = .str_is_valid(_k) && .item_is_valid(_v) && not has_key(_k)
 	if added:
 		_t.items[_k] = _v
 		_t.items_amount = _t.items_amount + 1
@@ -257,7 +255,7 @@ func _on_add_item_warning(_add = true, _item_is = ""):
 
 
 func _on_warning_is_type(_item_is = "", _warning = ""):
-	if StringUtility.is_valid(_item_is):
+	if .str_is_valid(_item_is):
 		_warning = _warning + _item_is + " item "
 	else:
 		_warning = _warning + "item "
@@ -266,7 +264,7 @@ func _on_warning_is_type(_item_is = "", _warning = ""):
 
 func _on_add_items_warning(_add = true, _item_is = ""):
 	var warning = "invalid amount of "
-	if StringUtility.is_valid(_item_is):
+	if .str_is_valid(_item_is):
 		warning = warning + _item_is + " "
 	warning = warning + "items "
 	if _add:

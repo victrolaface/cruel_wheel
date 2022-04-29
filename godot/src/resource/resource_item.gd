@@ -23,22 +23,11 @@ var _i = {
 
 # private inherited methods
 func _init(_local = true, _path = "", _editor_only = false, _class_names = [], _id = 0):
+	_i.state.local = _init_local(_local, _i.state.local, _id)
+	_i.state.editor_only = _init_editor_only(_editor_only, _i.state.editor_only)
 	_i.class_names = init_class_names(_class_names, _i.class_names)
-	if not _editor_only == _i.state.editor_only:
-		_i.state.editor_only = _editor_only
-	if not _local == _i.state.local:
-		_i.state.local = _local
-	self.resource_local_to_scene = _i.state.local
-	_i.name = _i.class_names[0]
-	if _i.state.local && _id > 0:
-		_i.name = _i.name + String(_id)
-	self.resource_name = _i.name
-	var path_valid = _path_valid(_path)
-	if path_valid && not _path == _i.path:
-		_i.path = _path
-	elif not path_valid && _path_valid(_i.base_path):
-		_i.path = _i.base_path
-	self.resource_path = _i.path
+	_i.name = _init_name(_i.state.local, _id)
+	_i.path = _init_path(_path, _i.path)
 	_enable(true)
 
 
@@ -57,7 +46,7 @@ func get_class():
 
 
 # public methods
-static func init_class_names(_class_names = [], _init_class_names = []):
+func init_class_names(_class_names = [], _init_class_names = []):
 	if _class_names.size() > 0 && _init_class_names.size() > 0:
 		var amt = 0
 		var idx = 0
@@ -96,10 +85,43 @@ static func init_class_names(_class_names = [], _init_class_names = []):
 	return _init_class_names
 
 
-func init_path(_path = "", _init_path = ""):
+func init_local_param(_local = true, _id = 0):
+	var local_param = false
+	var id_local = _id > 0
+	var is_local = _local && id_local
+	var is_local_dif = _dif(id_local, _local)
+	var local = is_local or is_local_dif
+	var id_not_local = _id == 0
+	var is_not_local = _dif(id_not_local, _local)
+	var is_not_local_dif = _local && id_not_local
+	var not_local = is_not_local or is_not_local_dif
+	if local:
+		local_param = not local_param
+	elif not_local:
+		local_param = local_param
+	return local_param
+
+
+func init_path_param(_path = "", _init_path = ""):
+	var path_ret = ""
 	var path_valid = _path_valid(_path)
 	var init_path_valid = _path_valid(_init_path)
-	return _path if _dif(path_valid, init_path_valid) else _init_path
+	var path_is_init = _path == _init_path
+	var is_path = _dif(path_valid, path_is_init)
+	var is_init_path = _dif(init_path_valid, path_valid)
+	if is_path:
+		path_ret = _path
+	elif is_init_path:
+		path_ret = _init_path
+	return path_ret
+
+
+func str_is_valid(_name = ""):
+	return not _name == "" && not _name == null
+
+
+func item_is_valid(_item = null):
+	return not _item == null
 
 
 func enable():
@@ -115,6 +137,36 @@ func validate(_enabled = true):
 
 
 # private helper methods
+func _init_local(_local = true, _init_local = true, _id = 0):
+	var local = init_local_param(_local, _id)
+	if not local == _init_local:
+		_init_local = local
+	self.resource_local_to_scene = _init_local
+	return _init_local
+
+
+func _init_editor_only(_editor_only = false, _init_editor_only = false):
+	if not _editor_only == _init_editor_only:
+		_init_editor_only = _editor_only
+	return _init_editor_only
+
+
+func _init_name(_init_local = true, _id = 0):
+	var _name = _i.class_names[0]
+	if _init_local && _id > 0:
+		_name = _name + String(_id)
+	self.resource_name = _name
+	return _name
+
+
+func _init_path(_path = "", _init_path = ""):
+	var path_ret = init_path_param(_path, _init_path)
+	if not _path_valid(path_ret):
+		path_ret = _i.base_path
+	self.resource_path = path_ret
+	return path_ret
+
+
 func _enable(_abled = true):
 	var is_enable = _abled && _is_disabled_unmanaged()
 	var is_disable = _dif(_is_enabled_managed(), _abled)
@@ -134,7 +186,7 @@ func _is_disabled_unmanaged():
 
 
 func _path_valid(_path):
-	return PathUtility.is_valid(_path)
+	return Directory.new().file_exists(_path)
 
 
 func _dif(_fmr = false, _ltr = false):

@@ -16,9 +16,9 @@ var _db = {
 }
 
 
-func _init(_local = true, _path = "", _editor_only = false, _class_names = []):
-	_db.class_names = ResourceItemUtility.init_class_names(_class_names, _db.class_names)
-	
+func _init(_local = true, _path = "", _editor_only = false, _class_names = [], _id=0):
+	_db.class_names = .init_class_names(_class_names, _db.class_names)#ResourceItemUtility.init_class_names(_class_names, _db.class_names)
+	.init(_local, _path)
 	#ClassNameUtility.class_names(_class_names, _db.class_names)
 	#._init(_local, _path, _editor_only, _t.class_names)
 

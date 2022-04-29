@@ -1,3 +1,4 @@
+"""
 class_name SignalUtility
 
 
@@ -67,8 +68,8 @@ static func is_self_disconnect(_signal_name = "", _obj = null, _method = ""):
 	if not disconnected:
 		disconnected = _obj.disconnect(_signal_name, _obj, _method)
 	return disconnected
-
-
+"""
+"""
 #static func _is_class_valid(_i):
 #	return _i.get_class() == "SignalItem" && ObjectUtility.object_is_valid(_i)
 
@@ -96,3 +97,4 @@ static func _is_type_or_flags_valid(_i, _valid, _invalid):
 				if valid:
 					break
 	return valid
+"""

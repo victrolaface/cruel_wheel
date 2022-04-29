@@ -1,3 +1,4 @@
+"""
 tool
 class_name SingletonManager extends Node
 
@@ -92,3 +93,4 @@ func get_is_singleton():
 # setters, getters functions
 func get_initialized():
 	return _data.state.initialized
+"""

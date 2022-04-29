@@ -1,3 +1,4 @@
+"""
 tool
 class_name Component extends Resource
 
@@ -191,3 +192,4 @@ func _destroy():  #_do: bool):
 
 func is_type(_type):
 	return _type == COMPONENT_TYPE or .is_type(_type)
+"""

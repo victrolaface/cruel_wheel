@@ -1,3 +1,4 @@
+"""
 class_name SingletonTableUtility
 
 const _BASE_CLASS_NAME = "Singleton"
@@ -45,6 +46,7 @@ static func is_init_valid(_name = "", _self_ref = null, _manager = null):
 	)
 
 
+"""
 """
 static func is_loaded_valid(_singleton_table = null):
 	return (

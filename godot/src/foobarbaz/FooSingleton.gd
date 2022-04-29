@@ -1,3 +1,4 @@
+"""
 tool
 class_name FooSingleton extends Singleton
 
@@ -9,3 +10,4 @@ func _init():
 	self.resource_name = _CLASS_NAME
 	self.resource_path = _PATH
 	._init(self)
+"""

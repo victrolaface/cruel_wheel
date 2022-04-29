@@ -1,3 +1,4 @@
+"""
 tool
 class_name PhysicsInterpolationData extends Resource
 
@@ -42,3 +43,4 @@ func _init():
 # private methods
 func _update():
 	pass
+"""

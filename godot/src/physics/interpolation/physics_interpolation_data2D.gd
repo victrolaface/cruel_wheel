@@ -1,3 +1,4 @@
+"""
 tool
 class_name PhysicsInterpolationData2D extends PhysicsInterpolationData
 
@@ -82,3 +83,4 @@ func set_flags(_flags: int):
 
 func get_flags():
 	return _data.mask
+"""

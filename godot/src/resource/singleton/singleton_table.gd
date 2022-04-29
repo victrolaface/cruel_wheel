@@ -1,3 +1,4 @@
+"""
 tool
 class_name SingletonTable extends Resource
 
@@ -256,3 +257,4 @@ func get_has_items():
 
 func get_items_amount():
 	return _data.amount
+"""

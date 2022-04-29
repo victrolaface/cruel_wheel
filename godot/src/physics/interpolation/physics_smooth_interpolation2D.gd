@@ -1,3 +1,4 @@
+"""
 tool
 class_name PhysicsSmoothInterpolator2D extends Resource
 
@@ -98,7 +99,7 @@ func _init(_entity_ref):
 # this is attached to. In other words, the smooth's parent.
 # - Internally global transforms are used just so this will automatically
 # work regardless of node hierarchy.
-
+"""
 extends Node2D
 # This is needed in order to static type Smooth2D.
 class_name Smooth2D

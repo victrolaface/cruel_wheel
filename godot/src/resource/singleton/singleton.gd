@@ -1,3 +1,4 @@
+"""
 tool
 class_name Singleton extends Resource
 
@@ -169,3 +170,4 @@ func get_is_singleton():
 
 func get_enabled():
 	return _data.state.enabled
+"""

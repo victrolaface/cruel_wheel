@@ -1,3 +1,4 @@
+"""
 class_name SingletonUtility
 
 const _CLASS_NAME = "Singleton"
@@ -37,6 +38,7 @@ static func is_valid(_singleton = null):
 	return not _singleton == null && _singleton.is_class(_CLASS_NAME) && _singleton.is_singleton
 
 
+"""
 """
 static func _is_valid(_singleton = null):
 	return (

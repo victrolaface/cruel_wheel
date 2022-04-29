@@ -1,3 +1,4 @@
+"""
 tool
 class_name ComponentSet extends ResourceCollection
 
@@ -32,3 +33,4 @@ func has(_component_name: String):
 	if valid && has_amt:
 		has_cmpnt = cs_data.components.has(_component_name)
 	return has_cmpnt
+"""

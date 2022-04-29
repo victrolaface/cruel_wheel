@@ -1,3 +1,4 @@
+"""
 class_name EntityData extends Resource
 
 export(int) var id setget , get_id
@@ -47,7 +48,7 @@ func is_class(_class: String):
 func get_class():
 	return "Entity"
 
-
+"""
 #========================================================================
 """
 class_name EntityData extends Resource

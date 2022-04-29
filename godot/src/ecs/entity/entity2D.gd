@@ -1,3 +1,4 @@
+"""
 class_name Entity2D extends Node2D
 
 const _CLASS_NAME = "Entity2D"
@@ -15,3 +16,4 @@ func is_class(_class: String):
 
 func get_class():
 	return _CLASS_NAME
+"""

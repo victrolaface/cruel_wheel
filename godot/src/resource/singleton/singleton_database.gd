@@ -1,3 +1,4 @@
+"""
 tool
 class_name SingletonDatabase extends Resource
 
@@ -178,3 +179,4 @@ func get_enabled():
 
 func get_first_initialization():
 	return _data.state.first_init
+"""

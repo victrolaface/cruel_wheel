@@ -1,3 +1,4 @@
+"""
 class_name SignalManager extends Resource
 
 #export(int) var id setget , get_id
@@ -81,7 +82,6 @@ func _init(_manager: Object, _parent = null):
 			"has_nonself_reference_counted": false,
 		}
 	}
-	"""
 	resource_local_to_scene = true
 	var _id = get_instance_id()
 	var valid_id = IDUtility.is_valid(_id)
@@ -100,7 +100,6 @@ func _init(_manager: Object, _parent = null):
 	var _destroyed = not save
 	
 	"""
-
 
 # public methods
 """
@@ -183,7 +182,7 @@ func added(_signal_item: SignalItem, _valid = false):
 	return added
 """
 
-
+"""
 # setters, getters functions
 func get_manager():
 	if self.has_manager:
@@ -358,3 +357,4 @@ func _has(_has_items = false, _items = null, _signal_type = SignalItemTypes.Sign
 	else:
 		has = true
 	return has && self.initialized && self.enabled && not self.destroyed
+"""

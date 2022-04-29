@@ -1,3 +1,4 @@
+"""
 tool
 class_name BarSingleton extends Singleton
 
@@ -10,3 +11,4 @@ func _init():
 	self.resource_path = _PATH
 	self.editor_only = true
 	._init(self)
+"""
