@@ -11,9 +11,8 @@ const _ENABLE = "enable"
 const _DISABLE = "disable"
 
 var _t = {
-	"items": {},
-	"items_amount": 0,
 	"type": "",
+	"items_amount": 0,
 	"class_names": PoolStringArray(["ResourceTable"]),
 	"path": "res://src/resource/resource_table.gd",
 	"state":
@@ -26,7 +25,9 @@ var _t = {
 # private inherited methods
 func _init(_local = true, _path = "", _editor_only = false, _class_names = [], _id = 0):
 	_t.class_names = .init_class_names(_class_names, _t.class_names)
-	._init(.init_local_param(_local, _id), .init_path_param(_path, _t.path), _editor_only, _t.class_names, _id)
+	var local = .init_local_param(_local, _id)
+	var path = .init_path_param(_path, _t.path)
+	._init(local, path, _editor_only, _t.class_names, _id)
 
 
 func has_key(_key = ""):
@@ -45,15 +46,92 @@ func disable():
 
 
 func add(_k = "", _v = null):
-	var added = .str_is_valid(_k) && .item_is_valid(_v) && not has_key(_k)
+	var added = _v.is_class("ResourceItem") && _v.enabled && _v.has_parent_class && .item_is_valid(_v) && .str_is_valid(_k)
 	if added:
-		_t.items[_k] = _v
-		_t.items_amount = _t.items_amount + 1
-		if not _t.state.has_items:
-			_t.state.has_items = true
-	else:
-		_on_add_item_warning()
+		added = _v.has_name
+		var is_local = _v.has_id && _v.local && .id_is_valid(_v.id)
+		var add_local = added && is_local
+		var add_single = added && not is_local
+		var item_class_name = _v.get_class()
+		var parent_class_name = _v.parent_class
+		var has_parent_class = false
+		var has_item_class = false
+		var parent_class_keys = null
+		var item_class_keys = null
+		var init_add_parent_class = true
+		if add_local:
+			parent_class_keys = PoolStringArray(_t.items.local.keys())
+			for k in parent_class_keys:
+				has_parent_class = k == parent_class_name
+				if has_parent_class:
+					item_class_keys = PoolStringArray(_t.items.local[parent_class_name].keys())
+					has_parent_class = item_class_keys.size() > 0
+					init_add_parent_class = not has_parent_class
+					break
+			var init_add_item_class = true
+			if has_parent_class:
+				for i in item_class_keys:
+					has_item_class = i == item_class_name
+					if has_item_class:
+						init_add_item_class = not has_item_class
+						break
+				var id = _v.id
+				var has_id = false
+				if has_item_class:
+					var ids_keys = PoolStringArray(_t.items.local[parent_class_name[item_class_name]].keys())
+					if ids_keys.size() > 0:
+						for i in ids_keys:
+							has_id = i == id
+							if has_id:
+								if not _t.items.local[parent_class_name[item_class_name[id]]].validate():
+									add_local = remove(item_class_name, parent_class_name, id)
+								else:
+									add_local = not add_local
+									break
+			if init_add_parent_class:
+				_t.items.local[parent_class_name] = {}
+			if init_add_item_class:
+				_t.items.local[parent_class_name[item_class_name]] = {}
+				add_local = init_add_item_class
+			if add_local:
+				_t.items.local[parent_class_name[item_class_name[id]]] = _v
+				added = add_local
+		elif add_single:
+			#######################################################################
+			"""
+			parent_class_keys = PoolStringArray(_t.items.single.keys())
+			for k in parent_class_keys:
+				has_parent_class = k == parent_class_name
+				if has_parent_class:
+					parent_class = _t.items.single[parent_class_name]
+					item_class_keys = PoolStringArray(parent_class.keys())
+					has_parent_class = item_class_keys.size() > 0
+					init_add_parent_class = not has_parent_class
+			if has_parent_class:
+				for i in item_class_keys:
+					has_item_class = i == item_class_name
+					if has_item_class:
+						break
+				if has_item_class:
+					if not _t.items.single.parent_class.item_class.validate():
+						add_single = remove(item_class_name, parent_class_name)
+					else:
+						add_single = not add_single
+			if init_add_parent_class:
+				pass
+			"""
+			#######################################################################
+		if added:
+			_t.items_amount = _t.items_amount + 1
+			if not _t.state.has_items:
+				_t.state.has_items = not _t.state.has_items
+		else:
+			_on_add_item_warning()
 	return added
+
+
+func remove(_item_class_name = "", _parent_class_name = "", _id = 0):
+	return false
 
 
 func remove_keys(_keys = []):

@@ -2,99 +2,124 @@ tool
 class_name ResourceDatabase extends ResourceItem
 
 # fields
+enum _STATE { NONE = 0, ADD_FIRST_INIT = 1, ADD_INIT = 2, ADD_VALID = 3, ADD_INVALID = 4 }
+
 var _db = {
 	"path": "res://src/resource/resource_db.gd",
-	"db_path": "res://data/resource_db.tres",
-	"db": [],
-	"db_tables_amount": 0,
+	"tres_path": "res://data/resource_db.tres",
+	"database":
+	{
+		"local": {},
+		"single": {},
+	},
+	"tables_amount": 0,
+	"items_amount": 0,
 	"class_names": PoolStringArray(["ResourceDatabase"]),
 	"table_types": [],
+	"latest_id": 0,
 	"state":
 	{
 		"first_init": true,
+		"saved": false,
 	}
 }
 
 
-func _init(_local = true, _path = "", _editor_only = false, _class_names = [], _id=0):
-	_db.class_names = .init_class_names(_class_names, _db.class_names)#ResourceItemUtility.init_class_names(_class_names, _db.class_names)
-	.init(_local, _path)
-	#ClassNameUtility.class_names(_class_names, _db.class_names)
-	#._init(_local, _path, _editor_only, _t.class_names)
+func _init(_local = true, _path = "", _editor_only = false, _class_names = [], _id = 0):
+	_db.class_names = .init_class_names(_class_names, _db.class_names)
+	._init(.init_local_param(_local, _id), .init_path_param(_path, _db.path), _editor_only, _db.class_names, _id)
+
+
+func enable():
+	.enable()
+
+
+func disable():
+	.disable()
+
+
+func add_item(_item = null, _editor_only = false):
+	if self.enabled && .item_is_valid(_item) && _item.enabled && _item.is_class("ResourceItem") && _item.has_parent_class:
+		var parent_class = _item.parent_class
+		var item_class = _item.get_class()
+		var item_is_local = _item.local
+		var state = _STATE.NONE
+		if _db.first_init && _db.tables_amount == 0:
+			state = _STATE.ADD_FIRST_INIT
+		else:
+			var tables_keys = _db.tables.keys()
+			var has_parent_class = false
+			for k in tables_keys:
+				has_parent_class = k == parent_class
+				if has_parent_class:
+					break
+			if has_parent_class:
+				var table = _db.tables[parent_class]
+				var table_keys = table.keys()
+				var has_item_class = false
+				for k in table_keys:
+					has_item_class = k == item_class
+					if has_item_class:
+						break
+				if has_item_class:
+					var itm = table.item_class
+					pass
+					#if itm.local &&
+
+		if _db.first_init or _db.tables_amount == 0:
+			var local = _item.local
+			var editor_only = _item.editor_only
+			var path = _item.path
+			var class_names = PoolStringArray([item_class, parent_class])
+			if local:
+				_db.latest_id = _db.latest_id + 1
+				var id = _db.latest_id
+				_db.tables[parent_class] = ResourceTable.new(local, path, editor_only, class_names, id)
+			else:
+				_db.tables[parent_class] = ResourceTable.new(local, path, editor_only, class_names)
+			if _db.tables[parent_class].enabled:
+				_db.tables_amount = _db.tables_amount + 1
+
+				if _db.tables[parent_class].add(item_class, _item):
+					_db.items_amount = _db.items_amount + 1
+				else:
+					push_warning("cannot add item to resource table.")
+			else:
+				push_warning("cannot enable resource table.")
+			var itm_amt = _db.tables[parent_class].item_class.items_amount
+			var db_itm_amt = _db.items_amount
+			var tbl_amt = _db.tables_amount
+			if itm_amt == db_itm_amt && itm_amt == tbl_amt && db_itm_amt == tbl_amt:
+				_db.first_init = false
+				if .path_valid(_db.tres_path):
+					if ResourceSaver.save(_db.tres_path, self):
+						_db.state.saved = true
+					else:
+						push_warning("cannot save tres database resource.")
+				else:
+					push_warning("invalid path to tres database resource.")
+			else:
+				push_warning("invalid amount of added items to resource table.")
+
+				#push_warning("invalid amount of added items to resource table.")
+			#_db[key] = ResourceTable.new(local, path,editor_only,[key])
+			#_db[key] = ResourceTable.new()
+			#var ct = ClassType.from_name(key)
+			#if
+			#_db[key] = #ResourceTable.new()
+
+			#pass
+		#	elif _db.
 
 
 """
-
-
-tool
-class_name ResourceDatabase extends Resource
-
-# properties
-export(bool) var enabled setget , get_enabled
-export(bool) var first_initialization setget , get_first_initialization
-export(bool) var has_item_type setget , get_has_item_type
-export(bool) var has_table_type setget , get_has_table_type
-export(bool) var has_db_path setget , get_has_db_path
-export(String) var table_type setget set_table_type, get_table_type
-export(String) var item_type setget set_item_type, get_item_type
-export(String) var db_path setget set_db_path, get_db_path
-
-# fields
-var _data = {
-	"name": "",
-	"manager_ref": null,
-	"self_ref": null,
-	"base_class_names": ["ResourceDatabase", "Resource"],
-	"table_type": "",
-	"item_type": "",
-	"db_path": "",
-	"db": [],
-	"db_tables_amount": 0,
-	"validator":
-	{
-		"item": null,
-		"is_valid": false,
-	},
-	"state":
-	{
-		"first_init": true,
-		"has_db_path": true,
-		"has_name": false,
-		"has_manager_ref": false,
-		"has_self_ref": false,
-		"has_base_class_names": false,
-		"has_item_type": false,
-		"has_table_type": false,
-		"has_table": false,
-		"db_init": false,
-		"db_enabled": false,
-		"cached": false,
-		"initialized": false,
-		"saved": false,
-		"enabled": false
-	}
-}
-
-const _EN_DB_ERROR = "cannot enable database."
-
-
-# public inherited methods
-func is_class(_class = ""):
-	ClassNameUtility.is_class_name(_class, _data.name, _data.base_class_names)
-
-
-func get_class():
-	return _data.name
-
-
-# private inherited methods
 func _init(_self_ref = null, _manager = null):
 	_data.self_ref = _self_ref
 	_data.state.has_self_ref = not _data.self_ref == null
 	_data.name = _data.self_ref.resource_name()
 	_data.state.has_name = StringUtility.is_valid(_data.name)
-	_data.state.has_base_class_names = _data.state.has_name
-	_data.base_class_names = ClassNameUtility.init_base_class_names(_data.state.has_name, _data.name, _data.base_class_names)
+	_data.state.has_parent_class_names = _data.state.has_name
+	_data.parent_class_names = ClassNameUtility.init_parent_class_names(_data.state.has_name, _data.name, _data.parent_class_names)
 	_data.manager_ref = _manager
 	_data.state.has_manager_ref = not _data.manager_ref == null
 	if _data.has_self_ref:
@@ -131,8 +156,145 @@ func _init(_self_ref = null, _manager = null):
 				_on_db_not_of_class_type_warning()
 				_on_cannot_enable_warning(true)
 			var classes = [_data.table_type]
-			for base_class_name in _data.base_class_names:
-				classes.append(base_class_name)
+			for parent_class_name in _data.parent_class_names:
+				classes.append(parent_class_name)
+			var is_class = false
+			for c in classes:
+				is_class = table_init.is_class(c)
+				if not is_class:
+					_on_db_not_of_class_type_warning(not is_class)
+					break
+			_data.validator = _init_added_valid(_data.validator, table_init, class_names_amt, class_names)
+			var added_valid = _data.validator.is_valid
+			if added_valid:
+				table_init = _data.validator.item
+			_data.state.has_table = table_init.has_items && added_valid
+			_init_on_has_table(first_init, table_init)
+		else:
+			var init_tables_amt = loaded.db.count()
+			for t in loaded.db:
+				var self_ref = t.self_ref
+				if t.enable(self_ref, _data.self_ref, _data.manager_ref):
+					_init_validate(t, false, false, has_class_names, class_names)
+				else:
+					_on_cannot_enable_warning()
+					if t.remove_disabled():
+						_init_validate(t, false, false, has_class_names, class_names)
+					else:
+						_on_warning("cannot remove disabled items from database.", false)
+						_init_reset_db(t, false, has_class_names, class_names)
+			_data.state.has_db = _tables_amount_valid(false, init_tables_amt)
+			_init_on_has_db()
+"""
+"""
+
+tool
+class_name ResourceDatabase extends Resource
+
+# properties
+export(bool) var enabled setget , get_enabled
+export(bool) var first_initialization setget , get_first_initialization
+export(bool) var has_item_type setget , get_has_item_type
+export(bool) var has_table_type setget , get_has_table_type
+export(bool) var has_db_path setget , get_has_db_path
+export(String) var table_type setget set_table_type, get_table_type
+export(String) var item_type setget set_item_type, get_item_type
+export(String) var db_path setget set_db_path, get_db_path
+
+# fields
+var _data = {
+	"name": "",
+	"manager_ref": null,
+	"self_ref": null,
+	"parent_class_names": ["ResourceDatabase", "Resource"],
+	"table_type": "",
+	"item_type": "",
+	"db_path": "",
+	"db": [],
+	"db_tables_amount": 0,
+	"validator":
+	{
+		"item": null,
+		"is_valid": false,
+	},
+	"state":
+	{
+		"first_init": true,
+		"has_db_path": true,
+		"has_name": false,
+		"has_manager_ref": false,
+		"has_self_ref": false,
+		"has_parent_class_names": false,
+		"has_item_type": false,
+		"has_table_type": false,
+		"has_table": false,
+		"db_init": false,
+		"db_enabled": false,
+		"cached": false,
+		"initialized": false,
+		"saved": false,
+		"enabled": false
+	}
+}
+
+const _EN_DB_ERROR = "cannot enable database."
+
+
+# public inherited methods
+func is_class(_class = ""):
+	ClassNameUtility.is_class_name(_class, _data.name, _data.parent_class_names)
+
+
+func get_class():
+	return _data.name
+
+
+# private inherited methods
+func _init(_self_ref = null, _manager = null):
+	_data.self_ref = _self_ref
+	_data.state.has_self_ref = not _data.self_ref == null
+	_data.name = _data.self_ref.resource_name()
+	_data.state.has_name = StringUtility.is_valid(_data.name)
+	_data.state.has_parent_class_names = _data.state.has_name
+	_data.parent_class_names = ClassNameUtility.init_parent_class_names(_data.state.has_name, _data.name, _data.parent_class_names)
+	_data.manager_ref = _manager
+	_data.state.has_manager_ref = not _data.manager_ref == null
+	if _data.has_self_ref:
+		var ds = _data.state
+		var sr = _data.self_ref
+		_data.item_type = _on_init_has(ds.has_item_type, sr.has_item_type, sr.item_type)
+		_data.state.has_item_type = _set_has_item_type(_data.item_type)
+		_data.table_type = _on_init_has(ds.has_table_type, sr.has_table_type, sr.table_type)
+		_data.state.has_table_type = _set_has_table_type(_data.table_type)
+		_data.db_path = _on_init_has(ds.has_db_path, sr.has_db_path, sr.db_path)
+		_data.state.has_db_path = _set_has_db_path(_data.db_path)
+	if _can_load_db():
+		var loaded = ResourceLoader.load(_data.db_path)
+		var class_names = ClassType.from_name(_data.item_type).get_inheritors_list()
+		var class_names_amt = class_names.size()
+		var has_class_names = class_names_amt > 0
+		if not has_class_names:
+			_on_warning("cannot find items of class type for database.", true)
+		var first_init = loaded == null or loaded.first_initialization
+		if first_init:
+			var table_init = ClassType.from_name(_data.table_type)
+			var is_table = not table_init == null
+			if is_table:
+				table_init._init()
+				if table_init.enabled:  #table_init.has_self_ref && table_init.has_name:
+					_data.state.db_init = table_init.init_from_manager(_data.self_ref, _data.manager_ref)
+				elif table_init.has_self_ref && not table_init.has_name:
+					_data.state.db_init = table_init.init_from_manager(_data.self_ref, _data.manager_ref, _data.table_type)
+				_data.state.db_enabled = _data.state.db_init && table_init.enabled
+				if not _data.state.db_enabled:
+					_on_cannot_enable_warning(not _data.state.db_enabled)
+			is_table = _data.state.db_enabled && table_init.get_class() == _data.table_type
+			if not is_table:
+				_on_db_not_of_class_type_warning()
+				_on_cannot_enable_warning(true)
+			var classes = [_data.table_type]
+			for parent_class_name in _data.parent_class_names:
+				classes.append(parent_class_name)
 			var is_class = false
 			for c in classes:
 				is_class = table_init.is_class(c)
@@ -179,7 +341,7 @@ func disable():
 			_data.state.has_db_path = false
 			_data.state.has_name = false
 			_data.state.has_self_ref = false
-			_data.state.has_base_class_names = false
+			_data.state.has_parent_class_names = false
 			_data.state.has_item_type = false
 			_data.state.has_table_type = false
 			_data.state.has_db = false
@@ -362,7 +524,7 @@ func _can_load_db():
 	return (
 		_data.state.has_self_ref
 		&& _data.state.has_name
-		&& _data.state.has_base_class_names
+		&& _data.state.has_parent_class_names
 		&& _data.state.has_manager_ref
 		&& _data.manager_ref.initialized
 		&& _data.state.has_item_type

@@ -3,13 +3,22 @@ class_name ResourceItem extends Resource
 
 # properties
 export(bool) var enabled setget , get_enabled
+export(bool) var editor_only setget , get_editor_only
+export(bool) var local setget , get_local
+export(bool) var has_parent_class setget , get_has_parent_class
+export(bool) var has_id setget , get_has_id
+export(bool) var has_name setget , get_has_name
+export(bool) var has_path setget , get_has_path
+export(int) var id setget , get_id
 export(String) var name setget , get_name
 export(String) var path setget , get_path
+export(String) var parent_class setget , get_parent_class
 
 # fields
 var _i = {
 	"name": "",
 	"path": "",
+	"id": 0,
 	"class_names": PoolStringArray(["ResourceItem, Resource"]),
 	"base_path": "res://src/resource/resource_item.gd",
 	"state":
@@ -27,6 +36,7 @@ func _init(_local = true, _path = "", _editor_only = false, _class_names = [], _
 	_i.state.editor_only = _init_editor_only(_editor_only, _i.state.editor_only)
 	_i.class_names = init_class_names(_class_names, _i.class_names)
 	_i.name = _init_name(_i.state.local, _id)
+	_i.id = _init_id(_i.state.local, _id)
 	_i.path = _init_path(_path, _i.path)
 	_enable(true)
 
@@ -90,22 +100,22 @@ func init_local_param(_local = true, _id = 0):
 	var id_local = _id > 0
 	var is_local = _local && id_local
 	var is_local_dif = _dif(id_local, _local)
-	var local = is_local or is_local_dif
+	var on_local = is_local or is_local_dif
 	var id_not_local = _id == 0
 	var is_not_local = _dif(id_not_local, _local)
 	var is_not_local_dif = _local && id_not_local
-	var not_local = is_not_local or is_not_local_dif
-	if local:
+	var not_on_local = is_not_local or is_not_local_dif
+	if on_local:
 		local_param = not local_param
-	elif not_local:
+	elif not_on_local:
 		local_param = local_param
 	return local_param
 
 
 func init_path_param(_path = "", _init_path = ""):
 	var path_ret = ""
-	var path_valid = _path_valid(_path)
-	var init_path_valid = _path_valid(_init_path)
+	var path_valid = path_is_valid(_path)
+	var init_path_valid = path_is_valid(_init_path)
 	var path_is_init = _path == _init_path
 	var is_path = _dif(path_valid, path_is_init)
 	var is_init_path = _dif(init_path_valid, path_valid)
@@ -124,6 +134,14 @@ func item_is_valid(_item = null):
 	return not _item == null
 
 
+func path_is_valid(_path = ""):
+	return Directory.new().file_exists(_path)
+
+
+func id_is_valid(_id = 0):
+	return _id > 0
+
+
 func enable():
 	return _enable(true)
 
@@ -137,9 +155,13 @@ func validate(_enabled = true):
 
 
 # private helper methods
+func _has_parent_class():
+	return _i.class_names.size() > 1
+
+
 func _init_local(_local = true, _init_local = true, _id = 0):
-	var local = init_local_param(_local, _id)
-	if not local == _init_local:
+	var is_local = init_local_param(_local, _id)
+	if not is_local == _init_local:
 		_init_local = local
 	self.resource_local_to_scene = _init_local
 	return _init_local
@@ -159,9 +181,16 @@ func _init_name(_init_local = true, _id = 0):
 	return _name
 
 
+func _init_id(_init_local = true, _id = 0):
+	var init_id = 0
+	if _init_local && _id > 0:
+		init_id = _id
+	return init_id
+
+
 func _init_path(_path = "", _init_path = ""):
 	var path_ret = init_path_param(_path, _init_path)
-	if not _path_valid(path_ret):
+	if not path_is_valid(path_ret):
 		path_ret = _i.base_path
 	self.resource_path = path_ret
 	return path_ret
@@ -185,10 +214,6 @@ func _is_disabled_unmanaged():
 	return not _i.state.managed && not _i.state.enabled
 
 
-func _path_valid(_path):
-	return Directory.new().file_exists(_path)
-
-
 func _dif(_fmr = false, _ltr = false):
 	return _fmr && not _ltr
 
@@ -198,12 +223,47 @@ func get_enabled():
 	return _i.state.enabled
 
 
+func get_has_parent_class():
+	return _has_parent_class()
+
+
+func get_has_id():
+	return _i.id > 0
+
+
+func get_has_name():
+	return str_is_valid(_i.name)
+
+
+func get_has_path():
+	return path_is_valid(_i.path)
+
+
 func get_name():
 	return _i.name
 
 
 func get_path():
 	return _i.path
+
+
+func get_editor_only():
+	return _i.state.editor_only
+
+
+func get_local():
+	return _i.state.local
+
+
+func get_parent_class():
+	var _parent_class = ""
+	if _has_parent_class():
+		_parent_class = _i.class_names[1]
+	return _parent_class
+
+
+func get_id():
+	return _i.id
 
 
 # public callbacks

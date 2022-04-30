@@ -164,6 +164,16 @@ _global_script_classes=[ {
 "language": "GDScript",
 "path": "res://src/resource/resource_table.gd"
 }, {
+"base": "ResourceTable",
+"class": "ResourceTableLocal",
+"language": "GDScript",
+"path": "res://src/resource/resource_table_local.gd"
+}, {
+"base": "ResourceTable",
+"class": "ResourceTableSingle",
+"language": "GDScript",
+"path": "res://src/resource/resource_table_single.gd"
+}, {
 "base": "Reference",
 "class": "Singletons",
 "language": "GDScript",
@@ -251,6 +261,8 @@ _global_script_class_icons={
 "ResourceItem": "",
 "ResourceSet": "",
 "ResourceTable": "",
+"ResourceTableLocal": "",
+"ResourceTableSingle": "",
 "Singletons": "",
 "Trail2D": "res://addons/godot-next/icons/icon_trail_2d.svg",
 "Trail3D": "res://addons/godot-next/icons/icon_trail_3d.svg",
