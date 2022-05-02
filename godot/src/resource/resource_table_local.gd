@@ -19,14 +19,23 @@ func _init(_local = true, _path = "", _editor_only = false, _class_names = [], _
 	._init(local, path, _editor_only, _l.class_names, _id)
 
 
-func add(_val = null):
+func add(_val = null, _id = 0, _validated = false):
 	var added = false
-	if _add(_val):
+	#if not _validated:
+	if _add(_val, _id, _validated):
 		var key = _val.get_class()
 		var id = _val.id
 		if _on_add(key, id):
-			added = .add_kvp(id, _val, true)
+			added = .add(id, _val, true)
 	return added
+
+
+func remove(_key = "", _id = 0):
+	var rem = false
+	rem = .remove(_id)
+	return rem
+
+	#null)
 
 
 # private helper methods
@@ -34,29 +43,34 @@ func _has_key(_key = ""):
 	return _l.items.has(_key)
 
 
-func _add(_val = null):
-	var can_add = self.enabled && .item_is_valid(_val)
-	var key = _val.get_class()
-	var id = _val.id
-	if can_add:
-		var valid_key = .str_is_valid(key)
-		var valid_id = _val.local && _val.has_id && .id_is_valid(id)
-		if valid_key && valid_id:
-			if _has_key(key):
-				can_add = not _l.items[key].has(id)
-			else:
+func _add(_val = null, _id = 0, _validated = false):
+	var can_add = false
+	if self.enabled:
+		var valid = _validated
+		if not valid:
+			valid = .item_is_valid(_val)
+		if valid:
+			var key = _val.get_class()
+			var id = _id if _validated else _val.id
+			if .str_is_valid(key) && .id_is_valid(id) && _val.local && _val.has_id && _val.id == id && _val.enabled:
 				can_add = not self.has_items
+				if not can_add:
+					can_add = not can_add if not _has_key(key) else not _l.items[key].has(id)
 	return can_add
 
 
 func _on_add(_key = "", _id = 0):
 	var added = false
+	var itm = null
 	if _has_key(_key):
-		var tmp = _l.items[_key]
-		if not tmp.has(_id):
-			added = tmp.add(_id)
-			if added:
-				_l.items[_key] = tmp
+		itm = _l.items[_key]
+		if not itm.has(_id):
+			added = itm.add(_id)
+	else:
+		itm = LocalResourceItem.new()
+		added = itm.init(_id)
+	if added:
+		_l.items[_key] = itm
 	return added
 
 
@@ -66,9 +80,9 @@ class LocalResourceItem:
 		"amt": 0,
 	}
 
-	func _init(_id = 0):
+	func init(_id = 0):
 		_i.ids.empty()
-		add(_id)
+		return add(_id)
 
 	func has(_id = 0):
 		var has = false
@@ -81,7 +95,7 @@ class LocalResourceItem:
 
 	func add(_id = 0):
 		var added = false
-		if not has(_id):
+		if .id_is_valid(_id) && not has(_id):
 			var tmp = _i.ids
 			var amt = _i.amt + 1
 			tmp.resize(amt + 1)

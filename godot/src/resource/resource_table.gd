@@ -39,15 +39,16 @@ func disable():
 	return _enable(false)
 
 
-func add_kvp(_key, _val, _is_validated):
+func add(_key, _val, _is_validated):
 	var added_kvp = false
 	if _add_kvp(_key, _val, _is_validated):
 		added_kvp = _on_add_kvp(_key, _val)
 	return added_kvp
 
 
-func remove(_item_class_name = "", _parent_class_name = "", _id = 0):
+func remove(_key = ""):  #_item_class_name = "", _parent_class_name = "", _id = 0):
 	return false
+	#return false
 
 
 func remove_keys(_keys = []):
