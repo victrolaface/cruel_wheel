@@ -38,7 +38,8 @@ func _init(_local = true, _path = "", _editor_only = false, _class_names = [], _
 	_i.name = _init_name(_i.state.local, _id)
 	_i.id = _init_id(_i.state.local, _id)
 	_i.path = _init_path(_path, _i.path)
-	_enable(true)
+	enable()
+	#_enable(true)
 
 
 # public inherited methods
@@ -97,31 +98,21 @@ func init_class_names(_class_names = [], _init_class_names = []):
 
 func init_local_param(_local = true, _id = 0):
 	var local_param = false
-	var id_local = _id > 0
-	var is_local = _local && id_local
-	var is_local_dif = _dif(id_local, _local)
-	var on_local = is_local or is_local_dif
-	var id_not_local = _id == 0
-	var is_not_local = _dif(id_not_local, _local)
-	var is_not_local_dif = _local && id_not_local
-	var not_on_local = is_not_local or is_not_local_dif
-	if on_local:
-		local_param = not local_param
-	elif not_on_local:
-		local_param = local_param
+	var id_local = id_is_valid(_id)
+	var id_not_local = not id_local
+	if (_local && id_local) or (id_local && not _local):
+		local_param = true
+	elif (id_not_local && not _local) or (_local && id_not_local):
+		local_param = false
 	return local_param
 
 
 func init_path_param(_path = "", _init_path = ""):
 	var path_ret = ""
 	var path_valid = _path_is_valid(_path)
-	var init_path_valid = _path_is_valid(_init_path)
-	var path_is_init = _path == _init_path
-	var is_path = _dif(path_valid, path_is_init)
-	var is_init_path = _dif(init_path_valid, path_valid)
-	if is_path:
+	if path_valid && not _path == _init_path:
 		path_ret = _path
-	elif is_init_path:
+	elif _path_is_valid(_init_path) && path_valid:
 		path_ret = _init_path
 	return path_ret
 
@@ -130,8 +121,6 @@ func item_is_valid(_item = null):
 	var valid = false
 	var item_class_name = _item.get_class()
 	if not _item == null && _item.enabled && str_is_valid(item_class_name) && _item.is_class(_CLASS_NAME):
-		var local_valid = _item.resource_local_to_scene if _item.local else not _item.resource_local_to_scene
-		var path_valid = _item.has_path && _path_is_valid(_item.path) && _item.resource_path == _item.path
 		var name_valid = false
 		if _item.has_name:
 			var _name = item_class_name
@@ -142,7 +131,13 @@ func item_is_valid(_item = null):
 				name_valid = _item.name == item_class_name
 			if name_valid:
 				name_valid = _item.resource_name == _name
-		valid = local_valid && path_valid && name_valid
+		valid = (
+			(_item.resource_local_to_scene if _item.local else not _item.resource_local_to_scene)
+			&& _item.has_path
+			&& _path_is_valid(_item.path)
+			&& _item.resource_path == _item.path
+			&& name_valid
+		)
 	return valid
 
 
@@ -159,15 +154,15 @@ func id_is_valid(_id = 0):
 
 
 func enable():
-	return _enable(true)
+	return _able(true)
 
 
 func disable():
-	return _enable(false)
+	return _able(false)
 
 
-func validate(_enabled = true):
-	return _is_enabled_managed() if _enabled else _is_disabled_unmanaged()
+#func validate(_enabled = true):
+#	return _is_enabled_managed() if _enabled else _is_disabled_unmanaged()
 
 
 # private helper methods
@@ -208,26 +203,15 @@ func _init_path(_path = "", _init_path = ""):
 	return path_ret
 
 
-func _enable(_abled = true):
-	var is_enable = _abled && _is_disabled_unmanaged()
-	var is_disable = _dif(_is_enabled_managed(), _abled)
-	var is_abled = is_enable or is_disable
+func _able(_abled = true):
+	var is_abled = (
+		(_abled && not _i.state.managed && not _i.state.enabled)
+		or (_i.state.managed && _i.state.enabled && not _abled)
+	)
 	if is_abled:
 		_i.state.enabled = _abled
 		_i.state.managed = _abled
 	return is_abled
-
-
-func _is_enabled_managed():
-	return _i.state.managed && _i.state.enabled
-
-
-func _is_disabled_unmanaged():
-	return not _i.state.managed && not _i.state.enabled
-
-
-func _dif(_fmr = false, _ltr = false):
-	return _fmr && not _ltr
 
 
 # setters, getters functions

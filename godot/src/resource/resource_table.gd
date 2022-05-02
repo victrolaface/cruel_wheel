@@ -3,23 +3,16 @@ class_name ResourceTable extends ResourceItem
 
 # properties
 export(bool) var has_items setget , get_has_items
-export(int) var items_amount setget , get_items_amount
+#export(int) var items_amount setget , get_items_amount
 
 # fields
 enum _ITEM_TYPE { NONE = 0, DISABLED = 1, INVALID = 2, ALL = 3 }
-const _ENABLE = "enable"
-const _DISABLE = "disable"
 
 var _t = {
-	"type": "",
 	"items": {},
 	"items_amt": 0,
 	"class_names": PoolStringArray(["ResourceTable"]),
 	"path": "res://src/resource/resource_table.gd",
-	"state":
-	{
-		"has_items": false,
-	}
 }
 
 
@@ -32,295 +25,288 @@ func _init(_local = true, _path = "", _editor_only = false, _class_names = [], _
 
 
 func enable():
-	return _enable(true)
+	var enabled = false
+	if _able(true):
+		enabled = .enable()
+	return enabled
 
 
 func disable():
-	return _enable(false)
+	var disabled = false
+	if _able(false):
+		disabled = .disable()
+	return disabled
+
+
+func _able(_enabled = true):
+	var abled = true
+	if self.has_items:
+		for k in _keys():
+			var en = _enabled
+			var dis = not _enabled
+			var on_able = en or dis
+			if on_able:
+				var cont = false
+				if en:
+					cont = _t.items[k].enable()
+				elif dis:
+					cont = _t.items[k].disable()
+				if cont:
+					continue
+			if _enabled:
+				_itm_warn("enable")
+			else:
+				_itm_warn("disable")
+			abled = false
+	return abled
+
+
+func _itm_warn(_do = ""):
+	push_warning("cannot " + _do + " item in table.")
 
 
 func add(_key, _val, _is_validated):
-	var added_kvp = false
-	if _add_kvp(_key, _val, _is_validated):
-		added_kvp = _on_add_kvp(_key, _val)
-	return added_kvp
+	var valid = _is_validated
+	var key_is_id = false
+	var key_is_class = false
+	var can_add = false
+	var added = false
+	if not valid:
+		var itm_valid = .item_is_valid(_val)
+		var id = 0
+		if itm_valid:
+			id = _val.id if _val.has_id else id
+			key_is_id = _val.local && _key == id
+		var itm_class_name = ""
+		if itm_valid && not key_is_id:
+			itm_class_name = _val.get_class() if not key_is_id else itm_class_name
+			key_is_class = .str_is_valid(itm_class_name) && _key == itm_class_name
+		valid = key_is_id or key_is_class
+	if valid:
+		can_add = not _has_key(_key) if self.has_items else not self.has_items
+		if can_add:
+			_t.items[_key] = _val
+			_t.items_amt = _t.items_amt + 1
+			added = can_add
+	return added
 
 
-func remove(_key = ""):  #_item_class_name = "", _parent_class_name = "", _id = 0):
-	return false
-	#return false
-
-
-func remove_keys(_keys = []):
-	var rem = _keys.size() > 0 && _t.state.has_items
-	if rem:
-		for k in _keys:
-			if _on_removed(k):
-				continue
-			else:
-				_on_add_item_warning(false)
-				if rem:
-					rem = not rem
-		if not rem:
-			_on_add_items_warning(false)
-	else:
-		_on_no_items_rem_warning()
-	return rem
-
-
-func remove_invalid():
-	return _on_remove(_ITEM_TYPE.INVALID)
-
-
-func remove_disabled():
-	return _on_remove(_ITEM_TYPE.DISABLED)
-
-
-func remove_all():
-	return _on_remove(_ITEM_TYPE.ALL)
-
-
-func validate(_enabled = true):
-	var valid = true
-	var keys = _keys()
-	for k in keys:
-		if _t.items[k].validate(_enabled):
-			continue
-		else:
-			_on_item_warning("validate")
-			if valid:
-				valid = not valid
-	return valid
-
-
-func has_keys(_keys = []):
-	var has = false
-	if _keys.size() > 0:
-		for k in _keys:
-			has = _has_key(k)
-			if not has:
-				break
-	return has
-
-
-func has_keys_sans(_keys = []):
-	var keys = _keys()
-	var has_sans = false
-	if _keys.size() > 0:
-		for k in keys:
-			for _k in _keys:
-				has_sans = not k == _k
-				if has_sans:
-					break
-			if has_sans:
-				break
-	return has_sans
-
-
-func keys_sans(_keys = []):
-	var keys = _keys()
-	var keys_sans = PoolStringArray()
-	keys_sans.clear()
-	if _keys.size() > 0:
-		var amt = 0
-		var idx = 0
-		for k in keys:
-			for _k in _keys:
-				if not k == _k:
-					var tmp = PoolStringArray(keys_sans)
-					amt = amt + 1
-					tmp.resize(amt)
-					tmp.set(idx, k)
-					idx = idx + 1
-					keys_sans = PoolStringArray(tmp)
-	return keys_sans
-
-
-# private helper methods
 func _has_key(_key):
 	return _t.items.has(_key)
-
-
-func _add_kvp(_key, _val, _is_validated):
-	var can_add_kvp = false
-	if _is_validated:
-		can_add_kvp = not self.has_items
-		if not can_add_kvp:
-			can_add_kvp = not _has_key(_key)
-	else:
-		can_add_kvp = .item_is_valid(_val)
-		if can_add_kvp:
-			can_add_kvp = not self.has_items if not can_add_kvp else not _has_key(_key)
-	return can_add_kvp
-
-
-func _on_add_kvp(_key, _val):
-	_t.items[_key] = _val
-	_t.items_amt = _t.items_amt + 1
-	return true
 
 
 func _keys():
 	return PoolStringArray(_t.items.keys())
 
 
-func _has_keys(_keys = []):
-	return _keys.size() > 0
-
-
-func _enable(_enabled = true):
-	var abled = .enable() if _enabled else .disable()
-	var able_type = _ENABLE if _enabled else _DISABLE
-	if abled:
-		var keys = _keys()
-		if _has_keys(keys):
-			for k in keys:
-				abled = _t.items[k].enable() if _enabled else _t.items[k].disable()
-				if abled:
-					continue
-				else:
-					_on_item_warning(able_type)
-					abled = not abled
-	else:
-		_on_table_warning(able_type)
-	return abled
-
-
-func _on_remove(_item_type = _ITEM_TYPE.NONE):
-	var removed = not _item_type == _ITEM_TYPE.NONE && _t.state.has_items
-	if removed:
-		var keys = _keys()
-		var keys_to_rem = PoolStringArray()
-		var amt = 0
-		var idx = 0
-		var proc_rem = false
-		keys_to_rem.clear()
-		for k in keys:
-			match _item_type:
-				_ITEM_TYPE.DISABLED:
-					proc_rem = not _t.items[k].enabled
-				_ITEM_TYPE.INVALID:
-					proc_rem = not _t.items[k].validate()
-				_ITEM_TYPE.ALL:
-					proc_rem = true
-			if proc_rem:
-				var tmp = PoolStringArray(keys_to_rem)  #names_to_rem)
-				amt = amt + 1
-				tmp.resize(amt)
-				tmp.set(idx, k)
-				idx = idx + 1
-				keys_to_rem = PoolStringArray(tmp)
-		amt = keys_to_rem.size()
-		if amt > 0:
-			var init_amt = _t.items_amount
-			var rem_amt = 0
-			for k in keys_to_rem:
-				removed = _on_removed(k)
-				if removed:
-					rem_amt = rem_amt + 1
-				else:
-					_on_not_removed_warning(_item_type, false)
-			var items_amt = _t.items_amount
-			var init_sans_rem = init_amt - rem_amt
-			var init_sans_amt = init_amt - amt
-			removed = rem_amt == amt && items_amt == init_sans_rem && items_amt == init_sans_amt
-			if not removed:
-				_on_not_removed_warning(_item_type, true)
-		else:
-			_on_no_items_rem_warning()
-	return removed
-
-
-func _on_removed(_key = ""):
-	var removed = _t.items.has(_key)
-	if removed:
+func remove(_key):
+	var removed = false
+	if _has_key(_key):
 		removed = _t.items.erase(_key)
 		if removed:
-			_t.items_amount = _t.items_amount - 1
-			_on_cleared()
+			_t.items_amt = _t.items_amt - 1
 	return removed
-
-
-func _on_cleared():
-	_t.state.has_items = not _t.items_amount == 0
-
-
-func _on_table_warning(_do = ""):
-	push_warning("cannot " + _do + "table.")
-
-
-func _on_item_warning(_do = ""):
-	push_warning("cannot " + _do + " item in table.")
-
-
-func _on_add_item_warning(_add = true, _item_is = ""):
-	var warning = "cannot "
-	if _add:
-		warning = warning + "add "
-		warning = _on_warning_is_type(_item_is, warning)
-		warning = warning + "to "
-	else:
-		warning = warning + "remove "
-		warning = _on_warning_is_type(_item_is, warning)
-		warning = warning + "from "
-	warning = warning + "table."
-	push_warning(warning)
-
-
-func _on_warning_is_type(_item_is = "", _warning = ""):
-	if .str_is_valid(_item_is):
-		_warning = _warning + _item_is + " item "
-	else:
-		_warning = _warning + "item "
-	return _warning
-
-
-func _on_add_items_warning(_add = true, _item_is = ""):
-	var warning = "invalid amount of "
-	if .str_is_valid(_item_is):
-		warning = warning + _item_is + " "
-	warning = warning + "items "
-	if _add:
-		warning = warning + "added to "
-	else:
-		warning = warning + "removed from "
-	warning = warning + "table."
-	push_warning(warning)
-
-
-func _on_not_removed_warning(_item_type = _ITEM_TYPE.NONE, _is_multiple = false):
-	var item_type = ""
-	match _item_type:
-		_ITEM_TYPE.DISABLED:
-			item_type = "disabled"
-		_ITEM_TYPE.INVALID:
-			item_type = "invalid"
-	var disabled_or_invalid = _item_type == _ITEM_TYPE.DISABLED or _item_type == _ITEM_TYPE.INVALID
-	var all = _item_type == _ITEM_TYPE.ALL
-	if _is_multiple:
-		if disabled_or_invalid:
-			_on_add_items_warning(false, item_type)
-		elif all:
-			_on_add_items_warning(false)
-	else:
-		if disabled_or_invalid:
-			_on_add_item_warning(false, item_type)
-		elif all:
-			_on_add_item_warning(false)
-
-
-func _on_no_items_rem_warning():
-	push_warning("no items to remove from table.")
 
 
 # setters, getters functions
 func get_has_items():
-	return _t.state.has_items
+	return _t.items_amt > 0
 
 
-func get_items_amount():
-	return _t.items_amt
+#func remove_keys(_keys = []):
+#	var rem = _keys.size() > 0 && _t.state.has_items
+#	if rem:
+#		for k in _keys:
+#			if _on_removed(k):
+#				continue
+#			else:
+#				_on_add_item_warning(false)
+#				if rem:
+#					rem = not rem
+#		if not rem:
+#			_on_add_items_warning(false)
+#	else:
+#		_on_no_items_rem_warning()
+#	return rem
 
+#func remove_invalid():
+#	return _on_remove(_ITEM_TYPE.INVALID)
+
+#func remove_disabled():
+#	return _on_remove(_ITEM_TYPE.DISABLED)
+
+#func remove_all():
+#	return _on_remove(_ITEM_TYPE.ALL)
+
+#func validate(_enabled = true):
+#	var valid = true
+#	var keys = _keys()
+#	for k in keys:
+#		if _t.items[k].validate(_enabled):
+#			continue
+#		else:
+#			_on_item_warning("validate")
+#			if valid:
+#				valid = not valid
+#	return valid
+
+#func has_keys(_keys = []):
+#	var has = false
+#	if _keys.size() > 0:
+#		for k in _keys:
+#			has = _has_key(k)
+#			if not has:
+#				break
+#	return has
+
+#func has_keys_sans(_keys = []):
+#	var keys = _keys()
+#	var has_sans = false
+#	if _keys.size() > 0:
+#		for k in keys:
+#			for _k in _keys:
+#				has_sans = not k == _k
+#				if has_sans:
+#					break
+#			if has_sans:
+#				break
+#	return has_sans
+
+#func keys_sans(_keys = []):
+#	var keys = _keys()
+#	var keys_sans = PoolStringArray()
+#	keys_sans.clear()
+#	if _keys.size() > 0:
+#		var amt = 0
+#		var idx = 0
+#		for k in keys:
+#			for _k in _keys:
+#				if not k == _k:
+#					var tmp = PoolStringArray(keys_sans)
+#					amt = amt + 1
+#					tmp.resize(amt)
+#					tmp.set(idx, k)
+#					idx = idx + 1
+#					keys_sans = PoolStringArray(tmp)
+#	return keys_sans
+
+# private helper methods
+#func _has_keys(_keys = []):
+#	return _keys.size() > 0
+
+#func _on_remove(_item_type = _ITEM_TYPE.NONE):
+#	var removed = not _item_type == _ITEM_TYPE.NONE && self.has_items#_t.state.has_items
+#	if removed:
+#		var keys = _keys()
+#		var keys_to_rem = PoolStringArray()
+#		var amt = 0
+#		var idx = 0
+#		var proc_rem = false
+#		keys_to_rem.clear()
+#		for k in keys:
+#			match _item_type:
+#				_ITEM_TYPE.DISABLED:
+#					proc_rem = not _t.items[k].enabled
+#				_ITEM_TYPE.INVALID:
+#					proc_rem = not _t.items[k].validate()
+#				_ITEM_TYPE.ALL:
+#					proc_rem = true
+#			if proc_rem:
+#				var tmp = PoolStringArray(keys_to_rem)  #names_to_rem)
+#				amt = amt + 1
+#				tmp.resize(amt)
+#				tmp.set(idx, k)
+#				idx = idx + 1
+#				keys_to_rem = PoolStringArray(tmp)
+#		amt = keys_to_rem.size()
+#		if amt > 0:
+#			var init_amt = _t.items_amount
+#			var rem_amt = 0
+#			for k in keys_to_rem:
+#				removed = _on_removed(k)
+#				if removed:
+#					rem_amt = rem_amt + 1
+#				else:
+#					_on_not_removed_warning(_item_type, false)
+#			var items_amt = _t.items_amount
+#			var init_sans_rem = init_amt - rem_amt
+#			var init_sans_amt = init_amt - amt
+#			removed = rem_amt == amt && items_amt == init_sans_rem && items_amt == init_sans_amt
+#			if not removed:
+#				_on_not_removed_warning(_item_type, true)
+#		else:
+#			_on_no_items_rem_warning()
+#	return removed
+
+#func _on_removed(_key = ""):
+#	var removed = _t.items.has(_key)
+#	if removed:
+#		removed = _t.items.erase(_key)
+#		if removed:
+#			_t.items_amount = _t.items_amount - 1
+#			_on_cleared()
+#	return removed
+
+#func _on_cleared():
+#	_t.state.has_items = not _t.items_amount == 0
+
+#func _on_add_item_warning(_add = true, _item_is = ""):
+#	var warning = "cannot "
+#	if _add:
+#		warning = warning + "add "
+#		warning = _on_warning_is_type(_item_is, warning)
+#		warning = warning + "to "
+#	else:
+#		warning = warning + "remove "
+#		warning = _on_warning_is_type(_item_is, warning)
+#		warning = warning + "from "
+#	warning = warning + "table."
+#	push_warning(warning)
+
+#func _on_warning_is_type(_item_is = "", _warning = ""):
+#	if .str_is_valid(_item_is):
+#		_warning = _warning + _item_is + " item "
+#	else:
+#		_warning = _warning + "item "
+#	return _warning
+
+#func _on_add_items_warning(_add = true, _item_is = ""):
+#	var warning = "invalid amount of "
+#	if .str_is_valid(_item_is):
+#		warning = warning + _item_is + " "
+#	warning = warning + "items "
+#	if _add:
+#		warning = warning + "added to "
+#	else:
+#		warning = warning + "removed from "
+#	warning = warning + "table."
+#	push_warning(warning)
+
+#func _on_not_removed_warning(_item_type = _ITEM_TYPE.NONE, _is_multiple = false):
+#	var item_type = ""
+#	match _item_type:
+#		_ITEM_TYPE.DISABLED:
+#			item_type = "disabled"
+#		_ITEM_TYPE.INVALID:
+#			item_type = "invalid"
+#	var disabled_or_invalid = _item_type == _ITEM_TYPE.DISABLED or _item_type == _ITEM_TYPE.INVALID
+#	var all = _item_type == _ITEM_TYPE.ALL
+#	if _is_multiple:
+#		if disabled_or_invalid:
+#			_on_add_items_warning(false, item_type)
+#		elif all:
+#			_on_add_items_warning(false)
+#	else:
+#		if disabled_or_invalid:
+#			_on_add_item_warning(false, item_type)
+#		elif all:
+#			_on_add_item_warning(false)
+
+#func _on_no_items_rem_warning():
+#	push_warning("no items to remove from table.")
+
+#func get_items_amount():
+#	return _t.items_amt
 
 """
 	var added = _v.is_class("ResourceItem") && _v.enabled && _v.has_parent_class && .item_is_valid(_v) && .str_is_valid(_k)
