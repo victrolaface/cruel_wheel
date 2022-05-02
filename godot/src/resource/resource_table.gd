@@ -1,5 +1,5 @@
 tool
-class_name ResourceTable extends ResourceItem  #Resource
+class_name ResourceTable extends ResourceItem
 
 # properties
 export(bool) var has_items setget , get_has_items
@@ -12,7 +12,8 @@ const _DISABLE = "disable"
 
 var _t = {
 	"type": "",
-	"items_amount": 0,
+	"items": {},
+	"items_amt": 0,
 	"class_names": PoolStringArray(["ResourceTable"]),
 	"path": "res://src/resource/resource_table.gd",
 	"state":
@@ -30,13 +31,6 @@ func _init(_local = true, _path = "", _editor_only = false, _class_names = [], _
 	._init(local, path, _editor_only, _t.class_names, _id)
 
 
-func has_key(_key = ""):
-	var has = _t.state.has_items
-	if has:
-		has = _t.items.has(_key)
-	return has
-
-
 func enable():
 	return _enable(true)
 
@@ -45,89 +39,11 @@ func disable():
 	return _enable(false)
 
 
-func add(_k = "", _v = null):
-	var added = _v.is_class("ResourceItem") && _v.enabled && _v.has_parent_class && .item_is_valid(_v) && .str_is_valid(_k)
-	if added:
-		added = _v.has_name
-		var is_local = _v.has_id && _v.local && .id_is_valid(_v.id)
-		var add_local = added && is_local
-		var add_single = added && not is_local
-		var item_class_name = _v.get_class()
-		var parent_class_name = _v.parent_class
-		var has_parent_class = false
-		var has_item_class = false
-		var parent_class_keys = null
-		var item_class_keys = null
-		var init_add_parent_class = true
-		if add_local:
-			parent_class_keys = PoolStringArray(_t.items.local.keys())
-			for k in parent_class_keys:
-				has_parent_class = k == parent_class_name
-				if has_parent_class:
-					item_class_keys = PoolStringArray(_t.items.local[parent_class_name].keys())
-					has_parent_class = item_class_keys.size() > 0
-					init_add_parent_class = not has_parent_class
-					break
-			var init_add_item_class = true
-			if has_parent_class:
-				for i in item_class_keys:
-					has_item_class = i == item_class_name
-					if has_item_class:
-						init_add_item_class = not has_item_class
-						break
-				var id = _v.id
-				var has_id = false
-				if has_item_class:
-					var ids_keys = PoolStringArray(_t.items.local[parent_class_name[item_class_name]].keys())
-					if ids_keys.size() > 0:
-						for i in ids_keys:
-							has_id = i == id
-							if has_id:
-								if not _t.items.local[parent_class_name[item_class_name[id]]].validate():
-									add_local = remove(item_class_name, parent_class_name, id)
-								else:
-									add_local = not add_local
-									break
-			if init_add_parent_class:
-				_t.items.local[parent_class_name] = {}
-			if init_add_item_class:
-				_t.items.local[parent_class_name[item_class_name]] = {}
-				add_local = init_add_item_class
-			if add_local:
-				_t.items.local[parent_class_name[item_class_name[id]]] = _v
-				added = add_local
-		elif add_single:
-			#######################################################################
-			"""
-			parent_class_keys = PoolStringArray(_t.items.single.keys())
-			for k in parent_class_keys:
-				has_parent_class = k == parent_class_name
-				if has_parent_class:
-					parent_class = _t.items.single[parent_class_name]
-					item_class_keys = PoolStringArray(parent_class.keys())
-					has_parent_class = item_class_keys.size() > 0
-					init_add_parent_class = not has_parent_class
-			if has_parent_class:
-				for i in item_class_keys:
-					has_item_class = i == item_class_name
-					if has_item_class:
-						break
-				if has_item_class:
-					if not _t.items.single.parent_class.item_class.validate():
-						add_single = remove(item_class_name, parent_class_name)
-					else:
-						add_single = not add_single
-			if init_add_parent_class:
-				pass
-			"""
-			#######################################################################
-		if added:
-			_t.items_amount = _t.items_amount + 1
-			if not _t.state.has_items:
-				_t.state.has_items = not _t.state.has_items
-		else:
-			_on_add_item_warning()
-	return added
+func add_kvp(_key, _val, _is_validated):
+	var added_kvp = false
+	if _add_kvp(_key, _val, _is_validated):
+		added_kvp = _on_add_kvp(_key, _val)
+	return added_kvp
 
 
 func remove(_item_class_name = "", _parent_class_name = "", _id = 0):
@@ -165,9 +81,9 @@ func remove_all():
 
 func validate(_enabled = true):
 	var valid = true
-	var names = _names()
-	for n in names:
-		if _t.items[n].validate(_enabled):
+	var keys = _keys()
+	for k in keys:
+		if _t.items[k].validate(_enabled):
 			continue
 		else:
 			_on_item_warning("validate")
@@ -180,19 +96,19 @@ func has_keys(_keys = []):
 	var has = false
 	if _keys.size() > 0:
 		for k in _keys:
-			has = has_key(k)
+			has = _has_key(k)
 			if not has:
 				break
 	return has
 
 
 func has_keys_sans(_keys = []):
-	var names = _names()
+	var keys = _keys()
 	var has_sans = false
 	if _keys.size() > 0:
-		for n in names:
-			for k in _keys:
-				has_sans = not n == k
+		for k in keys:
+			for _k in _keys:
+				has_sans = not k == _k
 				if has_sans:
 					break
 			if has_sans:
@@ -201,46 +117,64 @@ func has_keys_sans(_keys = []):
 
 
 func keys_sans(_keys = []):
-	var names = _names()
-	var names_sans_keys = PoolStringArray()
-	names_sans_keys.clear()
+	var keys = _keys()
+	var keys_sans = PoolStringArray()
+	keys_sans.clear()
 	if _keys.size() > 0:
 		var amt = 0
 		var idx = 0
-		#var names_idx = 0
-		for n in names:
-			for k in _keys:
-				if not n == k:
-					var tmp = PoolStringArray(names_sans_keys)
+		for k in keys:
+			for _k in _keys:
+				if not k == _k:
+					var tmp = PoolStringArray(keys_sans)
 					amt = amt + 1
 					tmp.resize(amt)
-					tmp.set(idx, n)
+					tmp.set(idx, k)
 					idx = idx + 1
-					names_sans_keys = PoolStringArray(tmp)
-		if names_sans_keys.size() > 0:
-			names_sans_keys = PoolStringArray(names_sans_keys)
-		else:
-			names_sans_keys = PoolStringArray()
-	return names_sans_keys
+					keys_sans = PoolStringArray(tmp)
+	return keys_sans
 
 
 # private helper methods
-func _names():
+func _has_key(_key):
+	return _t.items.has(_key)
+
+
+func _add_kvp(_key, _val, _is_validated):
+	var can_add_kvp = false
+	if _is_validated:
+		can_add_kvp = not self.has_items
+		if not can_add_kvp:
+			can_add_kvp = not _has_key(_key)
+	else:
+		can_add_kvp = .item_is_valid(_val)
+		if can_add_kvp:
+			can_add_kvp = not self.has_items if not can_add_kvp else not _has_key(_key)
+	return can_add_kvp
+
+
+func _on_add_kvp(_key, _val):
+	_t.items[_key] = _val
+	_t.items_amt = _t.items_amt + 1
+	return true
+
+
+func _keys():
 	return PoolStringArray(_t.items.keys())
 
 
-func _has_names(_names = []):
-	return _names.size() > 0
+func _has_keys(_keys = []):
+	return _keys.size() > 0
 
 
 func _enable(_enabled = true):
 	var abled = .enable() if _enabled else .disable()
 	var able_type = _ENABLE if _enabled else _DISABLE
 	if abled:
-		var names = _names()
-		if _has_names(names):
-			for n in names:
-				abled = _t.items[n].enable() if _enabled else _t.items[n].disable()
+		var keys = _keys()
+		if _has_keys(keys):
+			for k in keys:
+				abled = _t.items[k].enable() if _enabled else _t.items[k].disable()
 				if abled:
 					continue
 				else:
@@ -254,33 +188,33 @@ func _enable(_enabled = true):
 func _on_remove(_item_type = _ITEM_TYPE.NONE):
 	var removed = not _item_type == _ITEM_TYPE.NONE && _t.state.has_items
 	if removed:
-		var names = _names()
-		var names_to_rem = PoolStringArray()
+		var keys = _keys()
+		var keys_to_rem = PoolStringArray()
 		var amt = 0
 		var idx = 0
 		var proc_rem = false
-		names_to_rem.clear()
-		for n in names:
+		keys_to_rem.clear()
+		for k in keys:
 			match _item_type:
 				_ITEM_TYPE.DISABLED:
-					proc_rem = not _t.items[n].enabled
+					proc_rem = not _t.items[k].enabled
 				_ITEM_TYPE.INVALID:
-					proc_rem = not _t.items[n].validate()
+					proc_rem = not _t.items[k].validate()
 				_ITEM_TYPE.ALL:
 					proc_rem = true
 			if proc_rem:
-				var tmp = PoolStringArray(names_to_rem)
+				var tmp = PoolStringArray(keys_to_rem)  #names_to_rem)
 				amt = amt + 1
 				tmp.resize(amt)
-				tmp.set(idx, n)
+				tmp.set(idx, k)
 				idx = idx + 1
-				names_to_rem = PoolStringArray(tmp)
-		amt = names_to_rem.size()
+				keys_to_rem = PoolStringArray(tmp)
+		amt = keys_to_rem.size()
 		if amt > 0:
 			var init_amt = _t.items_amount
 			var rem_amt = 0
-			for n in names_to_rem:
-				removed = _on_removed(n)
+			for k in keys_to_rem:
+				removed = _on_removed(k)
 				if removed:
 					rem_amt = rem_amt + 1
 				else:
@@ -384,4 +318,88 @@ func get_has_items():
 
 
 func get_items_amount():
-	return _t.items_amount
+	return _t.items_amt
+
+
+"""
+	var added = _v.is_class("ResourceItem") && _v.enabled && _v.has_parent_class && .item_is_valid(_v) && .str_is_valid(_k)
+	if added:
+		added = _v.has_name
+		var is_local = _v.has_id && _v.local && .id_is_valid(_v.id)
+		var add_local = added && is_local
+		var add_single = added && not is_local
+		var item_class_name = _v.get_class()
+		var parent_class_name = _v.parent_class
+		var has_parent_class = false
+		var has_item_class = false
+		var parent_class_keys = null
+		var item_class_keys = null
+		var init_add_parent_class = true
+		if add_local:
+			parent_class_keys = PoolStringArray(_t.items.local.keys())
+			for k in parent_class_keys:
+				has_parent_class = k == parent_class_name
+				if has_parent_class:
+					item_class_keys = PoolStringArray(_t.items.local[parent_class_name].keys())
+					has_parent_class = item_class_keys.size() > 0
+					init_add_parent_class = not has_parent_class
+					break
+			var init_add_item_class = true
+			if has_parent_class:
+				for i in item_class_keys:
+					has_item_class = i == item_class_name
+					if has_item_class:
+						init_add_item_class = not has_item_class
+						break
+				var id = _v.id
+				var has_id = false
+				if has_item_class:
+					var ids_keys = PoolStringArray(_t.items.local[parent_class_name[item_class_name]].keys())
+					if ids_keys.size() > 0:
+						for i in ids_keys:
+							has_id = i == id
+							if has_id:
+								if not _t.items.local[parent_class_name[item_class_name[id]]].validate():
+									add_local = remove(item_class_name, parent_class_name, id)
+								else:
+									add_local = not add_local
+									break
+			if init_add_parent_class:
+				_t.items.local[parent_class_name] = {}
+			if init_add_item_class:
+				_t.items.local[parent_class_name[item_class_name]] = {}
+				add_local = init_add_item_class
+			if add_local:
+				_t.items.local[parent_class_name[item_class_name[id]]] = _v
+				added = add_local
+		elif add_single:
+			#######################################################################
+			parent_class_keys = PoolStringArray(_t.items.single.keys())
+			for k in parent_class_keys:
+				has_parent_class = k == parent_class_name
+				if has_parent_class:
+					parent_class = _t.items.single[parent_class_name]
+					item_class_keys = PoolStringArray(parent_class.keys())
+					has_parent_class = item_class_keys.size() > 0
+					init_add_parent_class = not has_parent_class
+			if has_parent_class:
+				for i in item_class_keys:
+					has_item_class = i == item_class_name
+					if has_item_class:
+						break
+				if has_item_class:
+					if not _t.items.single.parent_class.item_class.validate():
+						add_single = remove(item_class_name, parent_class_name)
+					else:
+						add_single = not add_single
+			if init_add_parent_class:
+				pass
+			#######################################################################
+		if added:
+			_t.items_amount = _t.items_amount + 1
+			if not _t.state.has_items:
+				_t.state.has_items = not _t.state.has_items
+		else:
+			_on_add_item_warning()
+	return added
+"""
