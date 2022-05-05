@@ -9,8 +9,8 @@ var _db = {
 	"tres_path": "res://data/resource_db.tres",
 	"database":
 	{
-		"local": {},
-		"single": {},
+		"local": ResourceTableLocal,
+		"single": ResourceTable,
 	},
 	"tables_amount": 0,
 	"items_amount": 0,
@@ -25,17 +25,24 @@ var _db = {
 }
 
 
-func _init(_local = true, _path = "", _editor_only = false, _class_names = [], _id = 0):
-	_db.class_names = .init_class_names(_class_names, _db.class_names)
-	._init(.init_local_param(_local, _id), .init_path_param(_path, _db.path), _editor_only, _db.class_names, _id)
+func _init():#_local = true, _path = "", _editor_only = false, _class_names = [], _id = 0):
+	#_db.class_names = .init_class_names(_class_names, _db.class_names)
+	._init(_db.path, _db.class_names, false)
 
 
 func enable():
-	.enable()
+	var enabled = false
+	if not self.enabled:
+
+		enabled = .enable()
+	return enabled
 
 
 func disable():
-	.disable()
+	var disabled = false
+	if self.enabled:
+		disabled = .disable()
+	return disabled
 
 
 func add_item(_item = null, _editor_only = false):

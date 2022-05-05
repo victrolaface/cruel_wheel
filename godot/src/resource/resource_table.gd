@@ -17,11 +17,13 @@ var _t = {
 
 
 # private inherited methods
-func _init(_local = true, _path = "", _editor_only = false, _class_names = [], _id = 0):
-	_t.class_names = .init_class_names(_class_names, _t.class_names)
-	var local = .init_local_param(_local, _id)
-	var path = .init_path_param(_path, _t.path)
-	._init(local, path, _editor_only, _t.class_names, _id)
+# (_paths = [], _class_names = [], _local = true, _id = 0, _editor_only = false)
+func _init():#_local = true, _path = "", _editor_only = false, _class_names = [], _id = 0):
+	#_t.class_names = .init_class_names(_class_names, _t.class_names)
+	#var local = .init_local_param(_local, _id)
+	#var path = .init_path_param(_path, _t.path)
+	#(_paths = [], _class_names = [], _local = true, _id = 0, _editor_only = false)
+	#._init(local, path, _editor_only, _t.class_names, _id)
 
 
 func enable():
