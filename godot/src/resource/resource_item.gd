@@ -3,7 +3,6 @@ class_name ResourceItem extends Resource
 
 # properties
 export(bool) var enabled setget , get_enabled
-export(bool) var editor_only setget , get_editor_only
 export(bool) var local setget , get_local
 export(bool) var has_id setget , get_has_id
 export(bool) var has_name setget , get_has_name
@@ -14,6 +13,11 @@ export(String) var name setget , get_name
 export(String) var path setget , get_path
 
 # fields
+var _util = ResourceItemUtility
+var _str_util = StringUtility
+var _path_util = PathUtility
+var _arr_util = PoolArrayUtility
+
 var _i = {
 	"name": "",
 	"id": 0,
@@ -23,7 +27,6 @@ var _i = {
 	"paths": PoolStringArray(),
 	"state":
 	{
-		"editor_only": false,
 		"local": true,
 		"saved": false,
 		"enabled": false,
@@ -33,21 +36,23 @@ var _i = {
 
 # private inherited methods
 func _init(_paths = [], _class_names = [], _local = true, _id = 0, _editor_only = false):
+	var rid = get_rid()
 	resource_local_to_scene = _local
-	_i.paths = ResourceItemUtility.init_paths_param(_paths, _i.path)
-	_i.class_names = ResourceItemUtility.init_class_names_param(_class_names, _i.class_item_name)
-	_i.state.editor_only = ResourceItemUtility.init_editor_only_param(_editor_only)
-	_i.state.local = ResourceItemUtility.init_local_param(_local, _id, resource_local_to_scene)
-
-	# init name
-	# init id
-	enable()
+	_i.paths = _util.init_paths_param(_paths, _i.path)
+	_i.class_names = _util.init_class_names_param(_class_names, _i.class_item_name)
+	_i.state.local = _util.init_local_param(_local, _id, resource_local_to_scene)
+	_i.id = _util.init_id_param(_local, _id, resource_local_to_scene)
+	_i.name = _util.init_name_param(_local, _id, resource_local_to_scene, rid, _class_names, _i.class_item_name)
+	resource_name = _i.name if _str_util.is_valid(_i.name) else _i.class_item_name + "-" + String(rid)
+	resource_path = _i.paths[0] if not _has_path_only() else _i.path
+	if _util.can_enable(_i.paths, _i.class_names, _i.state.local, _i.id, _i.name):
+		enable()
 
 
 # public inherited methods
 func is_class(_class = ""):
 	var has_class_name = false
-	if self.enabled && StringUtility.str_is_valid(_class):
+	if self.enabled && _str_util.is_valid(_class):
 		for c in _i.class_names:
 			has_class_name = c == _class
 			if has_class_name:
@@ -81,15 +86,11 @@ func get_saved():
 
 
 func get_has_id():
-	return _state_on_enabled(ResourceItemUtility.id_is_valid(_i.id))
+	return _state_on_enabled(_util.id_is_valid(_i.id))
 
 
 func get_has_name():
-	return _state_on_enabled(StringUtility.is_valid(_i.name))
-
-
-func get_editor_only():
-	return _state_on_enabled(_i.state.editor_only)
+	return _state_on_enabled(_str_util.is_valid(_i.name))
 
 
 func get_local():
@@ -105,8 +106,8 @@ func get_name():
 
 
 func get_path():
-	var ret_path = _state_on_enabled(_has_path()) && not _state_on_enabled(_has_paths())
-	return _str_on_enabled(_i.path) if ret_path else _str_on_enabled(_i.paths[0])
+	var ret_path_only = _state_on_enabled(_has_path_only())
+	return _str_on_enabled(_i.path) if ret_path_only else _str_on_enabled(_i.paths[0])
 
 
 func get_id():
@@ -124,7 +125,6 @@ func _enable(_do_enable = true):
 		is_enabled_or_disabled = _i.state.enabled
 	elif not _do_enable && _i.state.enabled:
 		_i.state.enabled = _do_enable
-
 		is_enabled_or_disabled = not _i.state.enabled
 	return is_enabled_or_disabled
 
@@ -144,19 +144,23 @@ func _str_on_enabled(_str = ""):
 
 
 func _has_class_names():
-	return PoolArrayUtility.has_items(_i.class_names)
+	return _arr_util.has_items(_i.class_names)
 
 
 func _has_paths():
-	return PoolArrayUtility.has_items(_i.paths)
+	return _arr_util.has_items(_i.paths)
 
 
 func _has_class_name():
-	return StringUtility.is_valid(_i.class_item_name)
+	return _str_util.is_valid(_i.class_item_name)
 
 
 func _has_path():
-	return PathUtility.is_valid(_i.path)
+	return _path_util.is_valid(_i.path)
+
+
+func _has_path_only():
+	return _has_path() && not _has_paths()
 
 
 # public callbacks
@@ -203,20 +207,10 @@ func unhandled_input(_event: InputEvent):
 func unhandled_key_input(_event: InputEvent):
 	pass
 
-#func init_local_param(_local = true, _id = 0):
-#	var local_param = false
-#	var id_local = id_is_valid(_id)
-#	var id_not_local = not id_local
-#	if (_local && id_local) or (id_local && not _local):
-#		local_param = true
-#	elif (id_not_local && not _local) or (_local && id_not_local):
-#		local_param = false
-#	return local_param
-
 #func item_is_valid(_item = null):
 #	var valid = false
 #	var item_class_name = _item.get_class()
-#	if not _item == null && _item.enabled && StringUtility.str_is_valid(item_class_name) && _item.is_class(self.get_class()):
+#	if not _item == null && _item.enabled && _str_util.str_is_valid(item_class_name) && _item.is_class(self.get_class()):
 #		var name_valid = false
 #		if _item.has_name:
 #			var _name = item_class_name
@@ -235,32 +229,3 @@ func unhandled_key_input(_event: InputEvent):
 #			&& name_valid
 #		)
 #	return valid
-
-#func validate(_enabled = true):
-#	return _is_enabled_managed() if _enabled else _is_disabled_unmanaged()
-
-# private helper methods
-#func _init_local(_local = true, _init_local = true, _id = 0):
-#	var is_local = init_local_param(_local, _id)
-#	if not is_local == _init_local:
-#		_init_local = local
-#	self.resource_local_to_scene = _init_local
-#	return _init_local
-
-#func _init_editor_only(_editor_only = false, _init_editor_only = false):
-#	if not _editor_only == _init_editor_only:
-#		_init_editor_only = _editor_only
-#	return _init_editor_only
-
-#func _init_name(_init_local = true, _id = 0):
-#	var _name = _i.class_names[0]
-#	if _init_local && id_is_valid(_id):
-#		_name = _name + String(_id)
-#	self.resource_name = _name
-#	return _name
-
-#func _init_id(_init_local = true, _id = 0):
-#	var init_id = 0
-#	if _init_local && id_is_valid(_id):
-#		init_id = _id
-#	return init_id
