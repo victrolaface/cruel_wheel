@@ -18,7 +18,8 @@ var _i = {
 	"name": "",
 	"id": 0,
 	"path": "res://src/resource/resource_item.gd",
-	"class_names": PoolStringArray(["ResourceItem"]),
+	"class_item_name": "ResourceItem",
+	"class_names": PoolStringArray(),
 	"paths": PoolStringArray(),
 	"state":
 	{
@@ -32,10 +33,12 @@ var _i = {
 
 # private inherited methods
 func _init(_paths = [], _class_names = [], _local = true, _id = 0, _editor_only = false):
+	resource_local_to_scene = _local
 	_i.paths = ResourceItemUtility.init_paths_param(_paths, _i.path)
-	_i.class_names = ResourceItemUtility.init_class_names_param(_i.class_names, _class_names)
-	_i.state.local = ResourceItemUtility.init_local_param(_local, _id)
+	_i.class_names = ResourceItemUtility.init_class_names_param(_class_names, _i.class_item_name)
 	_i.state.editor_only = ResourceItemUtility.init_editor_only_param(_editor_only)
+	_i.state.local = ResourceItemUtility.init_local_param(_local, _id, resource_local_to_scene)
+
 	# init name
 	# init id
 	enable()
@@ -44,7 +47,7 @@ func _init(_paths = [], _class_names = [], _local = true, _id = 0, _editor_only 
 # public inherited methods
 func is_class(_class = ""):
 	var has_class_name = false
-	if StringUtility.str_is_valid(_class) && self.enabled:
+	if self.enabled && StringUtility.str_is_valid(_class):
 		for c in _i.class_names:
 			has_class_name = c == _class
 			if has_class_name:
@@ -55,87 +58,105 @@ func is_class(_class = ""):
 
 
 func get_class():
-	var cl_name = ""
-	if self.enabled:
-		cl_name = _i.class_names[_i.class_names.size() - 1]
-	return cl_name
+	var ret_class_name = _state_on_enabled(_has_class_name()) && not _state_on_enabled(_has_class_names())
+	return _str_on_enabled(_i.class_item_name) if ret_class_name else _str_on_enabled(_i.class_names[0])
 
 
 # public methods
 func enable():
-	return _able(true)
+	return _enable(true)
 
 
 func disable():
-	return _able(false)
-
-
-func _able(_abled = true):
-	var is_abled = (
-		(_abled && not _i.state.managed && not _i.state.enabled)
-		or (_i.state.managed && _i.state.enabled && not _abled)
-	)
-	if is_abled:
-		_i.state.enabled = _abled
-		_i.state.managed = _abled
-	return is_abled
+	return _enable(false)
 
 
 # setters, getters functions
 func get_enabled():
-	return _i.state.enabled
+	return _state_on_enabled(_i.state.enabled)
 
 
 func get_saved():
-	return _i.state.saved
+	return _state_on_enabled(_i.state.saved)
 
 
 func get_has_id():
-	return ResourceItemUtility.id_is_valid(_i.id)
+	return _state_on_enabled(ResourceItemUtility.id_is_valid(_i.id))
 
 
 func get_has_name():
-	return StringUtility.str_is_valid(_i.name)
+	return _state_on_enabled(StringUtility.is_valid(_i.name))
+
+
+func get_editor_only():
+	return _state_on_enabled(_i.state.editor_only)
+
+
+func get_local():
+	return _state_on_enabled(_i.state.local)
+
+
+func get_has_path():
+	return _state_on_enabled(_has_path()) if not _state_on_enabled(_has_paths()) else false
+
+
+func get_name():
+	return _str_on_enabled(_i.name)
+
+
+func get_path():
+	var ret_path = _state_on_enabled(_has_path()) && not _state_on_enabled(_has_paths())
+	return _str_on_enabled(_i.path) if ret_path else _str_on_enabled(_i.paths[0])
+
+
+func get_id():
+	var _id = 0
+	if self.enabled:
+		_id = _i.id
+	return _id
+
+
+# private helper methods
+func _enable(_do_enable = true):
+	var is_enabled_or_disabled = false
+	if _do_enable && not _i.state.enabled:
+		_i.state.enabled = _do_enable
+		is_enabled_or_disabled = _i.state.enabled
+	elif not _do_enable && _i.state.enabled:
+		_i.state.enabled = _do_enable
+
+		is_enabled_or_disabled = not _i.state.enabled
+	return is_enabled_or_disabled
+
+
+func _state_on_enabled(_state = false):
+	var state = false
+	if self.enabled:
+		state = _state
+	return state
+
+
+func _str_on_enabled(_str = ""):
+	var _string = ""
+	if self.enabled:
+		_string = _str
+	return _string
+
+
+func _has_class_names():
+	return PoolArrayUtility.has_items(_i.class_names)
 
 
 func _has_paths():
-	return _i.paths.size() > 0
+	return PoolArrayUtility.has_items(_i.paths)
+
+
+func _has_class_name():
+	return StringUtility.is_valid(_i.class_item_name)
 
 
 func _has_path():
 	return PathUtility.is_valid(_i.path)
-
-
-func get_has_path():
-	var has = _has_paths()
-	if not has:
-		has = _has_path()
-	return has
-
-
-func get_name():
-	return _i.name
-
-
-func get_path():
-	var _path = ""
-	if _has_paths():
-		_path = _i.paths[0]
-	elif _has_path():
-		_path = _i.path
-	return _path
-
-
-func get_editor_only():
-	return _i.state.editor_only
-
-
-func get_local():
-	return _i.state.local
-
-
-func get_id():
-	return _i.id
 
 
 # public callbacks
@@ -182,44 +203,6 @@ func unhandled_input(_event: InputEvent):
 func unhandled_key_input(_event: InputEvent):
 	pass
 
-#func init_class_names(_class_names = [], _init_class_names = []):
-#	if _class_names.size() > 0 && _init_class_names.size() > 0:
-#		var amt = 0
-#		var idx = 0
-#		var inval_idx = PoolIntArray()
-#		inval_idx.clear()
-#		for c in _class_names:
-#			for i in _init_class_names:
-#				if c == i:
-#					var tmp = PoolIntArray(inval_idx)
-#					amt = amt + 1
-#					tmp.resize(amt)
-#					tmp.set(0, idx)
-#					inval_idx = PoolIntArray(tmp)
-#			idx = idx + 1
-#		if inval_idx.size() > 0:
-#			for i in inval_idx:
-#				var tmp = PoolStringArray(_class_names)
-#				tmp.remove(i)
-#				_class_names = PoolStringArray(tmp)
-#		if _class_names.size() > 0:
-#			var tmp = PoolStringArray()
-#			tmp.clear()
-#			amt = _init_class_names.size() + amt
-#			tmp.resize(amt)
-#			idx = 0
-#			for c in _class_names:
-#				tmp.set(idx, c)
-#				idx = idx + 1
-#			for i in _init_class_names:
-#				tmp.set(idx, i)
-#				idx = idx + 1
-#			_init_class_names.clear()
-#			amt = tmp.size()
-#			_init_class_names.resize(amt)
-#			_init_class_names = PoolStringArray(tmp)
-#	return _init_class_names
-
 #func init_local_param(_local = true, _id = 0):
 #	var local_param = false
 #	var id_local = id_is_valid(_id)
@@ -229,15 +212,6 @@ func unhandled_key_input(_event: InputEvent):
 #	elif (id_not_local && not _local) or (_local && id_not_local):
 #		local_param = false
 #	return local_param
-
-#func init_path_param(_path = "", _init_path = ""):
-#	var path_ret = ""
-#	var path_valid = _path_is_valid(_path)
-#	if path_valid && not _path == _init_path:
-#		path_ret = _path
-#	elif _path_is_valid(_init_path) && path_valid:
-#		path_ret = _init_path
-#	return path_ret
 
 #func item_is_valid(_item = null):
 #	var valid = false
@@ -261,15 +235,6 @@ func unhandled_key_input(_event: InputEvent):
 #			&& name_valid
 #		)
 #	return valid
-
-#func str_is_valid(_name = ""):
-#	return not _name == "" && not _name == null
-
-#func _path_is_valid(_path = ""):
-#	return Directory.new().file_exists(_path)
-
-#func id_is_valid(_id = 0):
-#	return _id > 0
 
 #func validate(_enabled = true):
 #	return _is_enabled_managed() if _enabled else _is_disabled_unmanaged()
@@ -299,10 +264,3 @@ func unhandled_key_input(_event: InputEvent):
 #	if _init_local && id_is_valid(_id):
 #		init_id = _id
 #	return init_id
-
-#func _init_path(_path = "", _init_path = ""):
-#	var path_ret = #init_path_param(_path, _init_path)
-#	if not _path_is_valid(path_ret):
-#		path_ret = _i.base_path
-#	self.resource_path = path_ret
-#	return path_ret
