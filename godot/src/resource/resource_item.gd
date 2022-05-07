@@ -43,9 +43,9 @@ func _init(_paths = [], _class_names = [], _local = true, _id = 0, _editor_only 
 	_i.state.local = _util.init_local_param(_local, _id, resource_local_to_scene)
 	_i.id = _util.init_id_param(_local, _id, resource_local_to_scene)
 	_i.name = _util.init_name_param(_local, _id, resource_local_to_scene, rid, _class_names, _i.class_item_name)
-	resource_name = _i.name if _str_util.is_valid(_i.name) else _i.class_item_name + "-" + String(rid)
+	resource_name = _i.name if _str_util.is_valid(_i.name) else _i.class_item_name + "-" + _str_util.to_str(rid)
 	resource_path = _i.paths[0] if not _has_path_only() else _i.path
-	if _util.can_enable(_i.paths, _i.class_names, _i.state.local, _i.id, _i.name):
+	if _util.can_enable(_i.paths, _i.path, _i.class_names, _i.class_item_name, _i.state.local, _i.id, _i.name):
 		enable()
 
 
@@ -137,10 +137,7 @@ func _state_on_enabled(_state = false):
 
 
 func _str_on_enabled(_str = ""):
-	var _string = ""
-	if self.enabled:
-		_string = _str
-	return _string
+	return _str_util.on_cond(self.enabled, _str)
 
 
 func _has_class_names():
@@ -206,26 +203,3 @@ func unhandled_input(_event: InputEvent):
 
 func unhandled_key_input(_event: InputEvent):
 	pass
-
-#func item_is_valid(_item = null):
-#	var valid = false
-#	var item_class_name = _item.get_class()
-#	if not _item == null && _item.enabled && _str_util.str_is_valid(item_class_name) && _item.is_class(self.get_class()):
-#		var name_valid = false
-#		if _item.has_name:
-#			var _name = item_class_name
-#			if _item.local && _item.has_id:
-#				_name = _name + String(_item.id)
-#				name_valid = _item.name == _name
-#			elif not _item.local:
-#				name_valid = _item.name == item_class_name
-#			if name_valid:
-#				name_valid = _item.resource_name == _name
-#		valid = (
-#			(_item.resource_local_to_scene if _item.local else not _item.resource_local_to_scene)
-#			&& _item.has_path
-#			&& PathUtility.is_valid(_item.path)
-#			&& _item.resource_path == _item.path
-#			&& name_valid
-#		)
-#	return valid
