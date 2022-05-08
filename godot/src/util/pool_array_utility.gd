@@ -10,7 +10,7 @@ static func to_arr(_from = [], _item_type_str = "", _dedupe = false, _val = null
 	var arr = []
 	var idx = 0
 	var amt = 0
-	var has_from_arr = has_items(_from)
+	var has_from_arr = _has_items(_from)
 	var from_arr_type = _ITEM_TYPE.NONE
 	var val_type = _type(_val)
 	var has_val = not _val == null && not val_type == _ITEM_TYPE.NONE
@@ -85,10 +85,10 @@ static func to_arr(_from = [], _item_type_str = "", _dedupe = false, _val = null
 							inval_idx.append(idx)
 						tmp_idx = IntUtility.incr(tmp_idx)
 					idx = IntUtility.incr(idx)
-				if has_items(inval_idx):
+				if _has_items(inval_idx):
 					for i in inval_idx:
 						arr.remove(i)
-					if has_items(arr):
+					if _has_items(arr):
 						amt = arr.size()
 						tmp = _init_tmp_arr(type)
 						if _can_set_arr(tmp):
@@ -101,13 +101,13 @@ static func to_arr(_from = [], _item_type_str = "", _dedupe = false, _val = null
 	return arr
 
 
-static func has_items(_items = []):
+static func _has_items(_items = []):
 	return _items.size() > 0
 
 
 static func has_duplicates(_init_items = [], _items = []):
 	var has = false
-	if has_items(_init_items) && has_items(_items):
+	if _has_items(_init_items) && _has_items(_items):
 		for ini in _init_items:
 			for i in _items:
 				has = i == ini
@@ -127,7 +127,7 @@ static func int_incr_array(_size = 0, _starting_val = 0):
 			val = IntUtility.incr(val)
 			idx = IntUtility.incr(idx)
 			incrm = false if idx + 1 == _size else incrm
-		if has_items(arr):
+		if _has_items(arr):
 			var tmp = PoolIntArray()
 			tmp.empty()
 			tmp.resize(_size)
@@ -197,7 +197,7 @@ static func _type(_val = null):
 			_ITEM_TYPE.REAL:
 				is_type = typeof(_val) == TYPE_REAL
 			_ITEM_TYPE.STR:
-				is_type = StringUtility.is_valid(_val) && typeof(_val) == TYPE_STRING
+				is_type = StringUtility.is_valid(_val)
 			_ITEM_TYPE.VEC2:
 				is_type = typeof(_val) == TYPE_VECTOR2 or typeof(_val) == TYPE_TRANSFORM2D
 			_ITEM_TYPE.VEC3:

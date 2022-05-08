@@ -6,71 +6,62 @@ const _GLOBAL_ID = "global"
 
 
 # public methods
-static func init_paths_param(_paths = [], _path = ""):
-	return _init_str_arr_param(_paths, _path, false, true)
+static func init_params(
+	_class_names = [],
+	_class_name = "",
+	_rids = [],
+	_rid = 0,
+	_id = 0,
+	_local = true,
+	_res_loc_to_scene = true,
+	_paths = [],
+	_path = ""
+):
+	var params = {
+		"paths": PoolStringArray(),
+		"class_names": PoolStringArray(),
+		"rids": PoolStringArray(),
+		"local": true,
+		"id": 0,
+		"name": "",
+		"can_enable": false,
+	}
 
-
-static func init_class_names_param(_class_names = [], _class_name = ""):
-	return _init_str_arr_param(_class_names, _class_name, true)
-
-
-static func init_local_param(_local = true, _id = 0, _res_loc_to_scene = true):
-	return false if _valid_global(_local, _id, _res_loc_to_scene) else _valid_local(_local, _id, _res_loc_to_scene)
-
-
-static func init_id_param(_local = true, _id = 0, _res_loc_to_scene = true):
-	var id = 0
-	if _valid_local(_local, _id, _res_loc_to_scene):
-		id = _id
-	elif _valid_global(_local, _id, _res_loc_to_scene):
-		id = id
-	return id
-
-
-static func init_name_param(_local = true, _id = 0, _res_loc_to_scene = true, _rid = 0, _cl_names = [], _cl_name = ""):
-	var name = StringUtility.from_arr_or_default(_cl_names, _cl_name)
-	name = StringUtility.append_to_str(name, [_SEPERATOR])
-	if _valid_id(_rid):
-		var rid_str = StringUtility.to_str(_rid)
-		name = StringUtility.append_to_str(name, [rid_str, _SEPERATOR])
-	if _valid_local(_local, _id, _res_loc_to_scene):
-		var id_str = StringUtility.to_str(_id)
-		name = StringUtility.append_to_str(name, [id_str])
-	elif _valid_global(_local, _id, _res_loc_to_scene):
-		name = StringUtility.append_to_str(name, [_GLOBAL_ID])
-	return name
-
-
-static func can_enable(_res_itm = null, _paths = [], _path = "", _cl_names = [], _cl_name = "", _loc = true, _id = 0, _name = ""):
-	var name_str = ""
-	var path_valid = false
-	var name_valid = false
-	var local_valid = false
-	var id_valid = false
-	if not _res_itm == null:
-		var rid_str = StringUtility.to_str(_res_itm.get_rid())
-		var path_str = StringUtility.from_arr_or_default(_paths, _path)
-		var class_name_str = StringUtility.from_arr_or_default(_cl_names, _cl_name)
-		path_valid = _res_itm.resource_path == path_str
-		local_valid = _res_itm.resource_local_to_scene == _loc
-		name_str = StringUtility.append_to_str(name_str, [class_name_str, _SEPERATOR, rid_str])
-		if _loc && local_valid:
-			id_valid = _valid_id(_id)
-			if id_valid:
-				var id_str = StringUtility.to_str(_id)
-				name_str = StringUtility.append_to_str(name_str, [_SEPERATOR, id_str])
+	params.paths = _init_str_arr_param(_paths, _path, false, true)
+	params.class_names = _init_str_arr_param(_class_names, _class_name, true)
+	params.rids = _init_str_arr_param([], "", true, false, _rids, _rid)
+	params.local = _local if _local && valid_id(_id) && _res_loc_to_scene else false
+	params.id = _id if params.local else 0
+	if params.class_names.size() > 0 && params.rids.size() > 0:
+		params.name = params.class_names[0] + _SEPERATOR + params.rids[0] + _SEPERATOR
+		var id = ""
+		if params.local:
+			id = String(params.id)
 		else:
-			id_valid = _valid_global_id(_id)
-		var res_name = _res_itm.resource_name
-		name_valid = res_name == name_str && res_name == _name && name_str == _name
-	return path_valid && name_valid && id_valid && local_valid
+			id = _GLOBAL_ID
+		params.name = params.name + id
+	var local_id_valid = valid_id(params.id) && params.local
+	if not local_id_valid:
+		local_id_valid = params.id == 0 && not params.local
+	params.can_enable = (
+		params.class_names.size() > 0
+		&& params.class_names.size() > 0
+		&& params.rids.size() > 0
+		&& local_id_valid
+	)
+	params = params if params.can_enable else {}
+	return params
+
+
+static func valid_id(_id = 0):
+	return _id > 0
 
 
 static func is_valid(_res_itm = null):
 	var name_valid = false
 	var local_valid = false
 	var path_valid = false
-	var class_valid = false  #not _res_itm == null
+	var class_valid = false
 	if not _res_itm == null && _res_itm.enabled:
 		if _res_itm.has_path:
 			var path = _res_itm.path
@@ -78,29 +69,51 @@ static func is_valid(_res_itm = null):
 		var class_name_str = _res_itm.get_class()
 		class_valid = StringUtility.is_valid(class_name_str) && _res_itm.is_class("ResourceItem")
 		if class_valid && _res_itm.has_name:
-			var rid_str = StringUtility.to_str(_res_itm.get_rid())
-			var name = StringUtility.append_to_str(class_name_str, [_SEPERATOR, rid_str, _SEPERATOR])
+			var rid_str = String(_res_itm.get_rid())
+			var name = class_name_str + _SEPERATOR + rid_str + _SEPERATOR
 			if _res_itm.local && _res_itm.has_id:
-				var id_str = StringUtility.to_str(_res_itm.id)
-				name = StringUtility.append_to_str(name, [id_str])
+				var id_str = String(_res_itm.id)
+				name = name + id_str
 				local_valid = _res_itm.resource_local_to_scene
 			elif not _res_itm.local:
-				name = StringUtility.append_to_str(name, [_GLOBAL_ID])
+				name = name + _GLOBAL_ID
 				local_valid = not _res_itm.resource_local_to_scene
-			name_valid = StringUtility.is_valid(name) && _res_itm.name == name && _res_itm.resource_name == name
+			name_valid = _res_itm.name == name && _res_itm.resource_name == name
 	return path_valid && class_valid && local_valid && name_valid
 
 
-# private helper methods
-static func _init_str_arr_param(_strs = [], _str = "", _validate_str = false, _validate_path = false):
+static func _init_str_arr_param(_strs = [], _str = "", _validate_str = false, _validate_path = false, _rids = [], _rid = 0):
 	var str_valid = false
 	var strs_valid = false
 	var valid_strs_arr = []
 	var strs_arr = []
-	if PoolArrayUtility.has_items(_strs):
+	var has_items = false
+	var has_rid = valid_id(_rid)
+	var has_rids = _rids.size() > 0 or has_rid
+	var items = []
+	var item = ""
+	var idx = 0
+	if has_rids:
+		var tmp = PoolStringArray()
+		tmp.empty()
+		tmp.resize(_rids.size())
+		for r in _rids:
+			if valid_id(r):
+				tmp[idx] = String(r)
+			idx = IntUtility.incr(idx)
+		if tmp.size() > 0:
+			items = tmp
+			has_items = has_rids
+		if has_rid:
+			item = String(_rid)
+	else:
+		has_items = _strs.size() > 0
+		items = _strs
+		item = _str
+	if has_items:
+		idx = 0
 		var inval_idx = []
-		var idx = 0
-		for s in _strs:
+		for s in items:
 			if _validate_str:
 				str_valid = StringUtility.is_valid(s)
 			elif _validate_path:
@@ -108,39 +121,23 @@ static func _init_str_arr_param(_strs = [], _str = "", _validate_str = false, _v
 			if not str_valid:
 				inval_idx.append(idx)
 			idx = IntUtility.incr(idx)
-		strs_valid = not PoolArrayUtility.has_items(inval_idx)
+		strs_valid = not inval_idx.size() > 0
 		if not strs_valid:
-			valid_strs_arr = PoolArrayUtility.to_arr(_strs, "str")
+			valid_strs_arr = PoolArrayUtility.to_arr(items, "str")
 			for i in inval_idx:
 				valid_strs_arr.remove(i)
-			strs_valid = PoolArrayUtility.has_items(valid_strs_arr)
+			strs_valid = valid_strs_arr.size() > 0
 			if strs_valid:
-				_strs = valid_strs_arr
+				items = valid_strs_arr
 	if _validate_str:
-		str_valid = StringUtility.is_valid(_str)
+		str_valid = StringUtility.is_valid(item)
 	elif _validate_path:
-		str_valid = PathUtility.is_valid(_str)
+		str_valid = PathUtility.is_valid(item)
 	if strs_valid:
 		if str_valid:
-			strs_arr = PoolArrayUtility.to_arr(_strs, "str", true, _str)
+			strs_arr = PoolArrayUtility.to_arr(items, "str", true, _str)
 		else:
-			strs_arr = PoolArrayUtility.to_arr(_strs, "str", true)
+			strs_arr = PoolArrayUtility.to_arr(items, "str", true)
 	elif str_valid:
-		strs_arr = PoolArrayUtility.to_arr([_str], "str")
+		strs_arr = PoolArrayUtility.to_arr([item], "str")
 	return strs_arr
-
-
-static func _valid_global(_local = true, _id = 0, _res_loc_to_scene = true):
-	return not _local && _valid_global_id(_id) && not _res_loc_to_scene
-
-
-static func _valid_global_id(_id):
-	return _id == 0
-
-
-static func _valid_local(_local = true, _id = 0, _res_loc_to_scene = true):
-	return _local && _valid_id(_id) && _res_loc_to_scene
-
-
-static func _valid_id(_id = 0):
-	return _id > 0

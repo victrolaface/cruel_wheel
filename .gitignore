@@ -1,4 +1,5 @@
 *.mono
+godot_old/
 godot/assets/
 godot/addons/
 godot/omnisharp.json

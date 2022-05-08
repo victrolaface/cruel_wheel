@@ -13,10 +13,8 @@ export(String) var name setget , get_name
 export(String) var path setget , get_path
 
 # fields
-var _util = ResourceItemUtility
-var _str_util = StringUtility
-var _path_util = PathUtility
-var _arr_util = PoolArrayUtility
+const _CHANGED_SIGNAL = "changed"
+const _CHANGED_METHOD = "_on_changed"
 
 var _i = {
 	"name": "",
@@ -33,26 +31,37 @@ var _i = {
 	}
 }
 
+var _util = ResourceItemUtility
+var _str = StringUtility
+
 
 # private inherited methods
-func _init(_paths = [], _class_names = [], _local = true, _id = 0, _editor_only = false):
-	var rid = get_rid()
-	resource_local_to_scene = _local
-	_i.paths = _util.init_paths_param(_paths, _i.path)
-	_i.class_names = _util.init_class_names_param(_class_names, _i.class_item_name)
-	_i.state.local = _util.init_local_param(_local, _id, resource_local_to_scene)
-	_i.id = _util.init_id_param(_local, _id, resource_local_to_scene)
-	_i.name = _util.init_name_param(_local, _id, resource_local_to_scene, rid, _class_names, _i.class_item_name)
-	resource_name = _i.name if _str_util.is_valid(_i.name) else _i.class_item_name + "-" + _str_util.to_str(rid)
-	resource_path = _i.paths[0] if not _has_path_only() else _i.path
-	if _util.can_enable(_i.paths, _i.path, _i.class_names, _i.class_item_name, _i.state.local, _i.id, _i.name):
-		enable()
+func _init(_class_names = [], _rids = [], _paths = [], _local = true, _id = 0):
+	self.resource_local_to_scene = _local
+	var rid = self.get_rid()
+	var res_loc = self.resource_local_to_scene
+	var params = _util.init_params(_class_names, _i.class_item_name, _rids, rid, _id, _local, res_loc, _paths, _i.path)
+	if params.size() > 0 && params.can_enable:
+		_i.name = params.name
+		_i.id = params.id
+		_i.rids = params.rids
+		_i.class_names = params.class_names
+		_i.paths = params.paths
+		_i.state.local = params.local
+		self.resource_name = _i.name
+		self.resource_path = _i.paths[0]
+		var connected = _changed_connected()
+		if not connected:
+			connected = _on_changed_connected(true)
+		if connected:
+			_i.state.enabled = params.can_enable
+			enable()
 
 
 # public inherited methods
 func is_class(_class = ""):
 	var has_class_name = false
-	if self.enabled && _str_util.is_valid(_class):
+	if _str.is_valid(_class):
 		for c in _i.class_names:
 			has_class_name = c == _class
 			if has_class_name:
@@ -63,8 +72,7 @@ func is_class(_class = ""):
 
 
 func get_class():
-	var ret_class_name = _state_on_enabled(_has_class_name()) && not _state_on_enabled(_has_class_names())
-	return _str_on_enabled(_i.class_item_name) if ret_class_name else _str_on_enabled(_i.class_names[0])
+	return _i.class_names[0]
 
 
 # public methods
@@ -76,48 +84,72 @@ func disable():
 	return _enable(false)
 
 
+func save():
+	_i.state.saved = true
+
+
+func emit_changed():
+	if _changed_connected():
+		_on_changed()
+
+
 # setters, getters functions
 func get_enabled():
-	return _state_on_enabled(_i.state.enabled)
+	return _i.state.enabled
 
 
 func get_saved():
-	return _state_on_enabled(_i.state.saved)
+	return _i.state.saved
 
 
 func get_has_id():
-	return _state_on_enabled(_util.id_is_valid(_i.id))
+	return _util.valid_id(_i.id)
 
 
 func get_has_name():
-	return _state_on_enabled(_str_util.is_valid(_i.name))
+	return _str.is_valid(_i.name)
 
 
 func get_local():
-	return _state_on_enabled(_i.state.local)
+	return _i.state.local
 
 
 func get_has_path():
-	return _state_on_enabled(_has_path()) if not _state_on_enabled(_has_paths()) else false
+	return _i.paths.size() > 0
 
 
 func get_name():
-	return _str_on_enabled(_i.name)
+	return _i.name
 
 
 func get_path():
-	var ret_path_only = _state_on_enabled(_has_path_only())
-	return _str_on_enabled(_i.path) if ret_path_only else _str_on_enabled(_i.paths[0])
+	return _i.paths[0]
 
 
 func get_id():
-	var _id = 0
-	if self.enabled:
-		_id = _i.id
-	return _id
+	return _i.id
 
 
 # private helper methods
+func _on_changed():
+	if _i.state.saved:
+		_i.state.saved = not _i.state.saved
+
+
+func _changed_connected():
+	return self.is_connected(_CHANGED_SIGNAL, self, _CHANGED_METHOD)
+
+
+func _on_changed_connected(_connect = true):
+	var conn_or_disconn = false
+	if _connect:
+		conn_or_disconn = self.connect(_CHANGED_SIGNAL, self, _CHANGED_METHOD, [], CONNECT_DEFERRED)
+	else:
+		self.disconnect(_CHANGED_SIGNAL, self, _CHANGED_METHOD)
+		conn_or_disconn = not _connect
+	return conn_or_disconn
+
+
 func _enable(_do_enable = true):
 	var is_enabled_or_disabled = false
 	if _do_enable && not _i.state.enabled:
@@ -125,39 +157,11 @@ func _enable(_do_enable = true):
 		is_enabled_or_disabled = _i.state.enabled
 	elif not _do_enable && _i.state.enabled:
 		_i.state.enabled = _do_enable
-		is_enabled_or_disabled = not _i.state.enabled
+		var disconn = false
+		if _changed_connected():
+			disconn = _on_changed_connected(false)
+		is_enabled_or_disabled = disconn && not _i.state.enabled
 	return is_enabled_or_disabled
-
-
-func _state_on_enabled(_state = false):
-	var state = false
-	if self.enabled:
-		state = _state
-	return state
-
-
-func _str_on_enabled(_str = ""):
-	return _str_util.on_cond(self.enabled, _str)
-
-
-func _has_class_names():
-	return _arr_util.has_items(_i.class_names)
-
-
-func _has_paths():
-	return _arr_util.has_items(_i.paths)
-
-
-func _has_class_name():
-	return _str_util.is_valid(_i.class_item_name)
-
-
-func _has_path():
-	return _path_util.is_valid(_i.path)
-
-
-func _has_path_only():
-	return _has_path() && not _has_paths()
 
 
 # public callbacks
