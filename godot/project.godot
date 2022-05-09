@@ -34,6 +34,11 @@ _global_script_classes=[ {
 "language": "GDScript",
 "path": "res://src/util/resource_item_utility.gd"
 }, {
+"base": "ResourceItem",
+"class": "ResourceTable",
+"language": "GDScript",
+"path": "res://src/resource/resource_table.gd"
+}, {
 "base": "Reference",
 "class": "StringUtility",
 "language": "GDScript",
@@ -45,6 +50,7 @@ _global_script_class_icons={
 "PoolArrayUtility": "",
 "ResourceItem": "",
 "ResourceItemUtility": "",
+"ResourceTable": "",
 "StringUtility": ""
 }
 

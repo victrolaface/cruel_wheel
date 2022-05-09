@@ -53,6 +53,20 @@ static func init_params(
 	return params
 
 
+static func init_parent(_class_names = [], _class_name = "", _rids = [], _rid = 0, _id = 0, _paths = [], _path = ""):
+	var params = {
+		"class_names": PoolStringArray(),
+		"paths": PoolStringArray(),
+		"rids": PoolIntArray(),
+	}
+	params.class_names = _init_str_arr_param(_class_names, _class_name, true)
+	params.paths = _init_str_arr_param(_paths, _path, false, true)
+	var tmp = PoolArrayUtility.to_arr(_rids, "int", true, _rid)
+	if tmp.size() > 0:
+		params.rids = tmp
+	return params
+
+
 static func valid_id(_id = 0):
 	return _id > 0
 
@@ -82,62 +96,86 @@ static func is_valid(_res_itm = null):
 	return path_valid && class_valid && local_valid && name_valid
 
 
+# private helper methods
 static func _init_str_arr_param(_strs = [], _str = "", _validate_str = false, _validate_path = false, _rids = [], _rid = 0):
-	var str_valid = false
-	var strs_valid = false
-	var valid_strs_arr = []
-	var strs_arr = []
 	var has_items = false
+	var items = PoolArrayUtility.init_arr("str")
+	var inval_idx = PoolArrayUtility.init_arr("int")
 	var has_rid = valid_id(_rid)
-	var has_rids = _rids.size() > 0 or has_rid
-	var items = []
-	var item = ""
+	var has_rids_arr = _rids.size() > 0
 	var idx = 0
-	if has_rids:
-		var tmp = PoolStringArray()
-		tmp.empty()
-		tmp.resize(_rids.size())
-		for r in _rids:
-			if valid_id(r):
-				tmp[idx] = String(r)
-			idx = IntUtility.incr(idx)
+	var amt = 0
+	if has_rids_arr or has_rid:
+		var can_cast_rids_to_str = false
+		var tmp = PoolArrayUtility.init_arr("int")
+		if has_rid && has_rids_arr:
+			tmp = PoolArrayUtility.to_arr(_rids, "int", true, _rid)
+		elif has_rid && not has_rids_arr:
+			tmp = PoolArrayUtility.to_arr([], "int", false, _rid)
+		elif not has_rid && has_rids_arr:
+			tmp = PoolArrayUtility.to_arr(_rids, "int", true)
 		if tmp.size() > 0:
-			items = tmp
-			has_items = has_rids
-		if has_rid:
-			item = String(_rid)
+			if tmp.size() == 1:
+				can_cast_rids_to_str = valid_id(tmp[0])
+			elif tmp.size() > 1:
+				var comp = tmp
+				var c_idx = 0
+				for c in comp:
+					for t in tmp:
+						if c_idx == idx:
+							continue
+						elif c == t or not valid_id(c):
+							amt = IntUtility.incr(amt)
+							inval_idx.resize(amt)
+							inval_idx[0] = c_idx
+						idx = IntUtility.incr(idx)
+					c_idx = IntUtility.incr(c_idx)
+				if amt > 0:
+					for i in inval_idx:
+						tmp.remove(i)
+				can_cast_rids_to_str = tmp.size() > 0
+		if can_cast_rids_to_str:
+			tmp = PoolArrayUtility.cast_to(tmp, "str", "int")
+			has_items = tmp.size() > 0
+			if has_items:
+				items = tmp
 	else:
-		has_items = _strs.size() > 0
-		items = _strs
-		item = _str
-	if has_items:
-		idx = 0
-		var inval_idx = []
-		for s in items:
-			if _validate_str:
-				str_valid = StringUtility.is_valid(s)
-			elif _validate_path:
-				str_valid = PathUtility.is_valid(s)
-			if not str_valid:
-				inval_idx.append(idx)
-			idx = IntUtility.incr(idx)
-		strs_valid = not inval_idx.size() > 0
-		if not strs_valid:
-			valid_strs_arr = PoolArrayUtility.to_arr(items, "str")
-			for i in inval_idx:
-				valid_strs_arr.remove(i)
-			strs_valid = valid_strs_arr.size() > 0
-			if strs_valid:
-				items = valid_strs_arr
-	if _validate_str:
-		str_valid = StringUtility.is_valid(item)
-	elif _validate_path:
-		str_valid = PathUtility.is_valid(item)
-	if strs_valid:
-		if str_valid:
-			strs_arr = PoolArrayUtility.to_arr(items, "str", true, _str)
-		else:
-			strs_arr = PoolArrayUtility.to_arr(items, "str", true)
-	elif str_valid:
-		strs_arr = PoolArrayUtility.to_arr([item], "str")
-	return strs_arr
+		var tmp = PoolArrayUtility.init_arr("str")
+		var tmp_is_valid = false
+		var has_str = StringUtility.is_valid(_str)
+		var has_strs_arr = _strs.size() > 0
+		if has_str && has_strs_arr:
+			tmp = PoolArrayUtility.to_arr(_strs, "str", true, _str)
+		elif has_str && not has_strs_arr:
+			tmp = PoolArrayUtility.to_arr([], "str", false, _str)
+		elif not has_str && has_strs_arr:
+			tmp = PoolArrayUtility.to_arr(_strs, "str", true)
+		amt = tmp.size()
+		if amt > 0:
+			if amt == 1:
+				if _validate_str:
+					tmp_is_valid = StringUtility.is_valid(tmp[0])
+				elif _validate_path:
+					tmp_is_valid = PathUtility.is_valid(tmp[0])
+			else:
+				amt = 0
+				idx = 0
+				for i in tmp:
+					if _validate_str:
+						tmp_is_valid = StringUtility.is_valid(i)
+					elif _validate_path:
+						tmp_is_valid = PathUtility.is_valid(i)
+					if not tmp_is_valid:
+						amt = IntUtility.incr(amt)
+						inval_idx.resize(amt)
+						inval_idx[0] = idx
+					idx = IntUtility.incr(idx)
+				tmp_is_valid = amt == 0
+				if not tmp_is_valid:
+					for i in inval_idx:
+						tmp.remove(i)
+					tmp_is_valid = tmp.size() > 0
+				has_items = tmp_is_valid
+				if has_items:
+					items = tmp
+	return items

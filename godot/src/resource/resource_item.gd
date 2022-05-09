@@ -76,6 +76,10 @@ func get_class():
 
 
 # public methods
+func init_parent(_class_names = [], _class_name = "", _rids = [], _rid = 0, _id = 0, _paths = [], _path = ""):
+	return _util.init_params_parent(_class_name, _class_name, _rids, _rid, _id, _paths, _path)
+
+
 func enable():
 	return _enable(true)
 
