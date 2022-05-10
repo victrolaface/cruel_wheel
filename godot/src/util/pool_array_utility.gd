@@ -5,7 +5,7 @@ enum _ITEM_TYPE { NONE = 0, BYTE = 1, CLR = 2, INT = 3, REAL = 4, STR = 5, VEC2 
 
 
 # public methods
-static func init_arr(_type_str = ""):
+static func init(_type_str = ""):
 	var type = _type_from_str(_type_str)
 	var arr = null
 	if not type == _ITEM_TYPE.NONE:
@@ -42,7 +42,7 @@ static func to_arr(_from = [], _item_type = "", _dedupe = false, _val = null):
 	if can_init_arr:
 		var idx = 0
 		var amt = idx + 1
-		var tmp = _init_arr(type)
+		var tmp = init(type)
 		if has_val:
 			tmp.resize(amt)
 			tmp[idx] = _val
@@ -53,7 +53,7 @@ static func to_arr(_from = [], _item_type = "", _dedupe = false, _val = null):
 				tmp[idx] = i
 				idx = IntUtility.incr(idx)
 		if _dedupe:
-			var inval_idx = PoolIntArray()
+			var inval_idx = init("int")
 			var comp = tmp
 			var c_idx = 0
 			inval_idx.empty()
@@ -73,7 +73,7 @@ static func to_arr(_from = [], _item_type = "", _dedupe = false, _val = null):
 				for i in inval_idx:
 					tmp.remove(i)
 		if _has_items(tmp):
-			arr = _init_arr(type)
+			arr = init(type)
 			amt = tmp.size()
 			arr.resize(amt)
 			idx = 0
@@ -81,17 +81,17 @@ static func to_arr(_from = [], _item_type = "", _dedupe = false, _val = null):
 				arr[idx] = i
 				idx = IntUtility.incr(idx)
 	else:
-		arr = _init_arr(type)
+		arr = init(type)
 	return arr
 
 
 static func cast_to(_from = [], _type_str_to = "", _type_str_from = ""):
 	var type_from = _type_from_str(_type_str_from) if _has_type_from_str(_type_str_from) else _type_from_arr(_from)
 	var type_to = _type_from_str(_type_str_to)
-	var arr = _from  #null
+	var arr = _from
 	if _has_items(_from) && type_from == _ITEM_TYPE.INT && type_to == _ITEM_TYPE.STR:
 		var tmp_int_arr = to_arr(_from, "int")
-		var tmp_str_arr = _init_arr(_ITEM_TYPE.STR)
+		var tmp_str_arr = init(_ITEM_TYPE.STR)
 		var amt = tmp_int_arr.size()
 		tmp_str_arr.resize(amt)
 		var idx = 0

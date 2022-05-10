@@ -7,8 +7,10 @@ export(bool) var local setget , get_local
 export(bool) var has_id setget , get_has_id
 export(bool) var has_name setget , get_has_name
 export(bool) var has_path setget , get_has_path
+export(bool) var has_resource_id setget , get_has_resource_id
 export(bool) var saved setget , get_saved
 export(int) var id setget , get_id
+export(int) var resource_id setget , get_resource_id
 export(String) var name setget , get_name
 export(String) var path setget , get_path
 
@@ -16,13 +18,18 @@ export(String) var path setget , get_path
 const _CHANGED_SIGNAL = "changed"
 const _CHANGED_METHOD = "_on_changed"
 
+var _util = ResourceItemUtility
+var _arr = PoolArrayUtility
+var _str = StringUtility
+
 var _i = {
 	"name": "",
 	"id": 0,
 	"path": "res://src/resource/resource_item.gd",
 	"class_item_name": "ResourceItem",
-	"class_names": PoolStringArray(),
-	"paths": PoolStringArray(),
+	"class_names": _arr.init("str"),
+	"paths": _arr.init("str"),
+	"rids": _arr.init("int"),
 	"state":
 	{
 		"local": true,
@@ -30,9 +37,6 @@ var _i = {
 		"enabled": false,
 	}
 }
-
-var _util = ResourceItemUtility
-var _str = StringUtility
 
 
 # private inherited methods
@@ -132,6 +136,14 @@ func get_path():
 
 func get_id():
 	return _i.id
+
+
+func get_has_resource_id():
+	return _i.rids.size() > 0
+
+
+func get_resource_id():
+	return _i.rids[0]
 
 
 # private helper methods
