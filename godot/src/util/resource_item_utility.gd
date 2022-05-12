@@ -142,7 +142,7 @@ static func _init_str_arr_param(_strs = [], _str = "", _validate_str = false, _v
 	var has_str = StringUtility.is_valid(_str)
 	var has_strs_arr = _strs.size() > 0
 	var amt = 0
-	if has_str && has_strs_arr:  #has_str_and_str_arr:#:
+	if has_str && has_strs_arr:
 		tmp = PoolArrayUtility.to_arr(_strs, "str", true, _str)
 	elif has_str && not has_strs_arr:
 		tmp = PoolArrayUtility.to_arr([], "str", false, _str)

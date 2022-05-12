@@ -6,95 +6,33 @@ enum _ITEM_TYPE { NONE = 0, BYTE = 1, CLR = 2, INT = 3, REAL = 4, STR = 5, VEC2 
 
 # public methods
 static func init(_type_str = ""):
+	var arr = null
 	var type = _type_from_str(_type_str)
-	var arr = null
 	if not type == _ITEM_TYPE.NONE:
-		arr = _init_arr(type)
+		arr = _init_from_type(type)
 	return arr
 
 
-static func to_arr(_from = [], _item_type = "", _dedupe = false, _val = null):
-	var arr = null
-	var has_from_arr = _has_items(_from)
-	var val_type = _type(_val)
-	var has_val = not _val == null && not val_type == _ITEM_TYPE.NONE
-	var type_from_str = _type_from_str(_item_type)
-	var has_item_type_str = StringUtility.is_valid(_item_type) && not type_from_str == _ITEM_TYPE.NONE
-	var type = _ITEM_TYPE.NONE
-	var can_init_arr = false
-	var proc_type = true
-	while proc_type:
-		if not has_item_type_str:
-			if has_val && not has_from_arr:
-				type = val_type
-			elif not has_val && has_from_arr:
-				type = _type_from_arr(_from)
-				proc_type = not type == _ITEM_TYPE.NONE
-		else:
-			type = type_from_str
-			if has_val:
-				proc_type = type == val_type
-			if has_from_arr:
-				var items_type = _type_from_arr(_from)
-				proc_type = not items_type == _ITEM_TYPE.NONE && type == items_type
-		can_init_arr = proc_type
-		proc_type = false
-	if can_init_arr:
-		var idx = 0
-		var amt = idx + 1
-		var tmp = init(type)
-		if has_val:
-			tmp.resize(amt)
-			tmp[idx] = _val
-		if has_from_arr:
-			amt = tmp.size() + _from.size()
-			tmp.resize(amt)
-			for i in _from:
-				tmp[idx] = i
-				idx = IntUtility.incr(idx)
-		if _dedupe:
-			var inval_idx = init("int")
-			var comp = tmp
-			var c_idx = 0
-			inval_idx.empty()
-			idx = 0
-			amt = 0
-			for c in comp:
-				for t in tmp:
-					if c_idx == idx:
-						continue
-					if c == t:
-						amt = IntUtility.incr(amt)
-						inval_idx.resize(amt)
-						inval_idx[0] = c_idx
-					idx = IntUtility.incr(idx)
-				c_idx = IntUtility.incr(c_idx)
-			if _has_items(inval_idx):
-				for i in inval_idx:
-					tmp.remove(i)
-		if _has_items(tmp):
-			arr = init(type)
-			amt = tmp.size()
-			arr.resize(amt)
-			idx = 0
-			for i in tmp:
-				arr[idx] = i
-				idx = IntUtility.incr(idx)
-	else:
-		arr = init(type)
-	return arr
-
-
-static func cast_to(_from = [], _type_str_to = "", _type_str_from = ""):
-	var type_from = _type_from_str(_type_str_from) if _has_type_from_str(_type_str_from) else _type_from_arr(_from)
-	var type_to = _type_from_str(_type_str_to)
+static func to_arr(_from = [], _item_type_str = "", _dedupe = false, _val = null):
+	var type = _init_type_from_str_or_val(_from, _val, _item_type_str)
 	var arr = _from
-	if _has_items(_from) && type_from == _ITEM_TYPE.INT && type_to == _ITEM_TYPE.STR:
+	if not type == _ITEM_TYPE.NONE:
+		arr = _to_arr(_from, type, _dedupe, _val)
+	return arr
+
+
+static func add(_arr = [], _val = null, _item_type_str = ""):
+	return to_arr(_arr, "", false, _val)
+
+
+static func cast_to(_from = [], _type_to = "", _type_fr = ""):
+	var from_type = _type_from_str(_type_fr) if not _type_from_str(_type_fr) == _ITEM_TYPE.NONE else _type_from_arr(_from)
+	var arr = _from
+	if _has_items(_from) && from_type == _ITEM_TYPE.INT && _type_from_str(_type_to) == _ITEM_TYPE.STR:
 		var tmp_int_arr = to_arr(_from, "int")
 		var tmp_str_arr = init(_ITEM_TYPE.STR)
-		var amt = tmp_int_arr.size()
-		tmp_str_arr.resize(amt)
 		var idx = 0
+		tmp_str_arr.resize(tmp_int_arr.size())
 		for i in tmp_int_arr:
 			tmp_str_arr[idx] = String(i)
 			idx = IntUtility.incr(idx)
@@ -107,11 +45,51 @@ static func _has_items(_items = []):
 	return _items.size() > 0
 
 
-static func _has_type_from_str(_type_str = ""):
-	return not _type_from_str(_type_str) == _ITEM_TYPE.NONE
+static func _init_from_type(_type = _ITEM_TYPE.NONE):
+	var tmp = null
+	match _type:
+		_ITEM_TYPE.BYTE:
+			tmp = PoolByteArray()
+		_ITEM_TYPE.CLR:
+			tmp = PoolColorArray()
+		_ITEM_TYPE.INT:
+			tmp = PoolIntArray()
+		_ITEM_TYPE.REAL:
+			tmp = PoolRealArray()
+		_ITEM_TYPE.STR:
+			tmp = PoolStringArray()
+		_ITEM_TYPE.VEC2:
+			tmp = PoolVector2Array()
+		_ITEM_TYPE.VEC3:
+			tmp = PoolVector3Array()
+	if not tmp == null:
+		tmp.empty()
+	return tmp
 
 
-static func _type(_val = null):
+static func _init_type_from_str_or_val(_arr = [], _val = null, _item_type_str = ""):
+	var val_type = _type_from_val(_val)
+	var type_from_str = _type_from_str(_item_type_str)
+	var has_val_type = ObjectUtility.is_valid(_val) && not val_type == _ITEM_TYPE.NONE
+	var has_type_from_str = StringUtility.is_valid(_item_type_str) && not type_from_str == _ITEM_TYPE.NONE
+	var proc_type = true
+	var curr_type = _ITEM_TYPE.NONE
+	var type = _ITEM_TYPE.NONE
+	while proc_type:
+		if not has_type_from_str:
+			if has_val_type:
+				curr_type = val_type
+		elif has_val_type:
+			proc_type = type_from_str == val_type
+			curr_type = type_from_str
+		if _has_items(_arr) && not curr_type == _ITEM_TYPE.NONE:  #has_val_type or has_type_from_str:
+			proc_type = _type_from_arr(_arr) == curr_type
+			type = curr_type
+		proc_type = false
+	return type
+
+
+static func _type_from_val(_val = null):
 	var type = _ITEM_TYPE.NONE
 	var is_type = false
 	for t in _ITEM_TYPE:
@@ -147,14 +125,14 @@ static func _type_from_arr(_from = []):
 		var curr_type = _ITEM_TYPE.NONE
 		for i in _from:
 			if first:
-				init_type = _type(i)
+				init_type = _type_from_val(i)
 				if not init_type == _ITEM_TYPE.NONE:
 					first = not first
 					continue
 				else:
 					type_is_none = true
 					break
-			curr_type = _type(i)
+			curr_type = _type_from_val(i)
 			if curr_type == init_type:
 				continue
 			else:
@@ -223,48 +201,46 @@ static func _type_from_str(_item_type = ""):
 	return type
 
 
-static func _init_arr(_type = _ITEM_TYPE.NONE):
-	var tmp = null
-	match _type:
-		_ITEM_TYPE.BYTE:
-			tmp = PoolByteArray()
-		_ITEM_TYPE.CLR:
-			tmp = PoolColorArray()
-		_ITEM_TYPE.INT:
-			tmp = PoolIntArray()
-		_ITEM_TYPE.REAL:
-			tmp = PoolRealArray()
-		_ITEM_TYPE.STR:
-			tmp = PoolStringArray()
-		_ITEM_TYPE.VEC2:
-			tmp = PoolVector2Array()
-		_ITEM_TYPE.VEC3:
-			tmp = PoolVector3Array()
-	if not tmp == null:
-		tmp.empty()
-	return tmp
-
-
-"""
-static func int_incr_array(_size = 0, _starting_val = 0):
-	var arr = []
-	if _size > 0:
-		var idx = 0
-		var val = _starting_val if not _starting_val == 0 else 0
-		var incrm = true
-		while incrm:
-			arr[idx] = val
-			val = IntUtility.incr(val)
+static func _to_arr(_from = [], _type = _ITEM_TYPE.NONE, _dedupe = false, _val = null):
+	var idx = 0
+	var amt = idx + 1
+	var tmp = _init_from_type(_type)
+	var arr = _from
+	if ObjectUtility.is_valid(_val):
+		tmp.resize(amt)
+		tmp[idx] = _val
+	if _has_items(_from):
+		amt = tmp.size() + _from.size()
+		tmp.resize(amt)
+		for i in _from:
+			tmp[idx] = i
 			idx = IntUtility.incr(idx)
-			incrm = false if idx + 1 == _size else incrm
-		if _has_items(arr):
-			var tmp = PoolIntArray()
-			tmp.empty()
-			tmp.resize(_size)
-			idx = 0
-			for i in arr:
-				tmp[idx] = i
+	if _dedupe:
+		var inval_idx = init("int")
+		var comp = tmp
+		var c_idx = 0
+		inval_idx.empty()
+		idx = 0
+		amt = 0
+		for c in comp:
+			for t in tmp:
+				if c_idx == idx:
+					continue
+				if c == t:
+					amt = IntUtility.incr(amt)
+					inval_idx.resize(amt)
+					inval_idx[0] = c_idx
 				idx = IntUtility.incr(idx)
-			arr = tmp
+			c_idx = IntUtility.incr(c_idx)
+		if _has_items(inval_idx):
+			for i in inval_idx:
+				tmp.remove(i)
+	if _has_items(tmp):
+		arr = _init_from_type(_type)
+		amt = tmp.size()
+		arr.resize(amt)
+		idx = 0
+		for i in tmp:
+			arr[idx] = i
+			idx = IntUtility.incr(idx)
 	return arr
-"""

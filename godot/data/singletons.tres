@@ -1,0 +1,44 @@
+[gd_resource type="Resource" load_steps=5 format=2]
+
+[ext_resource path="res://addons/keh_gddb/database.gd" type="Script" id=1]
+[ext_resource path="res://addons/keh_gddb/dbtable.gd" type="Script" id=2]
+
+[sub_resource type="Resource" id=1]
+script = ExtResource( 2 )
+table_name = "managers"
+id_type = 4
+column = [ {
+"name": "reference",
+"value_type": 1006
+} ]
+ref_table = {
+}
+rowlist = [ {
+"id": "foo_manager",
+"reference": ""
+}, {
+"id": "bar_manager",
+"reference": ""
+} ]
+
+[sub_resource type="Resource" id=2]
+script = ExtResource( 2 )
+table_name = "mediators"
+id_type = 4
+column = [ {
+"name": "reference",
+"value_type": 1006
+} ]
+ref_table = {
+}
+rowlist = [ {
+"id": "event_dispatcher",
+"reference": ""
+} ]
+
+[resource]
+script = ExtResource( 1 )
+table = {
+"managers": SubResource( 1 ),
+"mediators": SubResource( 2 )
+}
