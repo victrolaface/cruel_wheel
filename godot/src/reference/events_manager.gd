@@ -268,12 +268,8 @@ func subscribe(_event = "", _ref = null, _method = "", _proc_mode = PROCESSING_M
 	var added_event_physics = false
 	var added_listener_idle = false
 	var added_listener_physics = false
-	if _str.is_valid(_event) && _obj.is_valid(_ref, _method):
-		var name = ""
-		if _ref.is_class("ResourceItem"):
-			name = _ref.name if _ref.has_name else _proc_name(_ref)
-		else:
-			_proc_name(_ref)
+	var name = _name_from_ref(_event, _ref, _method)
+	if _str.is_valid(name):
 		match _proc_mode:
 			PROCESSING_MODE.IDLE:
 				if not _data.events.idle.has(_event):
@@ -299,6 +295,79 @@ func subscribe(_event = "", _ref = null, _method = "", _proc_mode = PROCESSING_M
 			_data.listeners_physics_amt = _int.incr(_data.listeners_physics_amt)
 		subscribed = added_listener_idle or added_listener_physics
 	return subscribed
+
+
+func _name_from_ref(_event = "", _ref = null, _method = ""):
+	var name = ""
+	var ref_valid = _obj.is_valid(_ref, _method) if _str.is_valid(_method) else _obj.is_valid(_ref)
+	if _str.is_valid(_event) && ref_valid:
+		if _ref.is_class("ResourceItem"):
+			name = _ref.name if _ref.has_name else _proc_name(_ref)
+		else:
+			name = _proc_name(_ref)
+	return name
+
+
+func _unsubscribe(_event = "", _name = "", _proc_mode = PROCESSING_MODE.IDLE):
+	var unsubscribed = false
+	var tmp = {}
+	var init_listeners_amt = 0
+	var init_events_amt = 0
+	var events = {}
+	var event = {}
+	var amt = 0
+	match _proc_mode:
+		PROCESSING_MODE.IDLE:
+			init_events_amt = _data.events_idle_amt
+			events = _data.events.idle
+		PROCESSING_MODE.PHYSICS:
+			init_events_amt = _data.events_physics_amt
+			events = _data.events.physics
+	if events.has(_event):
+		event = events[_event]
+		if event.has(_name):
+			tmp = event
+			init_listeners_amt = tmp.keys().size()
+			tmp.erase(name)
+			amt = tmp.keys().size()
+			unsubscribed = amt == init_listeners_amt - 1
+			if unsubscribed:
+				match _proc_mode:
+					PROCESSING_MODE.IDLE:
+						_data.events.idle[_event] = tmp
+						_data.listeners_idle_amt = _int.decr(_data.listeners_idle_amt)
+					PROCESSING_MODE.PHYSICS:
+						_data.events.physics[_event] = tmp
+						_data.listeners_physics_amt = _int.decr(_data.listeners_physics_amt)
+				if amt == 0:
+					tmp = events
+					init_events_amt = tmp.keys().size()
+					tmp.erase(_event)
+					amt = tmp.keys().size()
+					if amt == init_events_amt - 1:
+						match _proc_mode:
+							PROCESSING_MODE.IDLE:
+								_data.events.idle = tmp
+								_data.events_idle_amt = _int.decr(_data.events_idle_amt)
+							PROCESSING_MODE.PHYSICS:
+								_data.events.physics = tmp
+								_data.events_physics_amt = _int.decr(_data.events_physics_amt)
+	return unsubscribed
+
+
+func unsubscribe(_event = "", _ref = null):
+	var unsubscribed = false
+	if _events_amt() > 0:
+		var name = _name_from_ref(_event, _ref)
+		if _str.is_valid(name):
+			unsubscribed = _unsubscribe(_event, name, PROCESSING_MODE.IDLE)
+			if not unsubscribed:
+				unsubscribed = _unsubscribe(_event, name, PROCESSING_MODE.PHYSICS)
+	return unsubscribed
+
+
+func publish(_event = "", _val = null):
+	pass
 
 
 """
