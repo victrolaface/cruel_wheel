@@ -40,6 +40,18 @@ static func cast_to(_from = [], _type_to = "", _type_fr = ""):
 	return arr
 
 
+static func clear_on_amt(_arr = [], _item_type_str = ""):
+	var arr_type = (
+		_type_from_str(_item_type_str)
+		if not _type_from_str(_item_type_str) == _ITEM_TYPE.NONE
+		else _type_from_arr(_arr)
+	)
+	var arr = _arr
+	if _has_items(_arr):
+		arr = _init_from_type(arr_type)
+	return arr
+
+
 # private helper methods
 static func _has_items(_items = []):
 	return _items.size() > 0
