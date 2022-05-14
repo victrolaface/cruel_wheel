@@ -40,15 +40,66 @@ static func cast_to(_from = [], _type_to = "", _type_fr = ""):
 	return arr
 
 
-static func clear_on_amt(_arr = [], _item_type_str = ""):
-	var arr_type = (
-		_type_from_str(_item_type_str)
-		if not _type_from_str(_item_type_str) == _ITEM_TYPE.NONE
-		else _type_from_arr(_arr)
-	)
+#static func clear_on_amt(_arr = [], _item_type_str = ""):
+#	var arr_type = (
+#		_type_from_str(_item_type_str)
+#		if not _type_from_str(_item_type_str) == _ITEM_TYPE.NONE
+#		else _type_from_arr(_arr)
+#	)
+#	var arr = _arr
+#	if _has_items(_arr):
+#		arr = _init_from_type(arr_type)
+#	return arr
+
+
+static func rem(_arr = [], _item_type_str = "", _val = null, _idx = 0, _has_idx = false):
 	var arr = _arr
 	if _has_items(_arr):
-		arr = _init_from_type(arr_type)
+		var type = _ITEM_TYPE.NONE
+		var type_from_str = _type_from_str(_item_type_str)
+		var has_item_type_str = not type_from_str == type
+		var has_val = not _val == null
+		if has_item_type_str:
+			type = type_from_str
+		elif has_val:
+			type = _type_from_val(_val)
+		if not type == _ITEM_TYPE.NONE:
+			var amt = _arr.size()
+			var has_inval_idx = _has_idx && _idx >= 0 && _idx < amt
+			var inval_idx = _idx if has_inval_idx else 0
+			arr = _init_from_type(type)
+			arr.resize(amt)
+			if not has_inval_idx:
+				for i in _arr:
+					has_inval_idx = i == _val
+					if has_inval_idx:
+						break
+					inval_idx = IntUtility.incr(inval_idx)
+			if has_inval_idx:
+				var to_idx = 1
+				var frm_idx = 0
+				var tmp = _init_from_type(type)
+				var first = true
+				for frm in _arr:
+					if frm_idx == inval_idx:
+						frm_idx = IntUtility.incr(frm_idx)
+						continue
+					arr[to_idx] = frm
+					to_idx = IntUtility.incr(to_idx)
+					frm_idx = IntUtility.incr(frm_idx)
+				tmp.resize(amt - 1)
+				if tmp.size() > 0:
+					to_idx = 0
+					for i in arr:
+						if first:
+							first = not first
+							continue
+						else:
+							tmp[to_idx] = i
+							to_idx = IntUtility.incr(to_idx)
+					arr = tmp
+				else:
+					arr = _init_from_type(type)
 	return arr
 
 

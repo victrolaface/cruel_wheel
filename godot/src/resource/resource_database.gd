@@ -7,6 +7,8 @@ export(bool) var has_items setget , get_has_items
 # fields
 var _int = IntUtility
 var _path_util = PathUtility
+#var _arr = PoolArrayUtility
+#var _str = StringUtility
 
 var _t = {
 	"items": {},
