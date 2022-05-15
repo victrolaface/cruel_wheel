@@ -52,20 +52,15 @@ var _data = {
 	"listeners_physics_amt": 0,
 }
 
-var _listener = {
-	"name": "",
-	"ref": null,
-	"method": "",
-	"is_oneshot": false,
-	"has_name": false,
-	"has_method": false,
-	"has_ref": false,
-}
-
-var _queued_event = {
-	"has_val": false,
-	"val": null,
-}
+#var _listener = {
+#	"name": "",
+#	"ref": null,
+#	"method": "",
+#	"is_oneshot": false,
+#	"has_name": false,
+#	"has_method": false,
+#	"has_ref": false,
+#}
 
 var _called_event_listeners = {"event_name": "", "listener_names": _arr.init("str")}
 
@@ -505,17 +500,6 @@ func _on_incr_amt(_do_incr = false, _amt = 0):
 	if _do_incr:
 		amt = _int.incr(amt)
 	return amt
-
-
-func _name_from_ref(_event = "", _ref = null, _method = ""):
-	var name = ""
-	var ref_valid = _obj.is_valid(_ref, _method) if _str.is_valid(_method) else _obj.is_valid(_ref)
-	if _str.is_valid(_event) && ref_valid:
-		if _ref.is_class("ResourceItem"):
-			name = _ref.name if _ref.has_name else _proc_name(_ref)
-		else:
-			name = _proc_name(_ref)
-	return name
 
 
 func _unsubscribe(_event = "", _name = "", _proc_mode = PROCESSING_MODE.NONE):

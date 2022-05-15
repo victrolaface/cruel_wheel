@@ -24,6 +24,11 @@ _global_script_classes=[ {
 "language": "GDScript",
 "path": "res://addons/keh_gddb/dbtable.gd"
 }, {
+"base": "Resource",
+"class": "EventListener",
+"language": "GDScript",
+"path": "res://src/reference/event_listener.gd"
+}, {
 "base": "Node",
 "class": "EventsManager",
 "language": "GDScript",
@@ -119,6 +124,11 @@ _global_script_classes=[ {
 "language": "GDScript",
 "path": "res://src/util/pool_array_utility.gd"
 }, {
+"base": "Resource",
+"class": "QueuedEvent",
+"language": "GDScript",
+"path": "res://src/reference/queued_event.gd"
+}, {
 "base": "ResourceItem",
 "class": "ResourceDatabase",
 "language": "GDScript",
@@ -173,6 +183,7 @@ _global_script_class_icons={
 "CustomControlBase": "",
 "DBHelpers": "",
 "DBTable": "",
+"EventListener": "",
 "EventsManager": "",
 "ExpandablePanel": "",
 "FancyLineEdit": "res://addons/keh_ui/fancy_line_edit.png",
@@ -192,6 +203,7 @@ _global_script_class_icons={
 "ObjectUtility": "",
 "PathUtility": "",
 "PoolArrayUtility": "",
+"QueuedEvent": "",
 "ResourceDatabase": "",
 "ResourceItem": "",
 "ResourceItemUtility": "",
