@@ -4,7 +4,7 @@ class_name EventsManager extends Node
 signal register_events_manager
 
 # fields
-enum PROCESSING_MODE { IDLE, PHYSICS }
+enum PROCESSING_MODE { NONE, IDLE, PHYSICS }
 const _EVENTS_SIGNAL = "register_listeners"
 const _EVENTS_SIGNAL_FUNC = "_on_register_listeners"
 const _SEPERATOR = "-"
@@ -17,7 +17,19 @@ var _int = IntUtility
 var _data = {
 	"event_queue":
 	{
-		"idle": {},
+		"idle":
+		{
+			"event_01":
+			[
+				{
+					#"name": "event_01",
+					"has_val": true,
+					"val": 0,
+				},
+				{},
+			],
+			#"_val",
+		},
 		"physics": {},
 	},
 	"listeners":
@@ -31,12 +43,12 @@ var _data = {
 		"register_listeners_connected": false,
 	},
 	"events_idle_queued_amt": 0,
-	"listeners_idle_queued_amt": 0,
-	"events_physics_queued_amt": 0,
-	"listeners_physics_queued_amt": 0,
 	"events_idle_amt": 0,
-	"listeners_idle_amt": 0,
+	"events_physics_queued_amt": 0,
 	"events_physics_amt": 0,
+	"listeners_idle_queued_amt": 0,
+	"listeners_idle_amt": 0,
+	"listeners_physics_queued_amt": 0,
 	"listeners_physics_amt": 0,
 }
 
@@ -44,21 +56,24 @@ var _listener = {
 	"name": "",
 	"ref": null,
 	"method": "",
-	"oneshot": false,
-	"value": null,
+	"is_oneshot": false,
+	"has_name": false,
+	"has_method": false,
+	"has_ref": false,
 }
 
-var _event_listeners_called = {"event_name": "", "listener_names": _arr.init("str")}
+var _queued_event = {
+	"has_val": false,
+	"val": null,
+}
 
-
-func _has_events():
-	return _data.events_amt > 0
+var _called_event_listeners = {"event_name": "", "listener_names": _arr.init("str")}
 
 
 func _init():
 	if not _register_listeners_connected():
-		_data.state.register_listeners_connected = _connect_register_listeners(true)
-		_data.state.enabled = _data.state.register_listeners_connected
+		if _connect_register_listeners(true):
+			_data.state.enabled = _data.state.register_listeners_connected
 	_register_listeners()
 
 
@@ -81,14 +96,94 @@ func _connect_register_listeners(_connect = true):
 	else:
 		disconnect(_EVENTS_SIGNAL, self, _EVENTS_SIGNAL_FUNC)
 		connected = not _register_listeners_connected()
+	_data.state.register_listeners_connected = connected
 	return connected
+
+
+func _has_queue():
+	return _events_queued_amt() > 0 or _listeners_queued_amt() > 0
+
+
+func _has_idle_queue():
+	return _data.events_idle_queued_amt > 0 or _data.listeners_idle_queued_amt > 0
+
+
+func _has_physics_queue():
+	return _data.events_physics_queued_amt > 0 or _data.listeners_physics_queued_amt > 0
+
+
+func _has_events():
+	return _events_amt() > 0 or _has_listeners()
+
+
+func _has_idle_events():
+	return _data.events_idle_amt > 0 or _data.listeners_idle_amt > 0
+
+
+func _has_physics_events():
+	return _data.events_physics_amt > 0 or _data.listeners_physics_amt > 0
+
+
+func _has_listeners():
+	return _listeners_amt() > 0
+
+
+func _events_amt():
+	return _data.events_idle_amt + _data.events_physics_amt
+
+
+func _listeners_amt():
+	return _data.listeners_idle_amt + _data.listeners_physics_amt
+
+
+func _events_queued_amt():
+	return _data.events_idle_queued_amt + _data.events_physics_queued_amt
+
+
+func _listeners_queued_amt():
+	return _data.listeners_idle_queued_amt + _data.listeners_physics_queued_amt
+
+
+func _on_empty_events(_proc_mode = PROCESSING_MODE.NONE):
+	match _proc_mode:
+		PROCESSING_MODE.IDLE:
+			_data.listeners.idle = {}
+			_data.listeners_idle_amt = 0
+			_data.events_idle_amt = 0
+		PROCESSING_MODE.PHYSICS:
+			_data.listeners.physics = {}
+			_data.listeners_physics_amt = 0
+			_data.events_physics_amt = 0
 
 
 func disable():
 	if _data.state.enabled:
-		if _register_listeners_connected():
-			if _connect_register_listeners(false):
-				_data.state.enabled = not _data.state.enabled
+		if _has_queue():
+			if _has_idle_queue():
+				_on_empty_queue(PROCESSING_MODE.IDLE)
+			if _has_physics_queue():
+				_on_empty_queue(PROCESSING_MODE.PHYSICS)
+		if _has_events():
+			if _has_idle_events():
+				_on_empty_events(PROCESSING_MODE.IDLE)
+			if _has_physics_events():
+				_on_empty_events(PROCESSING_MODE.PHYSICS)
+		if _data.state.register_listeners_connected:
+			if _register_listeners_connected():
+				if _connect_register_listeners(false):
+					_data.state.enabled = not _data.state.enabled
+
+
+func _on_empty_queue(_proc_mode = PROCESSING_MODE.NONE):
+	match _proc_mode:
+		PROCESSING_MODE.IDLE:
+			_data.event_queue.idle.clear()
+			_data.events_idle_queued_amt = 0
+			_data.listeners_idle_queued_amt = 0
+		PROCESSING_MODE.PHYSICS:
+			_data.event_queue.physics.clear()
+			_data.events_physics_queued_amt = 0
+			_data.listeners_physics_queued_amt = 0
 
 
 func _ready():
@@ -100,14 +195,14 @@ func _enter_tree():
 
 
 func _process(_delta):
-	_proc_events(PROCESSING_MODE.IDLE)
+	_proc_events_queue(PROCESSING_MODE.IDLE)
 
 
 func _physics_process(_delta):
-	_proc_events(PROCESSING_MODE.PHYSICS)
+	_proc_events_queue(PROCESSING_MODE.PHYSICS)
 
 
-func _proc_events(_proc_mode = PROCESSING_MODE.IDLE):
+func _proc_events_queue(_proc_mode = PROCESSING_MODE.NONE):
 	match _proc_mode:
 		PROCESSING_MODE.IDLE:
 			_call_listeners(_proc_mode)
@@ -118,7 +213,11 @@ func _proc_events(_proc_mode = PROCESSING_MODE.IDLE):
 			_call_listeners(_proc_mode)
 
 
-func _call_listeners(_proc_mode = PROCESSING_MODE.IDLE):
+func _on_call_listeners(_queued_event_name = "", _queued_event_instance = {}, _proc_mode = PROCESSING_MODE.NONE):
+	pass
+
+
+func _call_listeners(_proc_mode = PROCESSING_MODE.NONE):
 	if _events_queued_amt() > 0:
 		var queued_evnts_amt = 0
 		match _proc_mode:
@@ -127,6 +226,12 @@ func _call_listeners(_proc_mode = PROCESSING_MODE.IDLE):
 			PROCESSING_MODE.PHYSICS:
 				queued_evnts_amt = _data.events_physics_queued_amt
 		if queued_evnts_amt > 0:
+			var evnts_to_rem = null
+			var lstnrs_to_rem = {}
+			var init_evnts_to_rem = false
+			var init_lstnrs_to_rem = false
+			var has_lstnrs_to_rem = false
+			var rem_amt = 0
 			var queued_evnts = {}
 			var evnts = {}
 			match _proc_mode:
@@ -136,80 +241,77 @@ func _call_listeners(_proc_mode = PROCESSING_MODE.IDLE):
 				PROCESSING_MODE.PHYSICS:
 					queued_evnts = _data.event_queue.physics
 					evnts = _data.listeners.physics
-			var evnts_to_rem = null
-			var lstnrs_to_rem = null
-			var has_lstnr_to_rem = false
-			var init_evnts_to_rem = false
-			var init_lstnrs_to_rem = false
-			var has_lstnrs_to_rem = false
-			var rem_amt = 0
-			var queued_evnts_arr = _arr.to_arr(queued_evnts.keys(), "str")
-			var evnts_arr = _arr.to_arr(evnts.keys(), "str")
-			queued_evnts_amt = queued_evnts_amt if queued_evnts_arr.size() == queued_evnts_amt else queued_evnts_arr.size()
+			var evnts_keys = evnts.keys()
+			var queued_evnts_keys = queued_evnts.keys()
+			var queued_evnts_size = queued_evnts_keys.size()
+			queued_evnts_amt = queued_evnts_amt if queued_evnts_size == queued_evnts_amt else queued_evnts_size
 			if queued_evnts_amt > 0:
 				var called_evnts_amt = 0
-				var evnts_lstnrs = []
-				for q in queued_evnts_arr:
-					for e in evnts_arr:
-						if q == e:
+				var called_events_listeners = []
+				for queued_event_name in queued_evnts_keys:
+					var queued_event_instance = null  #_queued_event
+					var queued_event_instances = queued_evnts[queued_event_name]
+					if queued_event_instances.size() > 1:
+						for i in queued_event_instances:
+							queued_event_instance = i
+							_on_call_listeners(queued_event_name, queued_event_instance, _proc_mode)
+					elif queued_event_instances.size() == 1:
+						queued_event_instance = queued_event_instances[0]
+						_on_call_listeners(queued_event_name, queued_event_instance, _proc_mode)
+					##########################################################################################################
+					for e in evnts_keys:
+						if queued_event_name == e:
 							var called_lstnrs_amt = 0
-							var lstnrs = e.keys()
-							var lstnrs_amt = lstnrs.size()
-							var evnt_lstnrs = _event_listeners_called
-							evnt_lstnrs.event_name = e
+							var to_call_lstnrs = e.keys()
+							var to_call_lstnrs_amt = to_call_lstnrs.size()
+							var called_evnt_lstnrs = _called_event_listeners  #_event_listeners_called
+							called_evnt_lstnrs.event_name = e
 							rem_amt = 0
-							if lstnrs_amt > 0:
+							if to_call_lstnrs_amt > 0:
 								var called_all_lstnrs_in_evnt = false
-								for l in lstnrs:
-									var lstnr_ref = null
+								for l in to_call_lstnrs:
+									var to_call_lstnr = null
 									init_lstnrs_to_rem = false
 									match _proc_mode:
 										PROCESSING_MODE.IDLE:
-											lstnr_ref = _data.listeners.idle[e[l]].ref
+											to_call_lstnr = _data.listeners.idle[e[l]]
 										PROCESSING_MODE.PHYSICS:
-											lstnr_ref = _data.listeners.physics[e[l]].ref
-									lstnr_ref.call(lstnr_ref.method, lstnr_ref.value)
-									evnt_lstnrs.listener_names = _arr.add(evnt_lstnrs.listener_names, l, "str")
-									called_lstnrs_amt = _int.incr(called_lstnrs_amt)
-									if lstnr_ref.oneshot:
-										var lstnr_name = lstnr_ref.name
-										has_lstnr_to_rem = false
-										if not init_lstnrs_to_rem:
-											lstnrs_to_rem = {}
-											lstnrs_to_rem[e] = _arr.to_arr([], "str", false, lstnr_name)
-											init_lstnrs_to_rem = (not lstnrs_to_rem == null && lstnrs_to_rem[e].size() > 0)
-											has_lstnr_to_rem = init_lstnrs_to_rem
-										else:
-											var tmp = lstnrs_to_rem[e]
-											var init_amt = tmp.size()
-											tmp = _arr.add(tmp, lstnr_name, "str")
-											lstnrs_to_rem[e] = tmp
-											has_lstnr_to_rem = lstnrs_to_rem[e].size() == init_amt + 1
-										if has_lstnr_to_rem:
+											to_call_lstnr = _data.listeners.physics[e[l]]
+									if not to_call_lstnr == null && to_call_lstnr.has_name && l == to_call_lstnr.name:
+										var called_listener = false
+										if to_call_lstnr.has_ref && to_call_lstnr.has_method:
+											to_call_lstnr.ref.call(to_call_lstnr.method, 0)  ####################### get val from queue
+											called_evnt_lstnrs.listener_names = _arr.add(
+												called_evnt_lstnrs.listener_names, to_call_lstnr.name, "str"
+											)
+											called_lstnrs_amt = _int.incr(called_lstnrs_amt)
+											called_listener = true
+										if called_listener && to_call_lstnr.is_oneshot:
+											if not init_lstnrs_to_rem:
+												lstnrs_to_rem[e] = _arr.init("str")
+												init_lstnrs_to_rem = lstnrs_to_rem[e].size() > 0
+											lstnrs_to_rem[e] = _arr.add(lstnrs_to_rem[e], to_call_lstnr.name, "str")
 											rem_amt = _int.incr(rem_amt)
 											if not has_lstnrs_to_rem:
 												has_lstnrs_to_rem = not has_lstnrs_to_rem
-											if rem_amt == lstnrs_amt:
-												if not init_evnts_to_rem:
-													evnts_to_rem = _arr.to_arr([], "str", false, e)
-													init_evnts_to_rem = evnts_to_rem.size() > 0
-												else:
-													evnts_to_rem = _arr.add(evnts_to_rem, e)
-								called_all_lstnrs_in_evnt = called_lstnrs_amt == lstnrs_amt
-								if called_all_lstnrs_in_evnt:
-									called_evnts_amt = _int.incr(called_evnts_amt)
-								evnts_lstnrs.append(evnt_lstnrs)
-					if called_evnts_amt == queued_evnts_amt:  #called_all_lstnrs_in_evnts
-						pass
-						# purge queue
-					elif evnts_lstnrs.size() > 0:
+									if rem_amt == to_call_lstnrs_amt:
+										if not init_evnts_to_rem:
+											evnts_to_rem = _arr.init("str")
+											init_evnts_to_rem = evnts_to_rem.size() > 0
+										evnts_to_rem = _arr.add(evnts_to_rem, e)
+								called_all_lstnrs_in_evnt = called_lstnrs_amt == to_call_lstnrs_amt
+								called_evnts_amt = _on_incr_amt(called_all_lstnrs_in_evnt, called_evnts_amt)
+								called_events_listeners.append(called_evnt_lstnrs)
+					if called_evnts_amt == queued_evnts_amt:
+						_on_empty_queue(_proc_mode)
+					elif called_events_listeners.size() > 0:
 						var evnts_called = _arr.init("str")
 						var lstnrs_called = _arr.init("str")
-						for evnt_lstnrs in evnts_lstnrs:
-							var ev_called = evnt_lstnrs.event_name
-							if _str.is_valid(ev_called):
-								evnts_called = _arr.add(evnts_called, ev_called, "str")
-							var lstnrs_called_group = evnt_lstnrs.listener_names
+						for called_event_listeners in called_events_listeners:
+							var n = called_event_listeners.event_name
+							if _str.is_valid(n):
+								evnts_called = _arr.add(evnts_called, n, "str")
+							var lstnrs_called_group = called_event_listeners.listener_names
 							if lstnrs_called_group.size() > 0:
 								for l_called in lstnrs_called_group:
 									if _str.is_valid(l_called):
@@ -217,72 +319,70 @@ func _call_listeners(_proc_mode = PROCESSING_MODE.IDLE):
 						if evnts_called.size() > 0 && lstnrs_called.size() > 0:
 							for ev_called in evnts_called:
 								if queued_evnts.has(ev_called):
-									var queued_ev_lstnrs = _arr.init("str")
+									var q_ev_lstnrs = _arr.init("str")
 									match _proc_mode:
 										PROCESSING_MODE.IDLE:
-											queued_ev_lstnrs = _data.event_queue.idle[ev_called]
+											q_ev_lstnrs = _data.event_queue.idle[ev_called]
 										PROCESSING_MODE.PHYSICS:
-											queued_ev_lstnrs = _data.event_queue.physics[ev_called]
-									var init_lstnrs_amt = queued_ev_lstnrs.size()
-									var curr_lstnrs_amt = init_lstnrs_amt
+											q_ev_lstnrs = _data.event_queue.physics[ev_called]
+									var init_amt = q_ev_lstnrs.size()
+									var curr_amt = init_amt
 									var idx = 0
-									for q_lstnr in queued_ev_lstnrs:
+									var idx_rem = _arr.init("int")
+									var ls_called = _arr.init("str")
+									var idx_rem_amt = 0
+									var called_amt = 0
+									rem_amt = 0
+									for q_lstnr in q_ev_lstnrs:
 										for l_called in lstnrs_called:
 											if q_lstnr == l_called:
-												queued_ev_lstnrs = _arr.rem(queued_ev_lstnrs, "str", l_called, idx, true)
-												curr_lstnrs_amt = _int.decr(curr_lstnrs_amt)
+												idx_rem = _arr.add(idx_rem, idx, "int")
+												ls_called = _arr.add(ls_called, l_called, "str")
+												curr_amt = _int.decr(curr_amt)
 										idx = _int.incr(idx)
-									if queued_ev_lstnrs.size() == 0:
-										var events_queued_amt = 0
-										var lstnrs_amt = 0
+									idx_rem_amt = idx_rem.size()
+									called_amt = ls_called.size()
+									if idx_rem_amt > 0 && called_amt > 0 && idx_rem_amt == called_amt:
+										idx = 0
+										for i in idx_rem:
+											q_ev_lstnrs = _arr.rem(q_ev_lstnrs, "str", ls_called[idx], i, true)
+											idx = _int.incr(idx)
+									if q_ev_lstnrs.size() == 0:
 										match _proc_mode:
 											PROCESSING_MODE.IDLE:
 												_data.event_queue.idle.erase(ev_called)
-												events_queued_amt = _data.events_idle_queued_amt
-												events_queued_amt = _int.decr(events_queued_amt)
-												_data.events_idle_queued_amt = events_queued_amt
-												lstnrs_amt = _data.listeners_idle_queued_amt
-												lstnrs_amt = lstnrs_amt - init_lstnrs_amt
-												_data.listeners_idle_queued_amt = lstnrs_amt
+												_data.events_idle_queued_amt = _int.decr(_data.events_idle_queued_amt)
+												rem_amt = _data.listeners_idle_queued_amt - init_amt
+												_data.listeners_idle_queued_amt = rem_amt
 											PROCESSING_MODE.PHYSICS:
 												_data.event_queue.physics.erase(ev_called)
-												events_queued_amt = _data.events_physics_queued_amt
-												events_queued_amt = _int.decr(events_queued_amt)
-												_data.events_physics_queued_amt = events_queued_amt
-												lstnrs_amt = _data.listeners_physics_queued_amt
-												lstnrs_amt = lstnrs_amt - init_lstnrs_amt
-												_data.listeners_physics_queued_amt = lstnrs_amt
+												_data.events_physics_queued_amt = _int.decr(_data.events_physics_queued_amt)
+												rem_amt = _data.listeners_physics_queued_amt - init_amt
+												_data.listeners_physics_queued_amt = rem_amt
 									else:
-										var lstnrs_amt = 0
-										var rem_lstnrs_amt = 0
 										match _proc_mode:
 											PROCESSING_MODE.IDLE:
-												_data.event_queue.idle[ev_called] = queued_ev_lstnrs
-												lstnrs_amt = _data.listeners_idle_queued_amt
-												rem_lstnrs_amt = init_lstnrs_amt - curr_lstnrs_amt
-												lstnrs_amt = lstnrs_amt - rem_lstnrs_amt
-												_data.listeners_idle_queued_amt = lstnrs_amt
+												_data.event_queue.idle[ev_called] = q_ev_lstnrs
+												rem_amt = _data.listeners_idle_queued_amt - curr_amt
+												rem_amt = _data.listeners_idle_queued_amt - rem_amt
+												_data.listeners_idle_queued_amt = rem_amt
 											PROCESSING_MODE.PHYSICS:
-												_data.event_queue.physics[ev_called] = queued_ev_lstnrs
-												lstnrs_amt = _data.listeners_physics_queued_amt
-												rem_lstnrs_amt = init_lstnrs_amt - curr_lstnrs_amt
-												lstnrs_amt = lstnrs_amt - rem_lstnrs_amt
-												_data.listeners_physics_queued_amt = lstnrs_amt
+												_data.event_queue.physics[ev_called] = q_ev_lstnrs
+												rem_amt = _data.listeners_physics_queued_amt - curr_amt
+												rem_amt = _data.listeners_physics_queued_amt - rem_amt
+												_data.listeners_physics_queued_amt = rem_amt
 			if has_lstnrs_to_rem:
-				var evnts_w_lstnrs_to_rem = lstnrs_to_rem.keys()
-				for el_rem in evnts_w_lstnrs_to_rem:
+				for el_rem in lstnrs_to_rem.keys():
 					for e in evnts:
 						if el_rem == e:
-							var to_rem = lstnrs_to_rem[el_rem].keys()
-							var lstnrs_comp = _arr.init("str")
+							var lstnrs_comp = null
 							match _proc_mode:
 								PROCESSING_MODE.IDLE:
 									lstnrs_comp = _arr.to_arr(_data.listeners.idle[e].keys(), "str")
 								PROCESSING_MODE.PHYSICS:
 									lstnrs_comp = _arr.to_arr(_data.listeners.physics[e].keys(), "str")
-							var init_amt = lstnrs_comp.size()
 							rem_amt = 0
-							for l_rem in to_rem:
+							for l_rem in lstnrs_to_rem[el_rem].keys():
 								for l_comp in lstnrs_comp:
 									if l_rem == l_comp:
 										var tmp = {}
@@ -291,19 +391,18 @@ func _call_listeners(_proc_mode = PROCESSING_MODE.IDLE):
 												tmp = _data.listeners.idle[e]
 											PROCESSING_MODE.PHYSICS:
 												tmp = _data.listeners.physics[e]
-										if tmp.erase(l_rem):
-											rem_amt = _int.incr(rem_amt)
-											if init_amt - tmp.size() == rem_amt:
-												match _proc_mode:
-													PROCESSING_MODE.IDLE:
-														_data.listeners.idle[e] = tmp
-														_data.listeners_idle_amt = _int.decr(_data.listeners_idle_amt)
-													PROCESSING_MODE.PHYSICS:
-														_data.listeners.physics[e] = tmp
-														_data.listeners_physics_amt = _int.decr(_data.listeners_physics_amt)
+										rem_amt = _on_incr_amt(tmp.erase(l_rem), rem_amt)
+										if lstnrs_comp.size() - tmp.size() == rem_amt:
+											match _proc_mode:
+												PROCESSING_MODE.IDLE:
+													_data.listeners.idle[e] = tmp
+													_data.listeners_idle_amt = _int.decr(_data.listeners_idle_amt)
+												PROCESSING_MODE.PHYSICS:
+													_data.listeners.physics[e] = tmp
+													_data.listeners_physics_amt = _int.decr(_data.listeners_physics_amt)
 			if evnts_to_rem.size() > 0:
 				for e_rem in evnts_to_rem:
-					for e_comp in evnts_arr:
+					for e_comp in evnts_keys:
 						if e_rem == e_comp:
 							var tmp = {}
 							match _proc_mode:
@@ -339,30 +438,7 @@ func _proc_name(_ref = null):
 	return name
 
 
-func _on_add_listener(_name = "", _ref = null, _method = "", _oneshot = false):
-	var l = _listener
-	l.name = _name
-	l.ref = _ref
-	l.method = _method
-	l.oneshot = _oneshot
-	l.value = null
-	return l
-
-
-func _events_amt():
-	return _data.events_idle_amt + _data.events_physics_amt
-
-
-func _listeners_amt():
-	return _data.listeners_idle_amt + _data.listeners_physics_amt
-
-
-func _events_queued_amt():
-	return _data.events_idle_queued_amt + _data.events_physics_queued_amt
-
-
-func subscribe(_event = "", _ref = null, _method = "", _proc_mode = PROCESSING_MODE.IDLE, _oneshot = false):
-	var subscribed = false
+func subscribe(_event = "", _ref = null, _method = "", _proc_mode = PROCESSING_MODE.NONE, _oneshot = false):
 	var added_event_idle = false
 	var added_event_physics = false
 	var added_listener_idle = false
@@ -371,29 +447,64 @@ func subscribe(_event = "", _ref = null, _method = "", _proc_mode = PROCESSING_M
 	if _str.is_valid(name):
 		match _proc_mode:
 			PROCESSING_MODE.IDLE:
-				if not _data.listeners.idle.has(_event):
-					_data.listeners.idle[_event] = {}
-					added_event_idle = _data.listeners.idle.has(_event)
-				if not _data.listeners.idle[_event].has(name):
-					_data.listeners.idle[_event[name]] = _on_add_listener(name, _ref, _method, _oneshot)
-					added_listener_idle = _data.listeners.idle[_event].has(name)
+				added_event_idle = _on_subscribe_event(_event, _proc_mode)
+				added_listener_idle = _on_subscribe_listener(_event, name, _ref, _method, _oneshot)
 			PROCESSING_MODE.PHYSICS:
-				if not _data.listeners.physics.has(_event):
-					_data.listeners.physics[_event] = {}
-					added_event_physics = _data.listeners.physics.has(_event)
-				if not _data.listeners.physics[_event].has(name):
-					_data.listeners.physics[_event[name]] = _on_add_listener(name, _ref, _method, _oneshot)
-					added_listener_physics = _data.listeners.physics[_event].has(name)
-		if added_event_idle:
-			_data.events_idle_amt = _int.incr(_data.events_idle_amt)
-		if added_listener_idle:
-			_data.listeners_idle_amt = _int.incr(_data.listeners_idle_amt)
-		if added_event_physics:
-			_data.events_physics_amt = _int.incr(_data.events_physics_amt)
-		if added_listener_physics:
-			_data.listeners_physics_amt = _int.incr(_data.listeners_physics_amt)
-		subscribed = added_listener_idle or added_listener_physics
-	return subscribed
+				added_event_physics = _on_subscribe_event(_event, _proc_mode)
+				added_listener_physics = _on_subscribe_listener(_event, name, _ref, _method, _oneshot)
+		_data.events_idle_amt = _on_incr_amt(added_event_idle, _data.events_idle_amt)
+		_data.listeners_idle_amt = _on_incr_amt(added_listener_idle, _data.listeners_idle_amt)
+		_data.events_physics_amt = _on_incr_amt(added_event_physics, _data.events_physics_amt)
+		_data.listeners_physics_amt = _on_incr_amt(added_listener_physics, _data.listeners_physics_amt)
+	return added_listener_idle or added_listener_physics
+
+
+func _on_subscribe_event(_e = "", _p = PROCESSING_MODE.IDLE):
+	var added_event = false
+	match _p:
+		PROCESSING_MODE.IDLE:
+			if not _data.listeners.idle.has(_e):
+				_data.listeners.idle[_e] = {}
+				added_event = _data.listeners.idle.has(_e)
+		PROCESSING_MODE.PHYSICS:
+			if not _data.listeners.physics.has(_e):
+				_data.listeners.physics[_e] = {}
+				added_event = _data.listeners.physics.has(_e)
+	return added_event
+
+
+func _on_subscribe_listener(_e = "", _n = "", _r = null, _m = "", _p = PROCESSING_MODE.IDLE, _os = false):
+	var added_listener = false
+	match _p:
+		PROCESSING_MODE.IDLE:
+			if not _data.listeners.physics[_e].has(_n):
+				_data.listeners.physics[_e[_n]] = _on_add_listener(_n, _r, _m, _os)
+				added_listener = _data.listeners.physics[_e].has(_n)
+		PROCESSING_MODE.PHYSICS:
+			if not _data.listeners.physics[_e].has(_n):
+				_data.listeners.physics[_e[_n]] = _on_add_listener(_n, _r, _m, _os)
+				added_listener = _data.listeners.physics[_e].has(_n)
+	return added_listener
+
+
+func _on_add_listener(_name = "", _ref = null, _method = "", _oneshot = false):
+	var l = _listener
+	l.name = _name
+	l.ref = _ref
+	if not _ref == null && _str.is_valid(_method):
+		if _ref.has_method(_method):
+			l.method = _method
+	l.method = _method
+	l.oneshot = _oneshot
+	l.value = null
+	return l
+
+
+func _on_incr_amt(_do_incr = false, _amt = 0):
+	var amt = _amt
+	if _do_incr:
+		amt = _int.incr(amt)
+	return amt
 
 
 func _name_from_ref(_event = "", _ref = null, _method = ""):
@@ -407,7 +518,7 @@ func _name_from_ref(_event = "", _ref = null, _method = ""):
 	return name
 
 
-func _unsubscribe(_event = "", _name = "", _proc_mode = PROCESSING_MODE.IDLE):
+func _unsubscribe(_event = "", _name = "", _proc_mode = PROCESSING_MODE.NONE):
 	var unsubscribed = false
 	var tmp = {}
 	var init_listeners_amt = 0
@@ -465,10 +576,124 @@ func unsubscribe(_event = "", _ref = null):
 	return unsubscribed
 
 
-func publish(_event = "", _val = null):
+func _on_publish_event_is(_event_keys = [], _event = "", _proc_mode = PROCESSING_MODE.NONE):
+	var event_is = false
+	var has_event_type = false
+	match _proc_mode:
+		PROCESSING_MODE.IDLE:
+			has_event_type = _has_idle_events()
+		PROCESSING_MODE.PHYSICS:
+			has_event_type = _has_physics_events()
+	if has_event_type:
+		if _event_keys.size() > 0:
+			for e in _event_keys:
+				if e == _event:
+					match _proc_mode:
+						PROCESSING_MODE.IDLE:
+							event_is = _data.listeners.idle[e].size() > 0
+						PROCESSING_MODE.PHYSICS:
+							event_is = _data.listeners.physics[e].size() > 0
+					if event_is:
+						break
+	return event_is
+
+
+func publish(_event = "", _val = null, _proc_mode = PROCESSING_MODE.NONE):
+	if _str.is_valid(_event) && _has_events():
+		var event_is_idle = false
+		var event_is_physics = false
+		var has_val = not _val == null
+		var listeners_idle_keys = _data.listeners.idle.keys()
+		var listeners_physics_keys = _data.listeners.physics.keys()
+		match _proc_mode:
+			PROCESSING_MODE.IDLE:
+				event_is_idle = _on_publish_event_is(listeners_idle_keys, _event, _proc_mode)
+			PROCESSING_MODE.PHYSICS:
+				event_is_physics = _on_publish_event_is(listeners_physics_keys, _event, _proc_mode)
+			PROCESSING_MODE.NONE:
+				var event_is = false
+				event_is = _on_publish_event_is(listeners_idle_keys, _event, PROCESSING_MODE.IDLE)
+				if not event_is:
+					event_is = _on_publish_event_is(listeners_physics_keys, _event, PROCESSING_MODE.PHYSICS)
+					event_is_physics = event_is
+				else:
+					event_is_idle = event_is
+		if event_is_idle or event_is_physics:
+			if not _has_queue():
+				if event_is_idle:
+					pass
+				elif event_is_physics:
+					pass
+			else:
+				if event_is_idle:
+					if not _has_idle_queue():
+						pass
+					else:
+						if _data.event_queue.idle.has(_event):
+							var queued_event = _data.event_queue.idle[_event]
+							if has_val && queued_event.has_val:
+								if not queued_event.val == _val:
+									pass
+								#var queued_val = queued_event.val
+
+						else:
+							pass
+
+				elif event_is_physics:
+					if not _has_physics_queue():
+						pass
+					else:
+						pass
+			#if not _has_idle_queue()
+			#var queued_idle_events_keys =
+			#var queued_physics_events_keys =
+			var queued_event = _queued_event
+			#queued_event.name = _event
+			queued_event.has_val = has_val  #not _val == null
+			if queued_event.has_val:
+				queued_event.val = _val
+			if event_is_idle:
+				_data.event_queue.idle[_event] = queued_event
+				_data.events_idle_queued_amt = _int.incr(_data.events_idle_queued_amt)
+			elif event_is_physics:
+				_data.event_queue.physics[_event] = queued_event
+				_data.events_physics_queued_amt = _int.incr(_data.events_physics_queued_amt)
+
+				#queued_event#queued_events
+				"""
+				"event_queue":
+				{
+					"idle":
+					{
+						"event_01": "_val",
+					},
+					"physics": {},
+				},
+				"""
+
+				#if _has_events():
+				#var has_idle = _has_idle_events()
+				#var has_physics = _has_physics_events()
+				#if has_idle && not has_physics:
+				#	listener_events = idle_keys
+				#elif not has_idle && has_physics:
+				#	listener_events = physics_keys
+				#else:
+				#	var is_mode = false
+				#	for i in idle_keys:
+
 	pass
 
 
+"""
+var _listener = {
+	"name": "",
+	"ref": null,
+	"method": "",
+	"oneshot": false,
+	"value": null,
+}
+"""
 """
 func publish(event_name, value = null):
     var event_receivers = receivers[event_name]
