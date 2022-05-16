@@ -5,7 +5,6 @@ class_name EventListener extends Resource
 export(String) var event_name setget , get_event_name
 export(String) var listener_name setget , get_listener_name
 export(String) var method_name setget , get_method_name
-export(int) var process_mode setget , get_process_mode
 export(bool) var has_event_name setget , get_has_event_name
 export(bool) var is_oneshot setget , get_is_oneshot
 export(bool) var has_method setget , get_has_method
@@ -13,6 +12,7 @@ export(bool) var has_process_mode setget , get_has_process_mode
 export(bool) var has_listener_name setget , get_has_listener_name
 export(bool) var has_listener_ref setget , get_has_listener_ref
 export(bool) var enabled setget , get_enabled
+export(int) var process_mode setget , get_process_mode
 
 # fields
 const _SEPERATOR = "-"
