@@ -12,14 +12,8 @@ export(bool) var has_method setget , get_has_method
 export(bool) var has_process_mode setget , get_has_process_mode
 export(bool) var has_listener_name setget , get_has_listener_name
 export(bool) var has_listener_ref setget , get_has_listener_ref
-
 export(bool) var enabled setget , get_enabled
 export(int) var process_mode setget , get_process_mode
-
-
-func get_method_takes_val():
-	return _ret_on_enabled(_data.state.method_takes_val)
-
 
 # fields
 const _SEPERATOR = "-"
@@ -30,9 +24,9 @@ var _data = {}
 
 
 # private inherited methods
-func _init(_event_name = "", _ref = null, _method_name = "", _vals = [], _proc_mode = 0, _oneshot = false):
+func _init(_event_name = "", _ref = null, _method_name = "", _method_val = null, _proc_mode = 0, _oneshot = false):
 	resource_local_to_scene = true
-	_on_init(true, _event_name, _ref, _method_name, _proc_mode, _oneshot)
+	_on_init(true, _event_name, _ref, _method_name, _method_val, _proc_mode, _oneshot)
 
 
 # public methods
@@ -58,9 +52,7 @@ func method_takes_typeof(_val = null):
 
 
 # private helper methods
-func _on_init(
-	_do_init = true, _event_name = "", _ref = null, _method_name = "", _method_val = null, _proc_mode = 0, _oneshot = false
-):
+func _on_init(_do_init = true, _ev_name = "", _ref = null, _mthd_name = "", _mthd_val = null, _prc_mode = 0, _os = false):
 	_data = {
 		"event_name": "",
 		"listener_name": "",
@@ -88,26 +80,26 @@ func _on_init(
 	if _do_init:
 		var dt = _data
 		var st = dt.state
-		st.has_event_name = _str.is_valid(_event_name)
-		st.has_listener_ref = _obj.is_valid(_ref, _method_name)
+		st.has_event_name = _str.is_valid(_ev_name)
+		st.has_listener_ref = _obj.is_valid(_ref, _mthd_name)
 		st.has_method = st.has_listener_ref
-		st.method_takes_val = _obj.is_valid(_method_val)
+		st.method_takes_val = _obj.is_valid(_mthd_val)
 		if st.has_listener_ref:
 			if st.has_method:
-				dt.method_name = _method_name
+				dt.method_name = _mthd_name
 			if st.method_takes_val:
-				st.method_val_is_obj_type = _type.is_type_object(_method_val)
+				st.method_val_is_obj_type = _type.is_type_object(_mthd_val)
 				if st.method_val_is_obj_type:
-					var method_val_type_str = _method_val.get_type()
+					var method_val_type_str = _mthd_val.get_type()
 					st.has_method_val_type_str = _str.is_val(method_val_type_str)
 					if st.has_method_val_type_str:
 						dt.method_val_type_str = method_val_type_str
-				st.has_method_val_built_in_type = _type.is_built_in_type(_method_val)
+				st.has_method_val_built_in_type = _type.is_built_in_type(_mthd_val)
 				if st.has_method_val_built_in_type:
-					dt.method_val_built_in_type = _type.built_in_type(_method_val)
+					dt.method_val_built_in_type = _type.built_in_type(_mthd_val)
 					st.method_val_is_built_in_type = st.has_method_val_built_in_type
 			if st.has_event_name:
-				dt.event_name = _event_name
+				dt.event_name = _ev_name
 				dt.listener_ref = _ref
 				if dt.listener_ref.is_class("ResourceItem") && dt.listener_ref.has_name:
 					dt.listener_name = dt.listener_ref.name
@@ -123,10 +115,10 @@ func _on_init(
 					else:
 						dt.listener_name = dt.listener_name + "global"
 				st.has_listener_name = _str.is_valid(dt.listener_name)
-		st.has_proc_mode = (not _proc_mode == 0 && (_proc_mode == 1 or _proc_mode == 2))
+		st.has_proc_mode = (not _prc_mode == 0 && (_prc_mode == 1 or _prc_mode == 2))
 		if st.has_proc_mode:
-			dt.proc_mode = _proc_mode
-		st.is_oneshot = _oneshot
+			dt.proc_mode = _prc_mode
+		st.is_oneshot = _os
 		st.enabled = st.has_event_name && st.has_method && st.has_proc_mode && st.has_listener_name && st.has_listener_ref
 		if st.enabled:
 			if st.method_takes_val:
@@ -171,6 +163,10 @@ func get_process_mode():
 
 func get_has_event_name():
 	return _ret_on_enabled(_data.state.has_event_name)
+
+
+func get_method_takes_val():
+	return _ret_on_enabled(_data.state.method_takes_val)
 
 
 func get_is_oneshot():

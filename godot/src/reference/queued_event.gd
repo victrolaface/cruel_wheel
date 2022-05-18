@@ -12,6 +12,7 @@ export(bool) var has_process_mode setget , get_has_process_mode
 export(bool) var has_listeners setget , get_has_listeners
 export(bool) var has_listeners_oneshot setget , get_has_listeners_oneshot
 export(bool) var enabled setget , get_enabled
+export(bool) var destroy setget , get_destroy
 
 # fields
 var _obj = ObjectUtility
@@ -27,19 +28,32 @@ func _init(_event_name = "", _val = null, _proc_mode = 0, _listener_names = [], 
 	_on_init(true, _event_name, _val, _proc_mode, _listener_names, _listener_names_oneshot)
 
 
-func destroy():
-	_on_init(false)
+func enable():
+	if not _data.state.enabled:
+		_data.state.enabled = true
+	return _data.state.enabled
+
+
+func disable():
+	if _data.state.enabled:
+		_data.state.enabled = not _data.state.enabled
 	return not _data.state.enabled
 
 
-func val():
+func remove():
+	_on_init(false)
+	_data.state.destroy = not _data.state.enabled
+	return _data.state.destroy
+
+
+func _val():
 	var v = null
 	if _data.state.enabled && _has_val():
 		v = _data.vals[0]
 	return v
 
 
-func vals():
+func _vals():
 	var vs = []
 	if _data.state.enabled:
 		if _has_vals():
@@ -49,12 +63,22 @@ func vals():
 	return vs
 
 
+func add_val(_val = null):
+	var added = false
+	if not _val == null:
+		var init_amt = _vals_amt()
+		if not contains_val(_val):
+			_data.vals.append(_val)
+		added = _vals_amt() > init_amt
+	return added
+
+
 func contains_val(_val = null):
 	var contains_v = false
 	if _has_val():
-		contains_v = val() == _val
+		contains_v = _val() == _val
 	elif _has_vals():
-		for v in vals():
+		for v in _vals():
 			contains_v = v == _val
 			if contains_v:
 				break
@@ -74,7 +98,6 @@ func _on_init(_do_init = false, _ev_name = "", _v = null, _proc_mode = 0, _l_nam
 		"state":
 		{
 			"has_event_name": false,
-			"has_multiple_val": false,
 			"has_val": false,
 			"has_proc_mode": false,
 			"has_listeners": false,
@@ -83,6 +106,7 @@ func _on_init(_do_init = false, _ev_name = "", _v = null, _proc_mode = 0, _l_nam
 			"called_all_listeners": false,
 			"called_all_listeners_oneshot": false,
 			"enabled": false,
+			"destroy": false,
 		}
 	}
 	if _do_init:
@@ -112,13 +136,9 @@ func _on_init(_do_init = false, _ev_name = "", _v = null, _proc_mode = 0, _l_nam
 			ls_valid = _valid_listener_names(dt.listener_names)
 		elif not st.has_listeners && st.has_listeners_oneshot:
 			ls_valid = _valid_listener_names(dt.listener_names_oneshot)
-		st.enabled = (
-			ls_valid
-			&& st.has_event_name
-			&& st.has_val
-			&& st.has_proc_mode
-			&& (st.has_listeners or st.has_listeners_oneshot)
-		)
+		st.enabled = (ls_valid && st.has_event_name && st.has_proc_mode && (st.has_listeners or st.has_listeners_oneshot))
+		if st.takes_val:
+			st.enabled = st.enabled && st.has_val
 		if st.enabled:
 			_data = dt
 			_data.state = st
@@ -146,7 +166,7 @@ func _has_vals():
 
 
 func _vals_amt():
-	return _data.values.size()
+	return _data.vals.size()
 
 
 func _ret_on_enabled(_val = null):
@@ -199,4 +219,8 @@ func get_takes_val():
 
 
 func get_enabled():
-	_ret_on_enabled(_data.state.enabled)
+	return _data.state.enabled
+
+
+func get_destroy():
+	return _data.state.destroy
