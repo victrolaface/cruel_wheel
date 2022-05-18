@@ -137,15 +137,6 @@ func subscribe(_do_subscribe = true, _event_name = "", _ref = null, _method = ""
 	return subscribed_or_unsubscribed
 
 
-"""
-	"event_queue":
-	{
-		"idle": {},
-		"physics": {},
-	},
-"""
-
-
 func _event_queue_names(_proc_mode = PROCESSING_MODE.NONE):
 	var ns = []
 	if _has_queued_events(_proc_mode):
@@ -190,7 +181,24 @@ func _has_queued_events(_proc_mode = PROCESSING_MODE.NONE):
 
 
 func _listeners_has_event(_event_name = "", _proc_mode = PROCESSING_MODE.NONE):
-	return false
+	var has_ev = false
+	match _proc_mode:
+		PROCESSING_MODE.IDLE:
+			has_ev = _data.listeners.idle.has(_event_name)
+		PROCESSING_MODE.PHYSICS:
+			has_ev = _data.listeners.physics.has(_event_name)
+	return has_ev
+
+
+func _listeners(_event_name = "", _proc_mode = PROCESSING_MODE.NONE):
+	var ls = []
+	if _listeners_has_event(_event_name, _proc_mode):
+		match _proc_mode:
+			PROCESSING_MODE.IDLE:
+				ls = _data.listeners.idle[_event_name]
+			PROCESSING_MODE.PHYSICS:
+				ls = _data.listeners.idle[_event_name]
+	return ls
 
 
 func publish(_event_name = "", _val = null, _proc_mode = 0):
@@ -206,13 +214,21 @@ func publish(_event_name = "", _val = null, _proc_mode = 0):
 					add_val_to_queue = not q_ev.contains_val(_val)
 		elif not add_ev_to_queue:
 			if _listeners_has_event(_event_name, _proc_mode):
-				
-			#add_ev_to_queue = _listeners_has_event(_event_name, _proc_mode)
-			#if add_ev_to_queue:
-
+				var ls = _listeners(_event_name, _proc_mode)
+				if has_val:
+					var ls_takes_val_type = false
+					for l in ls:
+						if l.method_takes_val:
+							ls_takes_val_type = l.method_takes_typeof(_val)
+						else:
+							ls_takes_val_type = not l.method_takes_val
+						if not ls_takes_val_type:
+							break
+					add_ev_to_queue = ls_takes_val_type
+				else:
+					add_ev_to_queue = not has_val
+##########################################################################################
 		if add_ev_to_queue:
-			if has_val:
-				pass
 			pass
 		elif add_val_to_queue:
 			pass
