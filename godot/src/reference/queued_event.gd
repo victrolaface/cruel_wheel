@@ -5,7 +5,9 @@ class_name QueuedEvent extends Resource
 export(String) var event_name setget , get_event_name
 export(int) var process_mode setget , get_process_mode
 export(bool) var has_event_name setget , get_has_event_name
+export(bool) var takes_val setget , get_takes_val
 export(bool) var has_val setget , get_has_val
+export(bool) var has_vals setget , get_has_vals
 export(bool) var has_process_mode setget , get_has_process_mode
 export(bool) var has_listeners setget , get_has_listeners
 export(bool) var has_listeners_oneshot setget , get_has_listeners_oneshot
@@ -24,15 +26,46 @@ func _init(_event_name = "", _val = null, _proc_mode = 0, _listener_names = [], 
 	resource_local_to_scene = true
 	_on_init(true, _event_name, _val, _proc_mode, _listener_names, _listener_names_oneshot)
 
+
 func destroy():
 	_on_init(false)
 	return not _data.state.enabled
-	
+
+
+func val():
+	var v = null
+	if _data.state.enabled && _has_val():
+		v = _data.vals[0]
+	return v
+
+
+func vals():
+	var vs = []
+	if _data.state.enabled:
+		if _has_vals():
+			vs = _data.vals
+		elif _has_val():
+			vs = vs.append(_data.vals[0])
+	return vs
+
+
+func contains_val(_val = null):
+	var contains_v = false
+	if _has_val():
+		contains_v = val() == _val
+	elif _has_vals():
+		for v in vals():
+			contains_v = v == _val
+			if contains_v:
+				break
+	return contains_v
+
+
 # private helper methods
 func _on_init(_do_init = false, _ev_name = "", _v = null, _proc_mode = 0, _l_names = [], _l_names_oneshot = []):
 	_data = {
 		"event_name": "",
-		"val": null,
+		"vals": [],
 		"proc_mode": 0,
 		"listener_names": [],
 		"listener_names_oneshot": [],
@@ -41,10 +74,12 @@ func _on_init(_do_init = false, _ev_name = "", _v = null, _proc_mode = 0, _l_nam
 		"state":
 		{
 			"has_event_name": false,
+			"has_multiple_val": false,
 			"has_val": false,
 			"has_proc_mode": false,
 			"has_listeners": false,
 			"has_listeners_oneshot": false,
+			"takes_val": false,
 			"called_all_listeners": false,
 			"called_all_listeners_oneshot": false,
 			"enabled": false,
@@ -58,7 +93,8 @@ func _on_init(_do_init = false, _ev_name = "", _v = null, _proc_mode = 0, _l_nam
 		if st.has_event_name:
 			dt.event_name = _ev_name
 		st.has_val = not _v == null
-		if st.has_val:
+		st.takes_val = st.has_val
+		if st.takes_val:
 			dt.val = _v
 		st.has_proc_mode = not _proc_mode == 0 && _proc_mode == 1 or _proc_mode == 2
 		if st.has_proc_mode:
@@ -101,6 +137,18 @@ func _valid_listener_names(_ls = []):
 	return valid
 
 
+func _has_val():
+	return _vals_amt() > 0
+
+
+func _has_vals():
+	return _vals_amt() > 1
+
+
+func _vals_amt():
+	return _data.values.size()
+
+
 func _ret_on_enabled(_val = null):
 	var ret_invalid = null
 	match typeof(_val):
@@ -127,7 +175,11 @@ func get_has_event_name():
 
 
 func get_has_val():
-	_ret_on_enabled(_data.state.has_val)
+	_ret_on_enabled(_has_val())
+
+
+func get_has_vals():
+	_ret_on_enabled(_has_vals())
 
 
 func get_has_process_mode():
@@ -140,6 +192,10 @@ func get_has_listeners():
 
 func get_has_listeners_oneshot():
 	_ret_on_enabled(_data.state.has_listeners_oneshot)
+
+
+func get_takes_val():
+	_ret_on_enabled(_data.state.takes_val)
 
 
 func get_enabled():

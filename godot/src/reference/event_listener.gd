@@ -11,6 +11,7 @@ export(bool) var has_method setget , get_has_method
 export(bool) var has_process_mode setget , get_has_process_mode
 export(bool) var has_listener_name setget , get_has_listener_name
 export(bool) var has_listener_ref setget , get_has_listener_ref
+
 export(bool) var enabled setget , get_enabled
 export(int) var process_mode setget , get_process_mode
 
@@ -22,7 +23,7 @@ var _data = {}
 
 
 # private inherited methods
-func _init(_event_name = "", _ref = null, _method_name = "", _proc_mode = 0, _oneshot = false):
+func _init(_event_name = "", _ref = null, _method_name = "", _vals = [], _proc_mode = 0, _oneshot = false):
 	resource_local_to_scene = true
 	_on_init(true, _event_name, _ref, _method_name, _proc_mode, _oneshot)
 
