@@ -51,6 +51,26 @@ func method_takes_typeof(_val = null):
 	return takes_type
 
 
+func listener_ref():
+	var lr = null
+	if _data.state.enabled && _data.state.has_listener_ref:
+		lr = _data.listener_ref
+	return lr
+
+
+func call_method(_val = null):
+	var called_method = false
+	if _data.state.enabled && _data.state.has_method && _data.state.has_method_funcref:
+		var pass_val = not _val == null && _data.state.method_takes_val
+		var pass_none = not _data.state.method_takes_val
+		if pass_val:
+			_data.method_func_ref.call_func(_val)
+		elif pass_none:
+			_data.method_func_ref.call_func()
+		called_method = pass_val or pass_none
+	return called_method
+
+
 # private helper methods
 func _on_init(_do_init = true, _ev_name = "", _ref = null, _mthd_name = "", _mthd_val = null, _prc_mode = 0, _os = false):
 	_data = {
@@ -58,6 +78,7 @@ func _on_init(_do_init = true, _ev_name = "", _ref = null, _mthd_name = "", _mth
 		"listener_name": "",
 		"listener_ref": null,
 		"method_name": "",
+		"method_func_ref": null,
 		"method_val_type_str": "",
 		"method_val_built_in_type": 0,
 		"proc_mode": 0,
@@ -66,6 +87,8 @@ func _on_init(_do_init = true, _ev_name = "", _ref = null, _mthd_name = "", _mth
 			"has_event_name": false,
 			"is_oneshot": false,
 			"has_method": false,
+			"has_method_name": false,
+			"has_method_funcref": false,
 			"has_proc_mode": false,
 			"has_listener_name": false,
 			"has_listener_ref": false,
@@ -83,10 +106,14 @@ func _on_init(_do_init = true, _ev_name = "", _ref = null, _mthd_name = "", _mth
 		st.has_event_name = _str.is_valid(_ev_name)
 		st.has_listener_ref = _obj.is_valid(_ref, _mthd_name)
 		st.has_method = st.has_listener_ref
+		st.has_method_name = st.has_method
+		st.has_method_funcref = st.has_method_name
 		st.method_takes_val = _obj.is_valid(_mthd_val)
 		if st.has_listener_ref:
+			dt.listener_ref = _ref
 			if st.has_method:
 				dt.method_name = _mthd_name
+				dt.method_func_ref = funcref(dt.listener_ref, dt.method_name)
 			if st.method_takes_val:
 				st.method_val_is_obj_type = _type.is_type_object(_mthd_val)
 				if st.method_val_is_obj_type:
@@ -100,7 +127,6 @@ func _on_init(_do_init = true, _ev_name = "", _ref = null, _mthd_name = "", _mth
 					st.method_val_is_built_in_type = st.has_method_val_built_in_type
 			if st.has_event_name:
 				dt.event_name = _ev_name
-				dt.listener_ref = _ref
 				if dt.listener_ref.is_class("ResourceItem") && dt.listener_ref.has_name:
 					dt.listener_name = dt.listener_ref.name
 				else:
@@ -190,4 +216,4 @@ func get_has_listener_ref():
 
 
 func get_enabled():
-	return _ret_on_enabled(_data.state.enabled)
+	return _data.state.enabled
