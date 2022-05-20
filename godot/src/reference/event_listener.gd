@@ -2,21 +2,11 @@ tool
 class_name EventListener extends Resource
 
 # properties
-export(String) var event_name setget , get_event_name
-export(String) var listener_name setget , get_listener_name
-export(String) var method_name setget , get_method_name
 export(bool) var method_takes_val setget , get_method_takes_val
-export(bool) var has_event_name setget , get_has_event_name
 export(bool) var is_oneshot setget , get_is_oneshot
-export(bool) var has_method setget , get_has_method
-export(bool) var has_process_mode setget , get_has_process_mode
-export(bool) var has_listener_name setget , get_has_listener_name
-export(bool) var has_listener_ref setget , get_has_listener_ref
 export(bool) var enabled setget , get_enabled
-export(int) var process_mode setget , get_process_mode
 
 # fields
-const _SEPERATOR = "-"
 var _obj = ObjectUtility
 var _str = StringUtility
 var _type = TypeUtility
@@ -24,195 +14,82 @@ var _data = {}
 
 
 # private inherited methods
-func _init(_event_name = "", _ref = null, _method_name = "", _method_val = null, _proc_mode = 0, _oneshot = false):
+func _init(_ref = null, _method = "", _val = null, _oneshot = false):
 	resource_local_to_scene = true
-	_on_init(true, _event_name, _ref, _method_name, _method_val, _proc_mode, _oneshot)
+	_on_init(true, _ref, _method, _val, _oneshot)
 
 
 # public methods
-func destroy():
+func enable(_ref = null, _method = "", _val = null, _oneshot = false):
+	_on_init(true, _ref, _method, _val, _oneshot)
+	return _data.state.enabled
+
+
+func disable():
 	_on_init(false)
 	return not _data.state.enabled
 
 
-func method_takes_typeof(_val = null):
-	var takes_type = false
-	var is_type_built_in = false
-	var is_type_str = false
-	var is_type_obj = false
-	if _data.state.method_takes_val:
-		if _data.state.method_val_is_built_in_type && _data.state.has_method_val_built_in_type:
-			is_type_built_in = typeof(_val) == _data.method_val_is_built_in_type
-			takes_type = is_type_built_in
-		elif _data.state.method_val_is_obj_type && _data.state.has_method_val_type_str:
-			is_type_obj = _type.is_type_object(_val)
-			is_type_str = _val.get_type() == _data.method_val_type_str
-			takes_type = is_type_obj && is_type_str
-	return takes_type
+func method_takes(_val = null):
+	var takes = false
+	if not _val == null && _data.state.method_takes_val:
+		if _type.is_built_in_type(_val) && _data.state.method_val_is_built_in_type:
+			takes = _type.built_in_type(_val) == _data.method_val_built_in_type
+		if not takes:
+			takes = _val.get_class() == _data.state.method_val_type
+	return takes
 
 
-func listener_ref():
-	var lr = null
-	if _data.state.enabled && _data.state.has_listener_ref:
-		lr = _data.listener_ref
-	return lr
-
-
-func call_method(_val = null):
-	var called_method = false
-	if _data.state.enabled && _data.state.has_method && _data.state.has_method_funcref:
-		var pass_val = not _val == null && _data.state.method_takes_val
-		var pass_none = not _data.state.method_takes_val
-		if pass_val:
-			_data.method_func_ref.call_func(_val)
-		elif pass_none:
-			_data.method_func_ref.call_func()
-		called_method = pass_val or pass_none
-	return called_method
-
-
-# private helper methods
-func _on_init(_do_init = true, _ev_name = "", _ref = null, _mthd_name = "", _mthd_val = null, _prc_mode = 0, _os = false):
+# private helper functions
+func _on_init(_do_init = false, _ref = null, _method = "", _val = null, _oneshot = false):
 	_data = {
-		"event_name": "",
-		"listener_name": "",
-		"listener_ref": null,
-		"method_name": "",
-		"method_func_ref": null,
-		"method_val_type_str": "",
+		"ref": null,
+		"method_funcref": null,
+		"method_val_type": "",
 		"method_val_built_in_type": 0,
-		"proc_mode": 0,
 		"state":
 		{
-			"has_event_name": false,
-			"is_oneshot": false,
-			"has_method": false,
-			"has_method_name": false,
-			"has_method_funcref": false,
-			"has_proc_mode": false,
-			"has_listener_name": false,
-			"has_listener_ref": false,
-			"has_method_val_type_str": false,
-			"has_method_val_built_in_type": false,
-			"method_val_is_built_in_type": false,
-			"method_val_is_obj_type": false,
-			"method_takes_val": false,
 			"enabled": false,
-		}
+			"is_oneshot": false,
+			"has_ref": false,
+			"method_takes_val": false,
+			"method_val_is_built_in_type": false,
+			"method_val_is_type": false,
+		},
 	}
 	if _do_init:
 		var dt = _data
-		var st = dt.state
-		st.has_event_name = _str.is_valid(_ev_name)
-		st.has_listener_ref = _obj.is_valid(_ref, _mthd_name)
-		st.has_method = st.has_listener_ref
-		st.has_method_name = st.has_method
-		st.has_method_funcref = st.has_method_name
-		st.method_takes_val = _obj.is_valid(_mthd_val)
-		if st.has_listener_ref:
-			dt.listener_ref = _ref
-			if st.has_method:
-				dt.method_name = _mthd_name
-				dt.method_func_ref = funcref(dt.listener_ref, dt.method_name)
-			if st.method_takes_val:
-				st.method_val_is_obj_type = _type.is_type_object(_mthd_val)
-				if st.method_val_is_obj_type:
-					var method_val_type_str = _mthd_val.get_type()
-					st.has_method_val_type_str = _str.is_val(method_val_type_str)
-					if st.has_method_val_type_str:
-						dt.method_val_type_str = method_val_type_str
-				st.has_method_val_built_in_type = _type.is_built_in_type(_mthd_val)
-				if st.has_method_val_built_in_type:
-					dt.method_val_built_in_type = _type.built_in_type(_mthd_val)
-					st.method_val_is_built_in_type = st.has_method_val_built_in_type
-			if st.has_event_name:
-				dt.event_name = _ev_name
-				if dt.listener_ref.is_class("ResourceItem") && dt.listener_ref.has_name:
-					dt.listener_name = dt.listener_ref.name
-				else:
-					dt.listener_name = (
-						dt.listener_ref.get_class()
-						+ _SEPERATOR
-						+ String(dt.listener_ref.resource_id)
-						+ _SEPERATOR
-					)
-					if dt.listener_ref.resource_local_to_scene:
-						dt.listener_name = dt.listener_name + String(dt.listener_ref.get_instance_id())
-					else:
-						dt.listener_name = dt.listener_name + "global"
-				st.has_listener_name = _str.is_valid(dt.listener_name)
-		st.has_proc_mode = (not _prc_mode == 0 && (_prc_mode == 1 or _prc_mode == 2))
-		if st.has_proc_mode:
-			dt.proc_mode = _prc_mode
-		st.is_oneshot = _os
-		st.enabled = st.has_event_name && st.has_method && st.has_proc_mode && st.has_listener_name && st.has_listener_ref
-		if st.enabled:
-			if st.method_takes_val:
-				if st.method_val_is_obj_type:
-					st.enabled = st.has_method_val_type_str
-		if st.enabled:
+		var st = _data.st
+		st.has_ref = _obj.is_valid(_ref, _method)
+		if st.has_ref:
+			dt.ref = _ref
+			dt.method_funcref = funcref(dt.ref, _method)
+		st.method_takes_val = st.has_ref && not _val == null
+		if st.method_takes_val:
+			st.method_val_is_built_in_type = _type.is_built_in_type(_val)
 			if st.method_val_is_built_in_type:
-				st.enabled = st.has_method_val_built_in_type
+				dt.method_val_built_in_type = _type.built_in_type(_val)
+			else:
+				dt.method_val_type = _val.get_class()
+				st.method_val_is_type = _str.is_valid(dt.val_type)
+		st.is_oneshot = _oneshot
+		if st.has_ref:
+			if st.method_takes_val:
+				st.enabled = st.method_val_is_built_in_type or st.method_val_is_type
+			else:
+				st.enabled = st.has_ref
 		if st.enabled:
 			_data = dt
 			_data.state = st
 
 
-func _ret_on_enabled(_val = null):
-	var ret_invalid = null
-	match typeof(_val):
-		TYPE_STRING:
-			ret_invalid = ""
-		TYPE_BOOL:
-			ret_invalid = false
-		TYPE_INT:
-			ret_invalid = 0
-	return _val if _data.state.enabled else ret_invalid
-
-
 # setters, getters functions
-func get_event_name():
-	return _ret_on_enabled(_data.event_name)
-
-
-func get_listener_name():
-	return _ret_on_enabled(_data.listener_name)
-
-
-func get_method_name():
-	return _ret_on_enabled(_data.method_name)
-
-
-func get_process_mode():
-	return _ret_on_enabled(_data.proc_mode)
-
-
-func get_has_event_name():
-	return _ret_on_enabled(_data.state.has_event_name)
-
-
 func get_method_takes_val():
-	return _ret_on_enabled(_data.state.method_takes_val)
+	return _data.state.method_takes_val
 
 
 func get_is_oneshot():
-	return _ret_on_enabled(_data.state.is_oneshot)
-
-
-func get_has_method():
-	return _ret_on_enabled(_data.state.has_method)
-
-
-func get_has_process_mode():
-	return _ret_on_enabled(_data.state.has_proc_mode)
-
-
-func get_has_listener_name():
-	return _ret_on_enabled(_data.state.has_listener_name)
-
-
-func get_has_listener_ref():
-	return _ret_on_enabled(_data.state.has_listener_ref)
+	return _data.state.is_oneshot
 
 
 func get_enabled():

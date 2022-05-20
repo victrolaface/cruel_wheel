@@ -16,6 +16,7 @@ func _init(_event_name = "", _val = null):
 	_on_init(true, _event_name, _val)
 
 
+# public methods
 func enable(_event_name = "", _val = null):
 	_on_init(true, _event_name, _val)
 	return _data.state.enabled
@@ -73,5 +74,6 @@ func _on_init(_do_init = false, _event_name = "", _val = null):
 			_data.state = st
 
 
+# setters, getters functions
 func get_enabled():
 	return _data.state.enabled

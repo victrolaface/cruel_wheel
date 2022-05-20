@@ -24,65 +24,63 @@ func _init():
 
 # public methods
 func add(_event_name = "", _val = null):
-	var added = false
+	var on_add = false
 	if _str.is_valid(_event_name):
 		var ev = QueuedEvent
 		var has_val = not _val == null
 		var add_ev = not has(_event_name)
 		var add_ev_val = add_ev && has_val
 		var add_val = not add_ev && has_val
-		var set_queued_ev = false
 		add_ev = add_ev && not has_val
 		if add_ev_val or add_ev:
 			if _data.to_recycle_amt > 0:
 				var idx = _data.to_recycle_amt - 1
 				ev = _data.to_recycle[idx]
-				set_queued_ev = ev.enable(_event_name, _val) if add_ev_val else ev.enable(_event_name)
+				on_add = ev.enable(_event_name, _val) if add_ev_val else ev.enable(_event_name)
 				_data.to_recycle.remove(idx)
 				_data.to_recycle_amt = idx
 			else:
 				ev = QueuedEvent.new(_event_name, _val) if add_ev_val else QueuedEvent.new(_event_name)
-				set_queued_ev = ev.enabled
-			if set_queued_ev:
+				on_add = ev.enabled
+			if on_add:
 				_data.events_amt = _int.incr(_data.events_amt)
 		elif add_val:
 			ev = _data.queue[_event_name]
-			set_queued_ev = ev.add_val(_val)
-		if set_queued_ev:
+			on_add = ev.add_val(_val)
+		if on_add:
 			_data.queue[_event_name] = ev
-			added = set_queued_ev
-	return added
+	return on_add
 
 
 func remove(_event_name = ""):
-	var rem = false
+	var on_rem = false
 	if _str.is_valid(_event_name) && has(_event_name):
 		var ev = _data.queue[_event_name]
-		rem = ev.disable()
-		if rem:
+		on_rem = ev.disable()
+		if on_rem:
 			_data.queue.erase(_event_name)
 			_data.events_amt = _int.decr(_data.events_amt)
 			_data.to_recycle.append(ev)
 			_data.to_recycle_amt = _int.incr(_data.to_recycle_amt)
-	return rem
+	return on_rem
 
 
 func add_val(_event_name = "", _val = null):
-	var added = false
+	var on_add = false
 	if _str.is_valid(_event_name) && has(_event_name):
 		var ev = _data.queue[_event_name]
 		if not ev.has_val(_val):
-			added = ev.add_val(_val)
-			if added:
+			on_add = ev.add_val(_val)
+			if on_add:
 				_data.queue[_event_name] = ev
-	return added
+	return on_add
 
 
 func has(_event_name = ""):
-	var h = false
+	var has_ev = false
 	if _str.is_valid(_event_name) && _data.events_amt > 0:
 		for e in _data.queue.keys():
-			h = _event_name == e
-			if h:
+			has_ev = _event_name == e
+			if has_ev:
 				break
-	return h
+	return has_ev
