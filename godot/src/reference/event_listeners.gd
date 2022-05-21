@@ -1,28 +1,33 @@
 tool
-class_name EventListeners extends Resource
+class_name EventListeners extends RecyclableItems
+
+export(bool) var has_listeners setget , get_has_listeners
 
 # fields
-var _str = StringUtility
-var _obj = ObjectUtility
+const _RES_PATH = "res://data/event_listeners.tres"
+
+var _storage = preload(_RES_PATH)
 var _arr = PoolArrayUtility
-var _int = IntUtility
 var _type = TypeUtility
 var _data = {}
 
 
 # private inherited methods
 func _init():
-	resource_local_to_scene = false
+	self.resource_local_to_scene = false
 	_data = {
 		"listeners": {},
 		"listeners_amt": 0,
-		"to_recycle": [],
-		"to_recycle_amt": 0,
-		"state":
-		{
-			"enabled": true,
-		}
 	}
+	var to_rec = []
+	var to_rec_amt = 0
+	if _storage.initialized:
+		if not _storage.enabled:
+			_storage.enable()
+		if not _storage.has_listeners && _storage.has_to_recycle:
+			to_rec = _storage.to_recycle
+			to_rec_amt = _storage.to_recycle_amt
+	.init("EventListener", to_rec, to_rec_amt)
 
 
 # public methods
@@ -106,3 +111,38 @@ func _has_listener(_event_name = "", _listener_name = ""):
 			if h:
 				break
 	return h
+
+
+# setters, getters functions
+func get_has_listeners():
+	return _has_listeners()
+
+#export(Array, Resource) var to_recycle setget , get_to_recycle
+#export(int) var to_recycle_amt setget , get_to_recycle_amt
+#export(bool) var has_to_recycle setget , get_has_to_recycle
+#export(bool) var enabled setget , get_enabled
+#export(bool) var initialized setget , get_initialized
+#func get_to_recycle():
+#	return _data.to_recycle
+#func get_to_recycle_amt():
+#	return _data.to_recycle_amt
+#func get_has_to_recycle():
+#	return _data.to_recycle_amt>0
+
+#func get_enabled():
+#	return _data.state.enabled
+
+#func get_initialized():
+#	retunr _data.state.initialized
+
+#var _str = StringUtility
+#var _obj = ObjectUtility
+
+#var _int = IntUtility
+
+#"to_recycle": [],
+#"to_recycle_amt": 0,
+#"state":
+#{
+#	"enabled": true,
+#}

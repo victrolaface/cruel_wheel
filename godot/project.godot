@@ -29,7 +29,7 @@ _global_script_classes=[ {
 "language": "GDScript",
 "path": "res://src/reference/event_listener.gd"
 }, {
-"base": "Resource",
+"base": "RecyclableItems",
 "class": "EventListeners",
 "language": "GDScript",
 "path": "res://src/reference/event_listeners.gd"
@@ -39,7 +39,7 @@ _global_script_classes=[ {
 "language": "GDScript",
 "path": "res://src/reference/event_manager.gd"
 }, {
-"base": "Resource",
+"base": "RecyclableItems",
 "class": "EventQueue",
 "language": "GDScript",
 "path": "res://src/reference/event_queue.gd"
@@ -139,10 +139,10 @@ _global_script_classes=[ {
 "language": "GDScript",
 "path": "res://src/reference/queued_event.gd"
 }, {
-"base": "ResourceItem",
-"class": "ResourceDatabase",
+"base": "Resource",
+"class": "RecyclableItems",
 "language": "GDScript",
-"path": "res://src/resource/resource_database.gd"
+"path": "res://src/resource/recyclable_items.gd"
 }, {
 "base": "Resource",
 "class": "ResourceItem",
@@ -221,7 +221,7 @@ _global_script_class_icons={
 "PathUtility": "",
 "PoolArrayUtility": "",
 "QueuedEvent": "",
-"ResourceDatabase": "",
+"RecyclableItems": "",
 "ResourceItem": "",
 "ResourceItemUtility": "",
 "SingletonManager": "",
