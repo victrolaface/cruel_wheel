@@ -1,3 +1,4 @@
+"""
 extends Node#ResourceItem
 
 #var #_entity = ResourceItem
@@ -19,3 +20,4 @@ func _ready():
 func _process():
 
 func _physics_process(_delta):
+"""

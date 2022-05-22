@@ -154,11 +154,6 @@ _global_script_classes=[ {
 "language": "GDScript",
 "path": "res://src/util/resource_item_utility.gd"
 }, {
-"base": "Node",
-"class": "SingletonManager",
-"language": "GDScript",
-"path": "res://src/node/singleton_manager.gd"
-}, {
 "base": "Reference",
 "class": "StringUtility",
 "language": "GDScript",
@@ -224,7 +219,6 @@ _global_script_class_icons={
 "RecyclableItems": "",
 "ResourceItem": "",
 "ResourceItemUtility": "",
-"SingletonManager": "",
 "StringUtility": "",
 "TabularBox": "",
 "TabularDataSourceBase": "",
