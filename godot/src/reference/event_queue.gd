@@ -89,7 +89,7 @@ func add_val(_event_name = "", _val = null):
 
 func has(_event_name = ""):
 	var has_ev = false
-	if _str.is_valid(_event_name) && _data.events_amt > 0:
+	if _str.is_valid(_event_name) && _has_events():
 		for e in _data.queue.keys():
 			has_ev = _event_name == e
 			if has_ev:
@@ -98,18 +98,18 @@ func has(_event_name = ""):
 
 
 # private helper methods
-func _on_enable(_do_en = true):
-	var en = _do_en && not self.enabled
-	var dis = not _do_en && self.enabled
+func _on_enable(_en = true):
+	var en = _en && not self.enabled
+	var dis = not _en && self.enabled
 	if dis:
 		var rec_amt = self.to_recycle_amt
-		var ev_amt = _data.events_amt
-		if ev_amt > 0:
+		var evs_amt = _data.events_amt
+		if _has_events():
 			for e in _data.queue.keys():
 				if remove(e):
-					ev_amt = _int.decr(ev_amt)
+					evs_amt = _int.decr(evs_amt)
 					rec_amt = _int.incr(rec_amt)
-		dis = ev_amt == _data.events_amt && rec_amt == self.to_recycle_amt
+		dis = evs_amt == 0 && evs_amt == _data.events_amt && rec_amt == self.to_recycle_amt
 		if dis && .on_disable():
 			dis = not self.enabled && ResourceSaver.save(_RES_PATH, self, ResourceSaver.FLAG_COMPRESS)
 	elif en:
@@ -117,6 +117,10 @@ func _on_enable(_do_en = true):
 	return dis or en
 
 
+func _has_events():
+	return _data.events_amt > 0
+
+
 # setters, getters functions
 func get_has_events():
-	return _data.events_amt > 0
+	return _has_events()

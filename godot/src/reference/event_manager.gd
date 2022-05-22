@@ -5,18 +5,27 @@ class_name EventManager extends Node
 signal register_event_manager
 
 # properties
-export(bool) var initialized setget, get_initialized
-export(bool) var has_queued_events setget, get_has_queued_events
-export(bool) var has_listeners setget, get_has_listeners
-export(bool) var enabled setget, get_enabled
+export(bool) var initialized setget , get_initialized
+export(bool) var has_queued_events setget , get_has_queued_events
+export(bool) var has_listeners setget , get_has_listeners
+export(bool) var enabled setget , get_enabled
+
 
 func get_initialized():
 	return _data.state.initialized
 
+
 func get_has_queued_events():
-	return _data.event_queue.
+	pass
+
+
 func get_has_listeners():
+	pass
+
+
 func get_enabled():
+	pass
+
 
 # fields
 #const _EVENT_MANAGER_PATH = "res://data/event_manager.tres"
@@ -85,8 +94,8 @@ func _on_init(_do_init = true):
 		}
 	}
 	if _do_init:
-		if _event_mgr_res
-		
+		#if _event_mgr_res
+
 		_data.event_queue = EventQueue.new()
 		_data.listeners = EventListeners.new()
 	_data.state.enabled = _connect_register_listeners(_do_init) if _do_init else not _connect_register_listeners(_do_init)
