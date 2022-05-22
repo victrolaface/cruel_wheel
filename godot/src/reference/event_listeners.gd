@@ -36,9 +36,19 @@ func disable():
 	return _on_enable(false)
 
 
+func has_event(_event_name = ""):
+	var has_ev = false
+	if _is_event(_event_name):
+		for e in _listener_events_keys():
+			has_ev = e == _event_name
+			if has_ev:
+				break
+	return has_ev
+
+
 func has(_event_name = "", _listener_name = ""):
 	var has_ls = false
-	if _is_event(_event_name) && _has_listeners():
+	if has_event(_event_name) && _has_listeners():
 		for e in _listener_events_keys():
 			if e == _event_name:
 				for l in _event_listeners_keys(e):

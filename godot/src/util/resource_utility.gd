@@ -1,4 +1,4 @@
-class_name ResourceItemUtility
+class_name ResourceUtility
 
 # fields
 const _SEPERATOR = "-"
@@ -122,6 +122,17 @@ static func is_valid(_res_itm = null):
 				local_valid = not _res_itm.resource_local_to_scene
 			name_valid = _res_itm.name == name && _res_itm.resource_name == name
 	return path_valid && class_valid && local_valid && name_valid
+
+
+func is_resource(_obj = null):
+	var res_path = _obj.resource_path
+	return (
+		not _obj == null
+		&& _obj.is_class("Resource")
+		&& PathUtility.is_valid(res_path)
+		&& res_path.begins_with("res://")
+		&& res_path.find("::") == -1
+	)
 
 
 # private helper methods

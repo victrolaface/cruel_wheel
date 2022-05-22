@@ -16,6 +16,9 @@ func _init():
 	_data = {
 		"queue": {},
 		"events_amt": 0,
+		"state": {
+			"enabled": false,
+		}
 	}
 	var to_rec = []
 	var to_rec_amt = 0

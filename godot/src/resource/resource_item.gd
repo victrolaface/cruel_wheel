@@ -1,3 +1,4 @@
+"""
 tool
 class_name ResourceItem extends Resource
 
@@ -223,3 +224,4 @@ func unhandled_input(_event: InputEvent):
 
 func unhandled_key_input(_event: InputEvent):
 	pass
+"""
