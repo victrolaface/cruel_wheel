@@ -2,18 +2,22 @@ class_name EventManager extends Node
 
 # signals
 # warning-ignore-all:UNUSED_SIGNAL
+signal node_added_to_scene_tree
 signal request_subscribers
 signal subscribe_request(_event_name, _ref, _method, _val, _oneshot)
 signal add_to_event_queue(_event_name, _val)
 signal unsubscribe_request(_event_name, _ref)
-signal request_unsub
+signal request_unsubscribe
 
 # fields
-enum _SIGNAL_TYPE { NONE = 0, REQ_SUBS = 1, SUB_REQ = 2, ADD_EV_QUEUE = 3, UNSUB_REQ = 4 }
-const _SUB_REQ_SIGNAL = "subscribe_request"
+enum _SIGNAL_TYPE { NONE = 0, NODE_ADD = 1, REQ_SUBS = 2, SUB_REQ = 3, ADD_EV_QUEUE = 4, UNSUB_REQ = 5, REQ_UNSUB = 6 }
+const _NODE_ADD_SIGNAL = "node_added_to_scene_tree"
 const _REQ_SUBS_SIGNAL = "request_subscribers"
-const _UNSUB_REQ_SIGNAL = "unsubscribe_request"
+const _SUB_REQ_SIGNAL = "subscribe_request"
 const _ADD_EV_QUEUE_SIGNAL = "add_to_event_queue"
+const _UNSUB_REQ_SIGNAL = "unsubscribe_request"
+const _REQ_UNSUB_SIGNAL = "request_unsubscribe"
+const _REQ_UNSUB_SIGNAL_FUNC = "_on_request_unsubscribe"
 const _SEPERATOR = "-"
 
 var _str = StringUtility
@@ -65,10 +69,12 @@ func _on_init(_do_init = true):
 		"state":
 		{
 			"enabled": false,
+			"node_added_to_scene_tree_connected": false,
 			"request_subscribers_connected": false,
 			"subscribe_request_connected": false,
 			"add_to_event_queue_connected": false,
 			"unsubscribe_request_connected": false,
+			"request_unsubscribe_connected": false,
 		}
 	}
 	if _do_init:
@@ -78,9 +84,13 @@ func _on_init(_do_init = true):
 		if _data.state.enabled:
 			emit_signal(_REQ_SUBS_SIGNAL)
 	else:
-		var disabled = _data.event_queue.disable() && _data.listeners.disable() && _connect_signals(_do_init)
-		if not disabled:
-			_data.state.enabled = not disabled
+		if _data.state.enabled:
+			emit_signal(_REQ_UNSUB_SIGNAL)
+			_data.state.enabled = not (
+				_data.event_queue.disable()
+				&& _data.listeners.disable()
+				&& _connect_signals(_do_init)
+			)
 
 
 func _connect_signals(_connect = true):
@@ -92,6 +102,9 @@ func _connect_signals(_connect = true):
 		var on_connect_or_disconnect = true
 		match signal_type:
 			_SIGNAL_TYPE.NONE:
+				signal_type = _SIGNAL_TYPE.NODE_ADD
+				signal_func = "_on_node_added_to_scene_tree"
+			_SIGNAL_TYPE.NODE_ADD:
 				signal_type = _SIGNAL_TYPE.REQ_SUBS
 				signal_func = "_on_request_subscribers"
 			_SIGNAL_TYPE.REQ_SUBS:
@@ -104,38 +117,58 @@ func _connect_signals(_connect = true):
 				signal_type = _SIGNAL_TYPE.UNSUB_REQ
 				signal_func = "_on_unsubscribe_request"
 			_SIGNAL_TYPE.UNSUB_REQ:
+				signal_type = _SIGNAL_TYPE.REQ_UNSUB
+				signal_func = "_on_request_unsubscribe"
+			_SIGNAL_TYPE.REQ_UNSUB:
 				signal_type = _SIGNAL_TYPE.NONE
 		if signal_type == _SIGNAL_TYPE.NONE:
 			all_connected_or_disconnected = true
 			connecting_or_disconnecting = false
-		elif _connect && not is_connected(signal_type, self, signal_func):
-			var connected = false
-			var ev_name = ""
-			var ref = null
-			var val = null
+		elif _connect:
+			var is_connected = false
 			match signal_type:
-				_SIGNAL_TYPE.REQ_SUBS:
-					if connect(signal_type, self, signal_func, [], CONNECT_DEFERRED):
-						_data.state.request_subscribers_connected = true
-					connected = _data.state.request_subscribers_connected
-				_SIGNAL_TYPE.SUB_REQ:
-					if connect(signal_type, self, signal_func, [ev_name, ref, "", val, false], CONNECT_DEFERRED):
-						_data.state.subscribe_request_connected = true
-					connected = _data.state.subscribe_request_connected
-				_SIGNAL_TYPE.ADD_EV_QUEUE:
-					if connect(signal_type, self, signal_func, [ev_name, val], CONNECT_DEFERRED):
-						_data.state.add_event_to_queue_connected = true
-					connected = _data.state.add_event_to_queue_connected
-				_SIGNAL_TYPE.UNSUB_REQ:
-					if connect(signal_type, self, signal_func, [ev_name, ref], CONNECT_DEFERRED):
-						_data.state.unsubscribe_request_connected = true
-					connected = _data.state.unsubscribe_request_connected
-			if not connected:
-				on_connect_or_disconnect = false
+				_SIGNAL_TYPE.NODE_ADD:
+					is_connected = get_tree().is_connected(signal_type, self, signal_func)
+				_:
+					is_connected = is_connected(signal_type, self, signal_func)
+			if not is_connected:
+				var connected = false
+				var ev_name = ""
+				var ref = null
+				var val = null
+				match signal_type:
+					_SIGNAL_TYPE.NODE_ADD:
+						if get_tree().connect(signal_type, self, signal_func, [null], CONNECT_DEFERRED):
+							_data.state.node_added_to_scene_tree_connected = true
+						connected = _data.state.node_added_to_scene_tree_connected
+					_SIGNAL_TYPE.REQ_SUBS:
+						if connect(signal_type, self, signal_func, [], CONNECT_DEFERRED):
+							_data.state.request_subscribers_connected = true
+						connected = _data.state.request_subscribers_connected
+					_SIGNAL_TYPE.SUB_REQ:
+						if connect(signal_type, self, signal_func, [ev_name, ref, "", val, false], CONNECT_DEFERRED):
+							_data.state.subscribe_request_connected = true
+						connected = _data.state.subscribe_request_connected
+					_SIGNAL_TYPE.ADD_EV_QUEUE:
+						if connect(signal_type, self, signal_func, [ev_name, val], CONNECT_DEFERRED):
+							_data.state.add_event_to_queue_connected = true
+						connected = _data.state.add_event_to_queue_connected
+					_SIGNAL_TYPE.UNSUB_REQ:
+						if connect(signal_type, self, signal_func, [ev_name, ref], CONNECT_DEFERRED):
+							_data.state.unsubscribe_request_connected = true
+						connected = _data.state.unsubscribe_request_connected
+					_SIGNAL_TYPE.REQ_UNSUB:
+						if connect(signal_type, self, signal_func, [], CONNECT_DEFERRED):
+							_data.state.request_unsubscribe_connected = true
+						connected = _data.state.request_unsubscribe_connected
+				if not connected:
+					on_connect_or_disconnect = false
 		elif not _connect && is_connected(signal_type, self, signal_func):
 			disconnect(signal_type, self, signal_func)
 			if not is_connected(signal_type, self, signal_func):
 				match signal_type:
+					_SIGNAL_TYPE.NODE_ADD:
+						_data.state.node_added_to_scene_tree_connected = false
 					_SIGNAL_TYPE.REQ_SUBS:
 						_data.state.request_subscribers_connected = false
 					_SIGNAL_TYPE.SUB_REQ:
@@ -144,6 +177,8 @@ func _connect_signals(_connect = true):
 						_data.state.add_to_event_queue_connected = false
 					_SIGNAL_TYPE.UNSUB_REQ:
 						_data.state.unsubscribe_request_connected = false
+					_SIGNAL_TYPE.REQ_UNSUB:
+						_data.state.request_unsubscribe_connected = false
 			else:
 				on_connect_or_disconnect = false
 		if not on_connect_or_disconnect:
@@ -152,31 +187,8 @@ func _connect_signals(_connect = true):
 
 
 func _proc_queue_and_listeners():
+	# proc event queue
 	pass
-
-
-# signal methods
-func _on_subscribe_request(_event_name = "", _ref = null, _method = "", _val = null, _oneshot = false):
-	var ref_valid = _proc_ref_valid(_event_name, _ref, _method)
-	var listener_valid = (
-		ref_valid
-		if _val == null
-		else ref_valid && (not _type.built_in_type(_val) == 0 or _type.is_type_object(_val))
-	)
-	if listener_valid:
-		var listener_name = _proc_listener_name(_ref)
-		if _str.is_valid(listener_name):
-			_data.listeners.add(_event_name, listener_name, _ref, _method, _val, _oneshot)
-
-
-func _on_add_to_event_queue(_event_name = "", _val = null):
-	if _has_listeners() && _data.listeners.has_event(_event_name):
-		_data.event_queue.add(_event_name, _val)
-
-
-func _on_unsubscribe_request(_event_name = "", _ref = null):
-	if _proc_ref_valid(_event_name, _ref):
-		_data.listeners.remove(_event_name, _proc_listener_name(_ref))
 
 
 func _has_listeners():
@@ -204,3 +216,40 @@ func _proc_listener_name(_ref = null):
 			elif not is_res_loc or not is_node_inst:
 				ls_name = ls_name + "global"
 	return ls_name
+
+
+# signal methods
+func _on_node_added_to_scene_tree(_nde = null):
+	if not _nde == null:
+		emit_signal(_REQ_SUBS_SIGNAL)
+
+
+func _on_request_subscribers():
+	pass
+
+
+func _on_subscribe_request(_event_name = "", _ref = null, _method = "", _val = null, _oneshot = false):
+	var ref_valid = _proc_ref_valid(_event_name, _ref, _method)
+	var listener_valid = (
+		ref_valid
+		if _val == null
+		else ref_valid && (not _type.built_in_type(_val) == 0 or _type.is_type_object(_val))
+	)
+	if listener_valid:
+		var listener_name = _proc_listener_name(_ref)
+		if _str.is_valid(listener_name):
+			_data.listeners.add(_event_name, listener_name, _ref, _method, _val, _oneshot)
+
+
+func _on_add_to_event_queue(_event_name = "", _val = null):
+	if _has_listeners() && _data.listeners.has_event(_event_name):
+		_data.event_queue.add(_event_name, _val)
+
+
+func _on_unsubscribe_request(_event_name = "", _ref = null):
+	if _proc_ref_valid(_event_name, _ref):
+		_data.listeners.remove(_event_name, _proc_listener_name(_ref))
+
+
+func _on_request_unsubscribe():
+	pass
