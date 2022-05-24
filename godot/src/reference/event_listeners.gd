@@ -6,6 +6,7 @@ export(bool) var has_listeners setget , get_has_listeners
 # fields
 const _RES_PATH = "res://data/event_listeners.tres"
 
+var _type = TypeUtility
 var _storage = preload(_RES_PATH)
 var _data = {}
 
@@ -36,7 +37,7 @@ func disable():
 	return _on_enable(false)
 
 
-func has_event(_event_name = ""):
+func _has_event(_event_name = ""):
 	var has_ev = false
 	if _is_event(_event_name):
 		for e in _listener_events_keys():
@@ -48,7 +49,7 @@ func has_event(_event_name = ""):
 
 func has(_event_name = "", _listener_name = ""):
 	var has_ls = false
-	if has_event(_event_name) && _has_listeners():
+	if _has_event(_event_name) && _has_listeners():
 		for e in _listener_events_keys():
 			if e == _event_name:
 				for l in _event_listeners_keys(e):
@@ -79,6 +80,109 @@ func add(_event = "", _listener = "", _ref = null, _method = "", _val = null, _o
 				_data.listeners[_event[_listener]] = ls
 				_data.listeners_amt = _int.incr(_data.listeners_amt)
 	return on_add
+
+
+#func pop(_event_name=""):
+#	var ls = null
+#	if _has_events() && has_event(_event_name):
+#		ls
+
+
+func call_listeners(_event_name = "", _vals_arr = []):
+	var called_listeners = false
+	if _has_events() && _has_event(_event_name):
+		var e = _event_name
+		var listener_names = _event_listeners_keys()
+		var vals_are_obj_type = false
+		var vals_are_built_in_type = false
+		var vals_built_in_type = 0
+		var vals_obj_type = ""
+		if _vals_arr.size() > 0:
+			var idx = 0
+			var init = false
+			var incr_idx = false
+			for v in _vals_arr:
+				if not v == null:
+					if idx == 0:
+						vals_are_built_in_type = _type.is_built_in_type(v)
+						if vals_are_built_in_type:
+							vals_built_in_type = _type.built_in_type(v)
+							init = vals_are_built_in_type && not vals_built_in_type == 0
+						else:
+							vals_are_obj_type = _type.is_type_object(v)
+							if vals_are_obj_type:
+								vals_obj_type = v.get_class()
+								init = vals_are_obj_type && _str.is_valid(vals_obj_type)
+					else:
+						if vals_are_built_in_type:
+							incr_idx = _type.built_in_type(v) == vals_built_in_type
+						elif vals_are_obj_type:
+							incr_idx = v.get_class() == vals_obj_type
+					if init:
+						incr_idx = init
+					if incr_idx:
+						idx = _int.incr(idx)
+					else:
+						break
+				else:
+					break
+		for n in listener_names:
+			var called_listener = false
+			var is_oneshot = _data.listeners[e[n]].is_oneshot
+			if (
+				_data.listeners[e[n]].takes_val
+				&& (
+					(
+						_data.listeners[e[n]].takes_val_built_in
+						&& vals_are_built_in_type
+						&& _data.listeners[e[n]].val_built_in_type == vals_built_in_type
+					)
+					or (
+						_data.listeners[e[n]].takes_val_obj
+						&& vals_are_obj_type
+						&& _data.listeners[e[n]].val_obj_type == vals_obj_type
+					)
+				)
+			):
+				if is_oneshot:
+					called_listener = _data.listeners[e[n]].call_funcref(_vals_arr[0])
+				else:
+					for v in _vals_arr:
+						called_listener = _data.listeners[e[n]].call_funcref(v)
+						if not called_listener:
+							break
+			else:
+				called_listener = _data.listeners[e[n]].call_funcref()
+			if called_listener:
+				called_listeners = remove(e, n) if is_oneshot else true
+			if not called_listeners:
+				break
+	return called_listeners
+
+
+#func takes_val(_event_name="", _listener_name=""):
+#	var takes_val = false
+#	if _has_events() && has(_event_name, _listener_name):
+#		takes_val = _data.listeners[_event_name[_listener_name]].takes_val
+#	return takes_val
+
+#func takes_val_obj(_event_name="", _listener_name=""):
+#	var takes_val_obj = false
+#	if _has_events() && has(_event_name, _listener_name):
+#		takes_val_obj = _data.listeners[_event_name[_listener_name]].takes_val_obj
+#	return takes_val_obj
+
+#func takes_val_built_in(_event_name="", _listener_name=""):
+#	var takes_val_built_in=false
+#	if _has_events() && has(_event_name, _listener_name):
+#		takes_val_built_in = _data.listeners[_event_name[_listener_name]].takes_val_built_in
+#	return takes_val_built_in
+
+#func is_oneshot(_event_name = "", _listener_name = ""):
+#	var is_oneshot = false
+#	if _has_events() && has(_event_name, _listener_name):
+#		is_oneshot = _data.listeners[_event_name[_listener_name]].is_oneshot
+#	return is_oneshot
 
 
 func remove(_event_name = "", _listener_name = ""):
@@ -162,3 +266,11 @@ func _event_listeners_keys(_event_name = ""):
 # setters, getters functions
 func get_has_listeners():
 	return _has_listeners()
+
+
+func get_event_keys():
+	return _listener_events_keys()
+
+
+func event_listeners_keys(_event_name = ""):
+	return _event_listeners_keys(_event_name)

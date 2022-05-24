@@ -25,6 +25,7 @@ var _obj = ObjectUtility
 var _type = TypeUtility
 var _res = ResourceUtility
 var _node = NodeUtility
+var _int = IntUtility
 var _data = {}
 
 
@@ -187,8 +188,33 @@ func _connect_signals(_connect = true):
 
 
 func _proc_queue_and_listeners():
-	# proc event queue
-	pass
+	if _has_queued_events() && _has_listeners():
+		var queued_event_keys = _data.event_queue.queued_event_keys
+		var init_queued_ev_amt = queued_event_keys.size()
+		var ls_event_keys = _data.listeners.event_keys
+		if init_queued_ev_amt > 0 && ls_event_keys.size() > 0:
+			var called_events = false
+			var called_listeners = false
+			var on_ev = false
+			var queued_ev_amt = init_queued_ev_amt
+			for le in ls_event_keys:
+				for qe in queued_event_keys:
+					on_ev = qe == le
+					if on_ev:
+						var queued_ev = _data.event_queue.pop(qe)
+						if not queued_ev == null:
+							queued_ev_amt = _int.decr(queued_ev_amt)
+							var vals = queued_ev.vals if queued_ev.has_values else []
+							called_listeners = _data.listeners.call_listeners(le, vals)
+							if not called_listeners:
+								break
+			called_events = queued_ev_amt == _data.event_queue.events_amt
+			if not called_events:
+				_data.event_queue.empty_queue()
+
+
+func _has_queued_events():
+	return _data.state.enabled && _data.event_queue.enabled && _data.event_queue.has_events
 
 
 func _has_listeners():
