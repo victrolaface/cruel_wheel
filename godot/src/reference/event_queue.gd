@@ -2,19 +2,14 @@ tool
 class_name EventQueue extends RecyclableItems
 
 # properties
+export(int) var events_amt setget , get_events_amt
 export(bool) var has_events setget , get_has_events
 export(Array, String) var event_keys setget , get_event_keys
-export(int) var events_amt setget , get_events_amt
-#export(Resource) var queued_event setget , get_queued_event
+
 # fields
 const _RES_PATH = "res://data/event_queue.tres"
-
 var _storage = preload(_RES_PATH)
 var _data = {}
-
-
-func get_events_amt():
-	return _data.events_amt  #_events_amt()
 
 
 # private inherited methods
@@ -74,37 +69,14 @@ func add(_event_name = "", _val = null):
 	return on_add
 
 
-func remove(_event_name = ""):
-	var on_rem = false
-	if _str.is_valid(_event_name) && has(_event_name):
-		var ev = _data.queue[_event_name]
-		on_rem = ev.disable()
-		if on_rem:
-			_data.queue.erase(_event_name)
-			_data.events_amt = _int.decr(_data.events_amt)
-			on_rem = .add_to_recycled(ev)
-	return on_rem
-
-
 func pop(_event_name = ""):
 	var ev = null
 	if has(_event_name):
 		ev = _data.queue[_event_name]
 		if not ev == null:
-			if not remove(_event_name):
+			if not _remove(_event_name):
 				ev = null
 	return ev
-
-
-func add_val(_event_name = "", _val = null):
-	var on_add = false
-	if _str.is_valid(_event_name) && has(_event_name):
-		var ev = _data.queue[_event_name]
-		if not ev.has_val(_val):
-			on_add = ev.add_val(_val)
-			if on_add:
-				_data.queue[_event_name] = ev
-	return on_add
 
 
 func has(_event_name = ""):
@@ -117,46 +89,67 @@ func has(_event_name = ""):
 	return has_ev
 
 
-func _queue_keys():
-	return _data.queue.keys()
-
-
 func empty_queue():
 	var on_empty = false
-	###########################################################################################
+	var evs_amt = _data.events_amt
+	if _has_events():
+		for e in _queue_keys():
+			if _remove(e):
+				evs_amt = _int.decr(evs_amt)
+		if not evs_amt == 0:
+			_data.queue.clear()
+			_data.events_amt = 0
 	return on_empty
 
 
 # private helper methods
 func _on_enable(_en = true):
-	var en = _en && not self.enabled
-	var dis = not _en && self.enabled
-	if dis:
+	var on_enable = _en && not self.enabled
+	var on_disable = not _en && self.enabled
+	var saved_on_disable = false
+	if on_enable:
+		_init()
+	elif on_disable:
 		var rec_amt = self.to_recycle_amt
 		var evs_amt = _data.events_amt
 		if _has_events():
 			for e in _queue_keys():
-				if remove(e):
+				if _remove(e):
 					evs_amt = _int.decr(evs_amt)
 					rec_amt = _int.incr(rec_amt)
-		dis = evs_amt == 0 && evs_amt == _data.events_amt && rec_amt == self.to_recycle_amt
-		if dis && .on_disable():
-			dis = not self.enabled && ResourceSaver.save(_RES_PATH, self, ResourceSaver.FLAG_COMPRESS)
-	elif en:
-		_init()
-	return dis or en
+		if evs_amt == 0 && evs_amt == _data.events_amt && rec_amt == self.to_recycle_amt && .on_disable():
+			saved_on_disable = not self.enabled && ResourceSaver.save(_RES_PATH, self, ResourceSaver.FLAG_COMPRESS)
+	return on_enable or saved_on_disable
+
+
+func _remove(_event_name = ""):
+	var on_rem = false
+	if _str.is_valid(_event_name) && has(_event_name):
+		var ev = _data.queue[_event_name]
+		on_rem = ev.disable()
+		if on_rem:
+			_data.queue.erase(_event_name)
+			_data.events_amt = _int.decr(_data.events_amt)
+			on_rem = .add_to_recycled(ev)
+	return on_rem
 
 
 func _has_events():
 	return _data.events_amt > 0
 
 
+func _queue_keys():
+	return _data.queue.keys()
+
+
 # setters, getters functions
+func get_events_amt():
+	return _data.events_amt
+
+
 func get_has_events():
 	return _has_events()
 
 
 func get_event_keys():
 	return _queue_keys() if _has_events() else []
-	#var evs=[]
-	#if _has_events():

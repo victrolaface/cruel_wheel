@@ -189,7 +189,7 @@ func _connect_signals(_connect = true):
 
 func _proc_queue_and_listeners():
 	if _has_queued_events() && _has_listeners():
-		var queued_event_keys = _data.event_queue.queued_event_keys
+		var queued_event_keys = _data.event_queue.event_keys
 		var init_queued_ev_amt = queued_event_keys.size()
 		var ls_event_keys = _data.listeners.event_keys
 		if init_queued_ev_amt > 0 && ls_event_keys.size() > 0:

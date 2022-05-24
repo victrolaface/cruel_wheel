@@ -1,11 +1,12 @@
 tool
 class_name EventListeners extends RecyclableItems
 
+# properties
 export(bool) var has_listeners setget , get_has_listeners
+export(Array, String) var event_keys setget , get_event_keys
 
 # fields
 const _RES_PATH = "res://data/event_listeners.tres"
-
 var _type = TypeUtility
 var _storage = preload(_RES_PATH)
 var _data = {}
@@ -37,31 +38,24 @@ func disable():
 	return _on_enable(false)
 
 
-func _has_event(_event_name = ""):
-	var has_ev = false
-	if _is_event(_event_name):
-		for e in _listener_events_keys():
-			has_ev = e == _event_name
-			if has_ev:
-				break
-	return has_ev
-
-
 func has(_event_name = "", _listener_name = ""):
 	var has_ls = false
-	if _has_event(_event_name) && _has_listeners():
+	var has_ev = _has_event(_event_name)
+	var has_ev_ls = false
+	if has_ev && _has_listeners():
 		for e in _listener_events_keys():
 			if e == _event_name:
 				for l in _event_listeners_keys(e):
 					has_ls = l == _listener_name
 					if has_ls:
 						break
-	return has_ls
+		has_ev_ls = has_ev && has_ls
+	return has_ev_ls
 
 
 func add(_event = "", _listener = "", _ref = null, _method = "", _val = null, _oneshot = false):
 	var on_add = false
-	if _names_valid(_event, _listener) && not has(_event, _listener) && _obj.is_valid(_ref, _method):
+	if _is_event(_event) && _str.is_valid(_listener) && not has(_event, _listener) && _obj.is_valid(_ref, _method):
 		var has_ev = false
 		if _has_events() && _is_event(_event):
 			for e in _listener_events_keys():
@@ -82,17 +76,11 @@ func add(_event = "", _listener = "", _ref = null, _method = "", _val = null, _o
 	return on_add
 
 
-#func pop(_event_name=""):
-#	var ls = null
-#	if _has_events() && has_event(_event_name):
-#		ls
-
-
 func call_listeners(_event_name = "", _vals_arr = []):
 	var called_listeners = false
 	if _has_events() && _has_event(_event_name):
 		var e = _event_name
-		var listener_names = _event_listeners_keys()
+		var listener_names = _event_listeners_keys(_event_name)
 		var vals_are_obj_type = false
 		var vals_are_built_in_type = false
 		var vals_built_in_type = 0
@@ -160,31 +148,6 @@ func call_listeners(_event_name = "", _vals_arr = []):
 	return called_listeners
 
 
-#func takes_val(_event_name="", _listener_name=""):
-#	var takes_val = false
-#	if _has_events() && has(_event_name, _listener_name):
-#		takes_val = _data.listeners[_event_name[_listener_name]].takes_val
-#	return takes_val
-
-#func takes_val_obj(_event_name="", _listener_name=""):
-#	var takes_val_obj = false
-#	if _has_events() && has(_event_name, _listener_name):
-#		takes_val_obj = _data.listeners[_event_name[_listener_name]].takes_val_obj
-#	return takes_val_obj
-
-#func takes_val_built_in(_event_name="", _listener_name=""):
-#	var takes_val_built_in=false
-#	if _has_events() && has(_event_name, _listener_name):
-#		takes_val_built_in = _data.listeners[_event_name[_listener_name]].takes_val_built_in
-#	return takes_val_built_in
-
-#func is_oneshot(_event_name = "", _listener_name = ""):
-#	var is_oneshot = false
-#	if _has_events() && has(_event_name, _listener_name):
-#		is_oneshot = _data.listeners[_event_name[_listener_name]].is_oneshot
-#	return is_oneshot
-
-
 func remove(_event_name = "", _listener_name = ""):
 	var on_rem = false
 	if _has_events() && has(_event_name, _listener_name):
@@ -199,9 +162,12 @@ func remove(_event_name = "", _listener_name = ""):
 
 # private helper methods
 func _on_enable(_en = true):
-	var en = _en && not self.enabled
-	var dis = not _en && self.enabled
-	if dis:
+	var on_enable = _en && not self.enabled
+	var on_disable = not _en && self.enabled
+	var saved_on_disabled = false
+	if on_enable:
+		_init()
+	elif on_disable:
 		if _data.listeners_amt > 0:
 			var ls_amt = 0
 			var total_ls_amt = _data.listeners_amt
@@ -218,7 +184,7 @@ func _on_enable(_en = true):
 						if ls_amt == 0:
 							_data.listeners.erase(e)
 							evs_amt = _int.decr(evs_amt)
-			dis = (
+			on_disable = (
 				total_ls_amt == 0
 				&& total_ls_amt == _data.listeners_amt
 				&& evs_amt == 0
@@ -228,15 +194,19 @@ func _on_enable(_en = true):
 				&& not _has_events()
 				&& rec_amt == self.to_recycle_amt
 			)
-		if dis && .on_disable():
-			dis = not self.enabled && ResourceSaver.save(_RES_PATH, self, ResourceSaver.FLAG_COMPRESS)
-	elif en:
-		_init()
-	return dis or en
+		if on_disable && .on_disable():
+			saved_on_disabled = not self.enabled && ResourceSaver.save(_RES_PATH, self, ResourceSaver.FLAG_COMPRESS)
+	return on_enable or saved_on_disabled
 
 
-func _names_valid(_event_name = "", _listener_name = ""):
-	return _is_event(_event_name) && _str.is_valid(_listener_name)
+func _has_event(_event_name = ""):
+	var has_ev = false
+	if _is_event(_event_name):
+		for e in _listener_events_keys():
+			has_ev = e == _event_name
+			if has_ev:
+				break
+	return has_ev
 
 
 func _is_event(_event_name = ""):
@@ -270,7 +240,3 @@ func get_has_listeners():
 
 func get_event_keys():
 	return _listener_events_keys()
-
-
-func event_listeners_keys(_event_name = ""):
-	return _event_listeners_keys(_event_name)

@@ -2,11 +2,11 @@ tool
 class_name RecyclableItems extends Resource
 
 # properties
-export(Array, Resource) var to_recycle setget , get_to_recycle
-export(bool) var has_to_recycle setget , get_has_to_recycle
+export(int) var to_recycle_amt setget , get_to_recycle_amt
 export(bool) var initialized setget , get_initialized
 export(bool) var enabled setget , get_enabled
-export(int) var to_recycle_amt setget , get_to_recycle_amt
+export(bool) var has_to_recycle setget , get_has_to_recycle
+export(Array, Resource) var to_recycle setget , get_to_recycle
 
 # fields
 var _str = StringUtility
@@ -63,19 +63,8 @@ func _has_to_recycle():
 
 
 # setters, getters functions
-func get_to_recycle():
-	var to_rec = []
-	if _has_to_recycle():
-		to_rec = _data_internal.to_recycle
-	return to_rec
-
-
 func get_to_recycle_amt():
 	return _data_internal.to_recycle.size()
-
-
-func get_has_to_recycle():
-	return _has_to_recycle()
 
 
 func get_initialized():
@@ -84,3 +73,14 @@ func get_initialized():
 
 func get_enabled():
 	return _data_internal.state.enabled
+
+
+func get_has_to_recycle():
+	return _has_to_recycle()
+
+
+func get_to_recycle():
+	var to_rec = []
+	if _has_to_recycle():
+		to_rec = _data_internal.to_recycle
+	return to_rec

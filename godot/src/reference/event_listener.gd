@@ -2,7 +2,6 @@ tool
 class_name EventListener extends Resource
 
 # properties
-#export(bool) var method_takes_val setget , get_method_takes_val
 export(int) var val_built_in_type setget , get_val_built_in_type
 export(bool) var is_oneshot setget , get_is_oneshot
 export(bool) var takes_val setget , get_takes_val
@@ -17,17 +16,6 @@ var _str = StringUtility
 var _type = TypeUtility
 var _data = {}
 
-func get_val_built_in_type():
-	var built_in_type = 0
-	if _data.state.method_takes_val && _data.state.method_val_is_built_in_type:
-		built_in_type = _data.method_val_built_in_type
-	return built_in_type
-
-func get_val_obj_type():
-	var obj_type = ""
-	if _data.state.method_takes_val && _data.state.method_val_is_type:
-		obj_type = _data.method_val_type
-	return obj_type
 
 # private inherited methods
 func _init(_ref = null, _method = "", _val = null, _oneshot = false):
@@ -44,8 +32,14 @@ func enable(_ref = null, _method = "", _val = null, _oneshot = false):
 func call_funcref(_val = null):
 	var called = false
 	if _data.state.enabled:
-		if not _val == null && _data.state.method_takes_val && _method_takes(_val):
-			_data.method_funcref.call_func(_val)
+		if not _val == null && _data.state.method_takes_val:
+			var method_takes_val_type = false
+			if _type.is_built_in_type(_val) && _data.state.method_val_is_built_in_type:
+				method_takes_val_type = _type.built_in_type(_val) == _data.method_val_built_in_type
+			if not method_takes_val_type:
+				method_takes_val_type = _val.get_class() == _data.state.method_val_type
+			if method_takes_val_type:
+				_data.method_funcref.call_func(_val)
 		else:
 			_data.method_funcref.call_func()
 		called = true
@@ -55,16 +49,6 @@ func call_funcref(_val = null):
 func disable():
 	_on_init(false)
 	return not _data.state.enabled
-
-
-func _method_takes(_val = null):
-	var takes = false
-	if not _val == null && _data.state.method_takes_val:
-		if _type.is_built_in_type(_val) && _data.state.method_val_is_built_in_type:
-			takes = _type.built_in_type(_val) == _data.method_val_built_in_type
-		if not takes:
-			takes = _val.get_class() == _data.state.method_val_type
-	return takes
 
 
 # private helper functions
@@ -111,8 +95,11 @@ func _on_init(_do_init = false, _ref = null, _method = "", _val = null, _oneshot
 
 
 # setters, getters functions
-#func get_method_takes_val():
-#	return _data.state.method_takes_val
+func get_val_built_in_type():
+	var built_in_type = 0
+	if _data.state.method_takes_val && _data.state.method_val_is_built_in_type:
+		built_in_type = _data.method_val_built_in_type
+	return built_in_type
 
 
 func get_is_oneshot():
@@ -133,3 +120,10 @@ func get_takes_val_built_in():
 
 func get_enabled():
 	return _data.state.enabled
+
+
+func get_val_obj_type():
+	var obj_type = ""
+	if _data.state.method_takes_val && _data.state.method_val_is_type:
+		obj_type = _data.method_val_type
+	return obj_type

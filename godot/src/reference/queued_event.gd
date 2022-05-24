@@ -3,10 +3,6 @@ class_name QueuedEvent extends Resource
 
 # properties
 export(bool) var enabled setget , get_enabled
-export(bool) var has_values setget , get_has_values
-#export(int) var vals_amt setget , get_vals_amt
-#export(bool) var has_vals setget , get_has_vals
-#export(bool) var has_val setget , get_has_val
 
 # fields
 var _str = StringUtility
@@ -32,39 +28,19 @@ func disable():
 
 
 func add_val(_val = null):
-	var on_add = not _val == null && not has_val(_val)
-	if on_add:
-		_data.vals.append(_val)
-		_data.vals_amt = _int.incr(_data.vals_amt)
+	var on_add = false
+	if not _val == null:
+		var has_val = false
+		if _data.vals_amt > 0:
+			for v in _data.vals:
+				has_val = v == _val
+				if has_val:
+					break
+		on_add = not has_val
+		if on_add:
+			_data.vals.append(_val)
+			_data.vals_amt = _int.incr(_data.vals_amt)
 	return on_add
-
-
-func has_val(_val = null):
-	var has = false
-	if _data.vals_amt > 0:
-		for v in _data.vals:
-			has = _val == v
-			if has:
-				break
-	return has
-
-
-func get_has_values():
-	var has = false
-	if _data.state.has_val:
-		has = _data.vals_amt > 0
-	return has
-
-
-func get_vals_amt():
-	return _data.vals_amt
-
-
-func vals():
-	var v = []
-	if _data.state.has_val:
-		v = _data.vals
-	return v
 
 
 # private helper methods
