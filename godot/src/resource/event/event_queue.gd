@@ -7,9 +7,10 @@ export(bool) var has_events setget , get_has_events
 export(Array, String) var event_keys setget , get_event_keys
 
 # fields
-const _RES_PATH = "res://data/event_queue.tres"
+const _RES_PATH = "res://data/event/event_queue_storage.tres"
 var _storage = preload(_RES_PATH)
 var _data = {}
+#var _res_loader = ResourceLoader
 
 
 # private inherited methods

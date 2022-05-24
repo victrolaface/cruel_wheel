@@ -1,4 +1,4 @@
-class_name EventManager extends Node
+extends Node
 
 # signals
 # warning-ignore-all:UNUSED_SIGNAL

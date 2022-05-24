@@ -1,0 +1,14 @@
+[gd_resource type="Resource" load_steps=2 format=2]
+
+[ext_resource path="res://src/resource/event/event_listeners_storage.gd" type="Script" id=1]
+
+[resource]
+resource_name = "EventListenersStorage"
+script = ExtResource( 1 )
+to_recycle_amt = 0
+initialized = false
+enabled = false
+has_to_recycle = false
+to_recycle = [  ]
+has_listeners = false
+event_keys = [  ]

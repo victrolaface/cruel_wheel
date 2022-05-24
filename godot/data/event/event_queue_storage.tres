@@ -1,0 +1,7 @@
+[gd_resource type="Resource" load_steps=2 format=2]
+
+[ext_resource path="res://src/resource/event/event_queue_storage.gd" type="Script" id=1]
+
+[resource]
+resource_name = "EventQueueStorage"
+script = ExtResource( 1 )

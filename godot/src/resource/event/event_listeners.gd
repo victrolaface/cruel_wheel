@@ -6,7 +6,7 @@ export(bool) var has_listeners setget , get_has_listeners
 export(Array, String) var event_keys setget , get_event_keys
 
 # fields
-const _RES_PATH = "res://data/event_listeners.tres"
+const _RES_PATH = "res://data/event/event_listeners_storage.tres"
 var _type = TypeUtility
 var _storage = preload(_RES_PATH)
 var _data = {}

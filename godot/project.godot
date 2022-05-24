@@ -9,115 +9,45 @@
 config_version=4
 
 _global_script_classes=[ {
-"base": "Control",
-"class": "CustomControlBase",
-"language": "GDScript",
-"path": "res://addons/keh_ui/core/customctrlbase.gd"
-}, {
-"base": "Reference",
-"class": "DBHelpers",
-"language": "GDScript",
-"path": "res://addons/keh_gddb/editor/helpers.gd"
-}, {
-"base": "Resource",
-"class": "DBTable",
-"language": "GDScript",
-"path": "res://addons/keh_gddb/dbtable.gd"
-}, {
 "base": "Resource",
 "class": "EventListener",
 "language": "GDScript",
-"path": "res://src/reference/event_listener.gd"
+"path": "res://src/resource/event/event_listener.gd"
 }, {
 "base": "RecyclableItems",
 "class": "EventListeners",
 "language": "GDScript",
-"path": "res://src/reference/event_listeners.gd"
+"path": "res://src/resource/event/event_listeners.gd"
 }, {
-"base": "Node",
-"class": "EventManager",
+"base": "EventListeners",
+"class": "EventListenersStorage",
 "language": "GDScript",
-"path": "res://src/reference/event_manager.gd"
+"path": "res://src/resource/event/event_listeners_storage.gd"
 }, {
 "base": "RecyclableItems",
 "class": "EventQueue",
 "language": "GDScript",
-"path": "res://src/reference/event_queue.gd"
-}, {
-"base": "CustomControlBase",
-"class": "ExpandablePanel",
-"language": "GDScript",
-"path": "res://addons/keh_ui/expanel/expanel.gd"
-}, {
-"base": "Control",
-"class": "FancyLineEdit",
-"language": "GDScript",
-"path": "res://addons/keh_ui/fancy_line_edit.gd"
+"path": "res://src/resource/event/event_queue.gd"
 }, {
 "base": "Resource",
-"class": "GDDatabase",
+"class": "EventQueueStorage",
 "language": "GDScript",
-"path": "res://addons/keh_gddb/database.gd"
+"path": "res://src/resource/event/event_queue_storage.gd"
+}, {
+"base": "Reference",
+"class": "GutHookScript",
+"language": "GDScript",
+"path": "res://addons/gut/hook_script.gd"
+}, {
+"base": "Node",
+"class": "GutTest",
+"language": "GDScript",
+"path": "res://addons/gut/test.gd"
 }, {
 "base": "Reference",
 "class": "IntUtility",
 "language": "GDScript",
 "path": "res://src/util/int_utility.gd"
-}, {
-"base": "InventoryBase",
-"class": "InventoryBag",
-"language": "GDScript",
-"path": "res://addons/keh_ui/inventory/bag.gd"
-}, {
-"base": "Control",
-"class": "InventoryBase",
-"language": "GDScript",
-"path": "res://addons/keh_ui/inventory/base.gd"
-}, {
-"base": "Reference",
-"class": "InventoryCore",
-"language": "GDScript",
-"path": "res://addons/keh_ui/inventory/core.gd"
-}, {
-"base": "Reference",
-"class": "InventoryEvent",
-"language": "GDScript",
-"path": "res://addons/keh_ui/inventory/invevent.gd"
-}, {
-"base": "InventoryEvent",
-"class": "InventoryEventContainer",
-"language": "GDScript",
-"path": "res://addons/keh_ui/inventory/invcontevent.gd"
-}, {
-"base": "InventoryEvent",
-"class": "InventoryEventMouse",
-"language": "GDScript",
-"path": "res://addons/keh_ui/inventory/invmevent.gd"
-}, {
-"base": "InventoryEvent",
-"class": "InventoryEventSocket",
-"language": "GDScript",
-"path": "res://addons/keh_ui/inventory/invsocketevent.gd"
-}, {
-"base": "InventoryEventSocket",
-"class": "InventoryEventSocketMouse",
-"language": "GDScript",
-"path": "res://addons/keh_ui/inventory/invsocketmevent.gd"
-}, {
-"base": "Reference",
-"class": "InventoryHighlight",
-"language": "GDScript",
-"path": "res://addons/keh_ui/inventory/highlight.gd"
-}, {
-"base": "Reference",
-"class": "InventorySlot",
-"language": "GDScript",
-"path": "res://addons/keh_ui/inventory/slot.gd"
-}, {
-"base": "InventoryBase",
-"class": "InventorySpecialSlot",
-"language": "GDScript",
-"path": "res://addons/keh_ui/inventory/specialslot.gd"
 }, {
 "base": "Reference",
 "class": "NodeUtility",
@@ -142,7 +72,7 @@ _global_script_classes=[ {
 "base": "Resource",
 "class": "QueuedEvent",
 "language": "GDScript",
-"path": "res://src/reference/queued_event.gd"
+"path": "res://src/resource/event/queued_event.gd"
 }, {
 "base": "Resource",
 "class": "RecyclableItems",
@@ -159,59 +89,20 @@ _global_script_classes=[ {
 "language": "GDScript",
 "path": "res://src/util/string_utility.gd"
 }, {
-"base": "CustomControlBase",
-"class": "TabularBox",
-"language": "GDScript",
-"path": "res://addons/keh_ui/tabular/tabularbox.gd"
-}, {
-"base": "Resource",
-"class": "TabularDataSourceBase",
-"language": "GDScript",
-"path": "res://addons/keh_ui/tabular/datasourcebase.gd"
-}, {
-"base": "TabularDataSourceBase",
-"class": "TabularSimpleDataSource",
-"language": "GDScript",
-"path": "res://addons/keh_ui/tabular/simpleds.gd"
-}, {
-"base": "Reference",
-"class": "TabularStyler",
-"language": "GDScript",
-"path": "res://addons/keh_ui/tabular/styler.gd"
-}, {
 "base": "Reference",
 "class": "TypeUtility",
 "language": "GDScript",
 "path": "res://src/util/type_utility.gd"
-}, {
-"base": "Reference",
-"class": "UIHelper",
-"language": "GDScript",
-"path": "res://addons/keh_ui/core/uihelpers.gd"
 } ]
 _global_script_class_icons={
-"CustomControlBase": "",
-"DBHelpers": "",
-"DBTable": "",
 "EventListener": "",
 "EventListeners": "",
-"EventManager": "",
+"EventListenersStorage": "",
 "EventQueue": "",
-"ExpandablePanel": "",
-"FancyLineEdit": "res://addons/keh_ui/fancy_line_edit.png",
-"GDDatabase": "",
+"EventQueueStorage": "",
+"GutHookScript": "",
+"GutTest": "",
 "IntUtility": "",
-"InventoryBag": "res://addons/keh_ui/inventory/bag.png",
-"InventoryBase": "",
-"InventoryCore": "",
-"InventoryEvent": "",
-"InventoryEventContainer": "",
-"InventoryEventMouse": "",
-"InventoryEventSocket": "",
-"InventoryEventSocketMouse": "",
-"InventoryHighlight": "",
-"InventorySlot": "",
-"InventorySpecialSlot": "res://addons/keh_ui/inventory/specialslot.png",
 "NodeUtility": "",
 "ObjectUtility": "",
 "PathUtility": "",
@@ -220,12 +111,7 @@ _global_script_class_icons={
 "RecyclableItems": "",
 "ResourceUtility": "",
 "StringUtility": "",
-"TabularBox": "",
-"TabularDataSourceBase": "",
-"TabularSimpleDataSource": "",
-"TabularStyler": "",
-"TypeUtility": "",
-"UIHelper": ""
+"TypeUtility": ""
 }
 
 [application]
@@ -234,9 +120,13 @@ config/name="cruel wheel"
 run/main_scene="res://src/scenes/Main.tscn"
 config/icon="res://icon.png"
 
+[autoload]
+
+EventManager="*res://src/node/event_manager.gd"
+
 [editor_plugins]
 
-enabled=PoolStringArray( "res://addons/keh_gddb/plugin.cfg", "res://addons/keh_ui/plugin.cfg" )
+enabled=PoolStringArray( "res://addons/gut/plugin.cfg" )
 
 [physics]
 
