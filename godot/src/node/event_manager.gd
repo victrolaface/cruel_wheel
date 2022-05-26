@@ -94,6 +94,100 @@ func _on_init(_do_init = true):
 			)
 
 
+func _proc_queue_and_listeners():
+	if _has_queued_events() && _has_listeners():
+		var queued_event_keys = _data.event_queue.event_keys
+		var init_queued_ev_amt = queued_event_keys.size()
+		var ls_event_keys = _data.listeners.event_keys
+		if init_queued_ev_amt > 0 && ls_event_keys.size() > 0:
+			var called_events = false
+			var called_listeners = false
+			var on_ev = false
+			var queued_ev_amt = init_queued_ev_amt
+			for le in ls_event_keys:
+				for qe in queued_event_keys:
+					on_ev = qe == le
+					if on_ev:
+						var queued_ev = _data.event_queue.pop(qe)
+						if not queued_ev == null:
+							queued_ev_amt = _int.decr(queued_ev_amt)
+							var vals = queued_ev.vals if queued_ev.has_values else []
+							called_listeners = _data.listeners.call_listeners(le, vals)
+							if not called_listeners:
+								break
+			called_events = queued_ev_amt == _data.event_queue.events_amt
+			if not called_events:
+				_data.event_queue.empty_queue()
+
+
+func _has_queued_events():
+	return _data.state.enabled && _data.event_queue.enabled && _data.event_queue.has_events
+
+
+func _has_listeners():
+	return _data.state.enabled && _data.listeners.enabled && _data.listeners.has_listeners
+
+
+func _proc_ref_valid(_event_name = "", _ref = null, _method = ""):
+	var obj_valid = _obj.is_valid(_ref, _method) if _str.is_valid(_method) else _obj.is_valid(_ref)
+	return _str.is_valid(_event_name) && obj_valid
+
+
+func _proc_listener_name(_ref = null):
+	var ls_name = ""
+	if not _ref == null:
+		var cl_name = _ref.get_class()
+		if _str.is_valid(cl_name):
+			var is_res = _res.is_valid(_ref)
+			var is_node_inst = _node.is_instance(_ref)
+			var is_res_loc = is_res && _ref.resource_local_to_scene
+			ls_name = cl_name + _SEPERATOR
+			if is_res:
+				ls_name = ls_name + String(_ref.resource_id) + _SEPERATOR
+			if is_res_loc or is_node_inst:
+				ls_name = ls_name + String(_ref.get_instance_id())
+			elif not is_res_loc or not is_node_inst:
+				ls_name = ls_name + "global"
+	return ls_name
+
+
+# signal methods
+func _on_node_added_to_scene_tree(_node_internal = null):
+	if not _node_internal == null:
+		emit_signal(_REQ_SUBS_SIGNAL)
+
+
+func _on_request_subscribers():
+	pass
+
+
+func _on_subscribe_request(_event_name = "", _ref = null, _method = "", _val = null, _oneshot = false):
+	var ref_valid = _proc_ref_valid(_event_name, _ref, _method)
+	var listener_valid = (
+		ref_valid
+		if _val == null
+		else ref_valid && (not _type.built_in_type(_val) == 0 or _type.is_type_object(_val))
+	)
+	if listener_valid:
+		var listener_name = _proc_listener_name(_ref)
+		if _str.is_valid(listener_name):
+			_data.listeners.add(_event_name, listener_name, _ref, _method, _val, _oneshot)
+
+
+func _on_add_to_event_queue(_event_name = "", _val = null):
+	if _has_listeners() && _data.listeners.has_event(_event_name):
+		_data.event_queue.add(_event_name, _val)
+
+
+func _on_unsubscribe_request(_event_name = "", _ref = null):
+	if _proc_ref_valid(_event_name, _ref):
+		_data.listeners.remove(_event_name, _proc_listener_name(_ref))
+
+
+func _on_request_unsubscribe():
+	pass
+
+
 func _connect_signals(_connect = true):
 	var all_connected_or_disconnected = false
 	var connecting_or_disconnecting = true
@@ -185,97 +279,3 @@ func _connect_signals(_connect = true):
 		if not on_connect_or_disconnect:
 			connecting_or_disconnecting = false
 	return all_connected_or_disconnected
-
-
-func _proc_queue_and_listeners():
-	if _has_queued_events() && _has_listeners():
-		var queued_event_keys = _data.event_queue.event_keys
-		var init_queued_ev_amt = queued_event_keys.size()
-		var ls_event_keys = _data.listeners.event_keys
-		if init_queued_ev_amt > 0 && ls_event_keys.size() > 0:
-			var called_events = false
-			var called_listeners = false
-			var on_ev = false
-			var queued_ev_amt = init_queued_ev_amt
-			for le in ls_event_keys:
-				for qe in queued_event_keys:
-					on_ev = qe == le
-					if on_ev:
-						var queued_ev = _data.event_queue.pop(qe)
-						if not queued_ev == null:
-							queued_ev_amt = _int.decr(queued_ev_amt)
-							var vals = queued_ev.vals if queued_ev.has_values else []
-							called_listeners = _data.listeners.call_listeners(le, vals)
-							if not called_listeners:
-								break
-			called_events = queued_ev_amt == _data.event_queue.events_amt
-			if not called_events:
-				_data.event_queue.empty_queue()
-
-
-func _has_queued_events():
-	return _data.state.enabled && _data.event_queue.enabled && _data.event_queue.has_events
-
-
-func _has_listeners():
-	return _data.state.enabled && _data.listeners.enabled && _data.listeners.has_listeners
-
-
-func _proc_ref_valid(_event_name = "", _ref = null, _method = ""):
-	var obj_valid = _obj.is_valid(_ref, _method) if _str.is_valid(_method) else _obj.is_valid(_ref)
-	return _str.is_valid(_event_name) && obj_valid
-
-
-func _proc_listener_name(_ref = null):
-	var ls_name = ""
-	if not _ref == null:
-		var cl_name = _ref.get_class()
-		if _str.is_valid(cl_name):
-			var is_res = _res.is_valid(_ref)
-			var is_node_inst = _node.is_instance(_ref)
-			var is_res_loc = is_res && _ref.resource_local_to_scene
-			ls_name = cl_name + _SEPERATOR
-			if is_res:
-				ls_name = ls_name + String(_ref.resource_id) + _SEPERATOR
-			if is_res_loc or is_node_inst:
-				ls_name = ls_name + String(_ref.get_instance_id())
-			elif not is_res_loc or not is_node_inst:
-				ls_name = ls_name + "global"
-	return ls_name
-
-
-# signal methods
-func _on_node_added_to_scene_tree(_nde = null):
-	if not _nde == null:
-		emit_signal(_REQ_SUBS_SIGNAL)
-
-
-func _on_request_subscribers():
-	pass
-
-
-func _on_subscribe_request(_event_name = "", _ref = null, _method = "", _val = null, _oneshot = false):
-	var ref_valid = _proc_ref_valid(_event_name, _ref, _method)
-	var listener_valid = (
-		ref_valid
-		if _val == null
-		else ref_valid && (not _type.built_in_type(_val) == 0 or _type.is_type_object(_val))
-	)
-	if listener_valid:
-		var listener_name = _proc_listener_name(_ref)
-		if _str.is_valid(listener_name):
-			_data.listeners.add(_event_name, listener_name, _ref, _method, _val, _oneshot)
-
-
-func _on_add_to_event_queue(_event_name = "", _val = null):
-	if _has_listeners() && _data.listeners.has_event(_event_name):
-		_data.event_queue.add(_event_name, _val)
-
-
-func _on_unsubscribe_request(_event_name = "", _ref = null):
-	if _proc_ref_valid(_event_name, _ref):
-		_data.listeners.remove(_event_name, _proc_listener_name(_ref))
-
-
-func _on_request_unsubscribe():
-	pass

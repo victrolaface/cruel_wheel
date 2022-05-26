@@ -16,21 +16,25 @@ var _data_internal = {}
 
 
 # private inherited methods
-func _init(_type = "", _to_rec = []):
-	resource_local_to_scene = false
+func _init(_type = "", _storage = null):
 	_data_internal = {
 		"to_recycle": [],
 		"type": "",
 		"state":
 		{
-			"enabled": true,
-			"initialized": true,
+			"initialized": false,
+			"enabled": false,
 		}
 	}
-	if _str.is_valid(_type):
+	var type_valid = _str.is_valid(_type)
+	var has_storage = false
+	if type_valid:
 		_data_internal.type = _type
-	if _to_rec.size() > 0:
-		_data_internal.to_recycle = _to_rec
+		if not _storage == null && _storage.enabled && _storage.type == _type && _storage.has_to_recycle:
+			_data_internal.to_recycle = _storage.to_recycle
+			has_storage = _has_to_recycle()
+	_data_internal.initialized = type_valid && has_storage if _has_to_recycle() else type_valid
+	_data_internal.enabled = _data_internal.initialized
 
 
 # public methods
@@ -51,10 +55,36 @@ func recycled():
 	return r
 
 
-func on_disable():
-	if _data_internal.state.enabled:
-		_data_internal.state.enabled = not _data_internal.state.enabled
-	return not _data_internal.state.enabled
+func on_disable(_res_path = "", _storage = null, _saver_flag = 0):
+	var disabled = not _data_internal.state.enabled
+	if not disabled:
+		var do_save = false
+		var saved = false
+		var on_disable = false
+		if not _storage == null && not _saver_flag == 0:
+			if not _storage.enabled:
+				_storage.enabled = not _storage.enabled
+			if _storage.enabled && self.to_recycle_amt > 0:
+				var added_amt = 0
+				for i in self.to_recycle:
+					if _storage.add_to_recycle(i):
+						added_amt = _int.incr(added_amt)
+				do_save = added_amt == self.to_recycle_amt
+				if not do_save:
+					var storage_amt = _storage.to_recycle_amt + (self.to_recycle_amt - added_amt)
+					_storage.to_recycle_amt = storage_amt
+					do_save = _storage.to_recycle_amt == storage_amt
+			if do_save:
+				saved = ResourceSaver.save(_res_path, _storage, _saver_flag)
+		_data_internal.to_recycle.clear()
+		if not _has_to_recycle():
+			_data_internal.type = ""
+			_data_internal.state.initialized = not _data_internal.state.initialized
+			_data_internal.state.enabled = not _data_internal.state.enabled
+		on_disable = not _data_internal.state.enabled
+		if on_disable:
+			disabled = on_disable && saved if do_save else on_disable
+	return disabled
 
 
 # private helper methods

@@ -8,9 +8,9 @@ export(Array, String) var event_keys setget , get_event_keys
 
 # fields
 const _RES_PATH = "res://data/event/event_queue_storage.tres"
+const _TYPE = "QueuedEvent"
 var _storage = preload(_RES_PATH)
 var _data = {}
-#var _res_loader = ResourceLoader
 
 
 # private inherited methods
@@ -18,20 +18,8 @@ func _init():
 	_data = {
 		"queue": {},
 		"events_amt": 0,
-		"state":
-		{
-			"enabled": false,
-		}
 	}
-	var to_rec = []
-	var to_rec_amt = 0
-	if _storage.initialized:
-		if not _storage.enabled:
-			_storage.enable()
-		if not _storage.has_events && _storage.has_to_recycle:
-			to_rec = _storage.to_recycle
-			to_rec_amt = _storage.to_recycle_amt
-	.init("QueuedEvent", to_rec, to_rec_amt)
+	.init(_TYPE, _storage)
 
 
 # public methods
@@ -83,7 +71,7 @@ func pop(_event_name = ""):
 func has(_event_name = ""):
 	var has_ev = false
 	if _str.is_valid(_event_name) && _has_events():
-		for e in _queue_keys():
+		for e in _data.queue.keys():
 			has_ev = _event_name == e
 			if has_ev:
 				break
@@ -91,10 +79,10 @@ func has(_event_name = ""):
 
 
 func empty_queue():
-	var on_empty = false
-	var evs_amt = _data.events_amt
-	if _has_events():
-		for e in _queue_keys():
+	var on_empty = not _has_events()
+	if not on_empty:
+		var evs_amt = _data.events_amt
+		for e in _data.queue.keys():
 			if _remove(e):
 				evs_amt = _int.decr(evs_amt)
 		if not evs_amt == 0:
@@ -104,23 +92,15 @@ func empty_queue():
 
 
 # private helper methods
-func _on_enable(_en = true):
-	var on_enable = _en && not self.enabled
-	var on_disable = not _en && self.enabled
-	var saved_on_disable = false
+func _on_enable(_enable = true):
+	var on_enable = _enable && not self.enabled
+	var on_disable = not _enable && self.enabled
 	if on_enable:
 		_init()
 	elif on_disable:
-		var rec_amt = self.to_recycle_amt
-		var evs_amt = _data.events_amt
-		if _has_events():
-			for e in _queue_keys():
-				if _remove(e):
-					evs_amt = _int.decr(evs_amt)
-					rec_amt = _int.incr(rec_amt)
-		if evs_amt == 0 && evs_amt == _data.events_amt && rec_amt == self.to_recycle_amt && .on_disable():
-			saved_on_disable = not self.enabled && ResourceSaver.save(_RES_PATH, self, ResourceSaver.FLAG_COMPRESS)
-	return on_enable or saved_on_disable
+		if empty_queue():
+			on_disable = .on_disable(_RES_PATH, _storage, ResourceSaver.FLAG_COMPRESS)
+	return on_enable or on_disable
 
 
 func _remove(_event_name = ""):
@@ -139,10 +119,6 @@ func _has_events():
 	return _data.events_amt > 0
 
 
-func _queue_keys():
-	return _data.queue.keys()
-
-
 # setters, getters functions
 func get_events_amt():
 	return _data.events_amt
@@ -153,4 +129,4 @@ func get_has_events():
 
 
 func get_event_keys():
-	return _queue_keys() if _has_events() else []
+	return _data.queue.keys() if _has_events() else []

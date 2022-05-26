@@ -5,3 +5,12 @@
 [resource]
 resource_name = "EventQueueStorage"
 script = ExtResource( 1 )
+to_recycle_amt = 0
+storage_enabled = false
+storage_initialized = false
+has_to_recycle = false
+type = ""
+to_recycle = [  ]
+queued_events_to_recycle_amt = 0
+enable = false
+has_queued_events_to_recycle = false
