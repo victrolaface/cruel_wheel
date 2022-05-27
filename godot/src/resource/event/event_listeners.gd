@@ -7,6 +7,7 @@ export(Array, String) var event_keys setget , get_event_keys
 
 # fields
 const _RES_PATH = "res://data/event/event_listeners_storage.tres"
+const _TYPE = "EventListner"
 var _type = TypeUtility
 var _storage = preload(_RES_PATH)
 var _data = {}
@@ -18,15 +19,7 @@ func _init():
 		"listeners": {},
 		"listeners_amt": 0,
 	}
-	var to_rec = []
-	var to_rec_amt = 0
-	if _storage.initialized:
-		if not _storage.enabled:
-			_storage.enable()
-		if not _storage.has_listeners && _storage.has_to_recycle:
-			to_rec = _storage.to_recycle
-			to_rec_amt = _storage.to_recycle_amt
-	.init("EventListener", to_rec, to_rec_amt)
+	.init(_TYPE, _storage)
 
 
 # public methods
@@ -164,39 +157,44 @@ func remove(_event_name = "", _listener_name = ""):
 func _on_enable(_en = true):
 	var on_enable = _en && not self.enabled
 	var on_disable = not _en && self.enabled
-	var saved_on_disabled = false
 	if on_enable:
 		_init()
 	elif on_disable:
-		if _data.listeners_amt > 0:
-			var ls_amt = 0
-			var total_ls_amt = _data.listeners_amt
-			var rec_amt = self.to_recycle_amt
-			var evs_amt = _events_amt()
+		if empty_listeners():
+			on_disable = .on_disable(_RES_PATH, _storage, ResourceSaver.FLAG_COMPRESS)
+	return on_enable or on_disable
+
+
+func empty_listeners():
+	var on_empty = not _has_events() && not _has_listeners()
+	if not on_empty:
+		var events_amt = _events_amt()
+		if _has_listeners():
 			for e in _listener_events_keys():
-				var ev_ls = _event_listeners_keys(e)
-				ls_amt = ev_ls.size()
-				for l in ev_ls:
-					if remove(e, l):
-						ls_amt = _int.decr(ls_amt)
-						rec_amt = _int.incr(rec_amt)
-						total_ls_amt = _int.decr(total_ls_amt)
-						if ls_amt == 0:
-							_data.listeners.erase(e)
-							evs_amt = _int.decr(evs_amt)
-			on_disable = (
-				total_ls_amt == 0
-				&& total_ls_amt == _data.listeners_amt
-				&& evs_amt == 0
-				&& _events_amt() == 0
-				&& evs_amt == _events_amt()
-				&& not _has_listeners()
-				&& not _has_events()
-				&& rec_amt == self.to_recycle_amt
-			)
-		if on_disable && .on_disable():
-			saved_on_disabled = not self.enabled && ResourceSaver.save(_RES_PATH, self, ResourceSaver.FLAG_COMPRESS)
-	return on_enable or saved_on_disabled
+				var listeners = _event_listeners_keys(e)
+				var init_listeners_amt = listeners.size()
+				var total_listeners_amt = _data.listeners_amt
+				var init_total_listeners_amt = total_listeners_amt
+				if init_listeners_amt > 0:
+					var listeners_amt = init_listeners_amt
+					var recycled_amt = 0
+					for l in listeners:
+						if remove(e, l):
+							listeners_amt = _int.decr(listeners_amt)
+							recycled_amt = _int.incr(recycled_amt)
+							total_listeners_amt = _int.decr(total_listeners_amt)
+					if (
+						listeners_amt == 0
+						&& recycled_amt == init_listeners_amt
+						&& total_listeners_amt == (init_total_listeners_amt - init_listeners_amt)
+					):
+						_data.listeners.erase(e)
+						events_amt = _int.decr(events_amt)
+		if _has_events() or events_amt > 0 or _has_listeners():
+			_data.listeners.clear()
+			_data.listeners_amt = 0
+		on_empty = not _has_listeners()
+	return on_empty
 
 
 func _has_event(_event_name = ""):
@@ -217,12 +215,12 @@ func _has_listeners():
 	return _data.listeners_amt > 0
 
 
-func _events_amt():
-	return _data.listeners.keys().size()
-
-
 func _has_events():
 	return _events_amt() > 0
+
+
+func _events_amt():
+	return _data.listeners.keys().size()
 
 
 func _listener_events_keys():

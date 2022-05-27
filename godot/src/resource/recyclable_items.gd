@@ -30,8 +30,8 @@ func _init(_type = "", _storage = null):
 	var has_storage = false
 	if type_valid:
 		_data_internal.type = _type
-		if not _storage == null && _storage.enabled && _storage.type == _type && _storage.has_to_recycle:
-			_data_internal.to_recycle = _storage.to_recycle
+		if not _storage == null && _storage.storage_enabled() && _storage.type() == _type && _storage.has_to_recycle():
+			_data_internal.to_recycle = _storage.to_recycle()
 			has_storage = _has_to_recycle()
 	_data_internal.initialized = type_valid && has_storage if _has_to_recycle() else type_valid
 	_data_internal.enabled = _data_internal.initialized
@@ -62,18 +62,18 @@ func on_disable(_res_path = "", _storage = null, _saver_flag = 0):
 		var saved = false
 		var on_disable = false
 		if not _storage == null && not _saver_flag == 0:
-			if not _storage.enabled:
-				_storage.enabled = not _storage.enabled
-			if _storage.enabled && self.to_recycle_amt > 0:
+			if not _storage.storage_enabled():
+				_storage.on_storage_enabled(true)
+			if _storage.storage_enabled() && self.to_recycle_amt > 0:
 				var added_amt = 0
 				for i in self.to_recycle:
 					if _storage.add_to_recycle(i):
 						added_amt = _int.incr(added_amt)
 				do_save = added_amt == self.to_recycle_amt
 				if not do_save:
-					var storage_amt = _storage.to_recycle_amt + (self.to_recycle_amt - added_amt)
-					_storage.to_recycle_amt = storage_amt
-					do_save = _storage.to_recycle_amt == storage_amt
+					var storage_amt = _storage.to_recycle_amt() + (self.to_recycle_amt - added_amt)
+					_storage.on_to_recycle_amt(storage_amt)
+					do_save = _storage.to_recycle_amt() == storage_amt
 			if do_save:
 				saved = ResourceSaver.save(_res_path, _storage, _saver_flag)
 		_data_internal.to_recycle.clear()

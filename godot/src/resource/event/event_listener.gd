@@ -111,11 +111,11 @@ func get_takes_val():
 
 
 func get_takes_val_obj():
-	return _data.state.method_takes_val && _data.state.method_val_is_type  #takes_val
+	return _data.state.method_takes_val && _data.state.method_val_is_type
 
 
 func get_takes_val_built_in():
-	return _data.state.method_takes_val && _data.state.method_val_is_built_in_type  #_type_built_in
+	return _data.state.method_takes_val && _data.state.method_val_is_built_in_type
 
 
 func get_enabled():

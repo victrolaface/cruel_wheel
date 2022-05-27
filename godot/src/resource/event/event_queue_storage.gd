@@ -18,13 +18,13 @@ func _init():
 
 # setters, getters functions
 func set_queued_events_to_recycle_amt(_amt = 0):
-	if not self.storage_enabled:
+	if not .storage_enabled():
 		_init()
-	self.to_recycle_amt = _amt
+	.on_to_recycle_amt(_amt)
 
 
 func get_queued_events_to_recycle_amt():
-	return self.to_recycle_amt
+	return .to_recycle_amt()
 
 
 func set_enable(_enable = false):
@@ -33,8 +33,8 @@ func set_enable(_enable = false):
 
 
 func get_enable():
-	return self.storage_enabled
+	return .storage_enabled()
 
 
 func get_has_queued_events_to_recycle():
-	return self.has_to_recycle
+	return .has_to_recycle()
