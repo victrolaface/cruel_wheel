@@ -19,7 +19,7 @@ func _init():
 		"queue": {},
 		"events_amt": 0,
 	}
-	.init(_TYPE, _storage)
+	._init(_TYPE, _storage)
 
 
 # public methods

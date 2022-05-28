@@ -70,7 +70,7 @@ func _on_init(_do_init = false, _ref = null, _method = "", _val = null, _oneshot
 	}
 	if _do_init:
 		var dt = _data
-		var st = _data.st
+		var st = _data.state
 		st.has_ref = _obj.is_valid(_ref, _method)
 		if st.has_ref:
 			dt.ref = _ref
