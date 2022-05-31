@@ -46,7 +46,7 @@ func has(_event_name = "", _listener_name = ""):
 	return has_ev_ls
 
 
-func add(_event = "", _listener = "", _ref = null, _method = "", _val = null, _oneshot = false):
+func add(_event = "", _listener = "", _ref = null, _method = "", _oneshot = false, _val = null):
 	var on_add = false
 	if _is_event(_event) && _str.is_valid(_listener) && not has(_event, _listener) && _obj.is_valid(_ref, _method):
 		var has_ev = false
@@ -59,9 +59,9 @@ func add(_event = "", _listener = "", _ref = null, _method = "", _val = null, _o
 			var ls = EventListener
 			if self.has_to_recycle:
 				ls = .recycled()
-				ls.enable(_ref, _method, _val, _oneshot)
+				ls.enable(_ref, _method, _oneshot, _val)
 			else:
-				ls = EventListener.new(_ref, _method, _val, _oneshot)
+				ls = EventListener.new(_ref, _method, _oneshot, _val)
 			on_add = ls.enabled
 			if on_add:
 				_data.listeners[_event[_listener]] = ls

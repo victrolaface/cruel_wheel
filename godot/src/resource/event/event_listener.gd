@@ -18,14 +18,14 @@ var _data = {}
 
 
 # private inherited methods
-func _init(_ref = null, _method = "", _val = null, _oneshot = false):
+func _init(_ref = null, _method = "", _oneshot = false,_val = null):
 	resource_local_to_scene = true
-	_on_init(true, _ref, _method, _val, _oneshot)
+	_on_init(true, _ref, _method, _oneshot,_val)
 
 
 # public methods
-func enable(_ref = null, _method = "", _val = null, _oneshot = false):
-	_on_init(true, _ref, _method, _val, _oneshot)
+func enable(_ref = null, _method = "", _oneshot = false,_val = null):
+	_on_init(true, _ref, _method, _oneshot,_val)
 	return _data.state.enabled
 
 
@@ -52,7 +52,7 @@ func disable():
 
 
 # private helper functions
-func _on_init(_do_init = false, _ref = null, _method = "", _val = null, _oneshot = false):
+func _on_init(_do_init = false, _ref = null, _method = "", _oneshot = false,_val = null):
 	_data = {
 		"ref": null,
 		"method_funcref": null,

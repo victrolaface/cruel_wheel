@@ -6,6 +6,4 @@ static func is_valid(_obj = null, _func = ""):
 
 
 static func _obj_valid(_obj = null):
-	return not _obj == null && _obj.get_type == TYPE_OBJECT
-
-
+	return not _obj == null && typeof(_obj) == TYPE_OBJECT
