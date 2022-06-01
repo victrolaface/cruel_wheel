@@ -59,11 +59,6 @@ _global_script_classes=[ {
 "language": "GDScript",
 "path": "res://src/resource/node/node_item.gd"
 }, {
-"base": "RecyclableStorage",
-"class": "NodeStorage",
-"language": "GDScript",
-"path": "res://src/resource/node/node_storage.gd"
-}, {
 "base": "Reference",
 "class": "NodeUtility",
 "language": "GDScript",
@@ -73,6 +68,11 @@ _global_script_classes=[ {
 "class": "Nodes",
 "language": "GDScript",
 "path": "res://src/resource/node/nodes.gd"
+}, {
+"base": "RecyclableStorage",
+"class": "NodesStorage",
+"language": "GDScript",
+"path": "res://src/resource/node/nodes_storage.gd"
 }, {
 "base": "Reference",
 "class": "ObjectUtility",
@@ -130,9 +130,9 @@ _global_script_class_icons={
 "GutTest": "",
 "IntUtility": "",
 "NodeItem": "",
-"NodeStorage": "",
 "NodeUtility": "",
 "Nodes": "",
+"NodesStorage": "",
 "ObjectUtility": "",
 "PathUtility": "",
 "PoolArrayUtility": "",

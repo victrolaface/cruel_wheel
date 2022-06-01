@@ -1,8 +1,15 @@
 class_name NodeUtility
 
 
+# public methods
 static func is_instance(_node = null):
-	var is_inst = false
-	if not _node == null && _node.is_class("Node"):
-		is_inst = not _node.filename.empty()
-	return is_inst
+	return not _node.filename.empty() if is_node(_node) else false
+
+
+static func is_node(_node = null):
+	return _node.is_class(_type()) if not _node == null else false
+
+
+# private helper methods
+static func _type():
+	return "Node"

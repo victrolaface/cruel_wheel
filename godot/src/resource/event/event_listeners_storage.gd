@@ -4,7 +4,7 @@ class_name EventListenersStorage extends RecyclableStorage
 # properties
 export(int) var event_listeners_to_recycle_amt setget set_event_listeners_to_recycle_amt, get_event_listeners_to_recycle_amt
 export(bool) var enable setget set_enable, get_enable
-export(bool) var has_event_lsiteners_to_recycle setget , get_has_event_lsiteners_to_recycle
+export(bool) var has_event_listeners_to_recycle setget , get_has_event_listeners_to_recycle
 
 # fields
 const _TYPE = "EventListener"
@@ -36,5 +36,5 @@ func get_enable():
 	return .storage_enabled()
 
 
-func get_has_event_lsiteners_to_recycle():
+func get_has_event_listeners_to_recycle():
 	return .has_to_recycle()
