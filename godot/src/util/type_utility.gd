@@ -14,6 +14,13 @@ static func is_built_in_type(_val = null):
 	return is_type
 
 
+static func is_class_type(_val = null, _class_name = ""):
+	var _is_class = false
+	if not _val == null && StringUtility.is_valid(_class_name):
+		_is_class = _val.is_class(_class_name)
+	return _is_class
+
+
 static func built_in_type(_val = null):
 	var type = TYPE_NIL
 	var val_type = typeof(_val)

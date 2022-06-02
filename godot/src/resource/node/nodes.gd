@@ -136,7 +136,7 @@ func disable():
 
 
 # private helper methods
-func _on_init(_do_init = true):
+func _on_init(_do_init = true, _scene_tree_ref=null):
 	_data = {
 		"nodes": null,
 		"state":

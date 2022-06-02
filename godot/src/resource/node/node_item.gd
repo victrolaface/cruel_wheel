@@ -2,12 +2,19 @@ tool
 class_name NodeItem extends Resource
 
 # properties
+export(int) var instance_id setget , get_instance_id
 export(bool) var enabled setget , get_enabled
+export(bool) var has_node_ref setget , get_has_node_ref
+export(bool) var has_instance_id setget , get_has_instance_id
+export(bool) var has_encoded_object_as_id setget , get_has_encoded_object_as_id
 export(bool) var has_children setget , get_has_children
 export(bool) var has_name setget , get_has_name
 export(String) var name setget , get_name
+export(Resource) var encoded_object_as_id setget , get_encoded_object_as_id
 
 # fields
+var _obj = ObjectUtility
+var _type = TypeUtility
 var _str = StringUtility
 var _data = {}
 
@@ -50,16 +57,41 @@ func child():
 func _on_init(_do_init = true, _ref = null):
 	_data = {
 		"node_ref": null,
+		"name": "",
+		"instance_id": 0,
+		"encoded_obj_as_id": null,
 		"state":
 		{
+			"has_node_ref": false,
+			"has_name": false,
+			"has_instance_id": false,
+			"has_encoded_obj_as_id": false,
 			"enabled": false,
 		}
 	}
 	if _do_init:
-		var has_ref = not _ref == null && _ref.is_class("Node")
-		if has_ref:
-			_data.node_ref = _ref
-		_data.state.enabled = has_ref
+		var enc_obj = EncodedObjectAsID.new()
+		_data.node_ref = _ref
+		_data.state.has_node_ref = (
+			_type.is_class_type(_data.node_ref, "Node")
+			if _obj.is_valid(_data.node_ref)
+			else _data.state.has_node_ref
+		)
+		_data.name = _data.node_ref.name if _data.state.has_node_ref else _data.name
+		_data.instance_id = _data.node_ref.get_instance_id() if _data.state.has_node_ref else _data.instance_id
+		_data.state.has_instance_id = _data.instance_id > 0 if _data.state.has_node_ref else _data.state.has_instance_id
+		enc_obj.object_id = _data.instance_id
+		_data.encoded_obj_as_id = enc_obj
+		_data.state.has_encoded_obj_as_id = (
+			(
+				_obj.is_valid(_data.encoded_obj_as_id)
+				&& _type.is_class_type(_data.encoded_obj_as_id, "EncodedObjectAsID")
+				&& _data.encoded_obj_as_id.object_id > 0
+			)
+			if _data.state.has_node_ref && _data.state.has_instance_id
+			else _data.state.has_encoded_obj_as_id
+		)
+		_data.state.enabled = _data.state.has_node_ref && _data.state.has_instance_id && _data.state.has_encoded_obj_as_id
 
 
 func _has_child():
@@ -70,13 +102,25 @@ func _has_children():
 	return _data.node_ref.get_child_count() > 1 if _data.state.enabled else false
 
 
-func _name():
-	return _data.node_ref.name if _data.state.enabled else ""
-
-
 # setters, getters functions
+func get_instance_id():
+	return _data.instance_id if _data.state.enabled && _data.state.has_instance_id else 0
+
+
 func get_enabled():
 	return _data.state.enabled
+
+
+func get_has_node_ref():
+	return _data.state.has_node_ref if _data.state.enabled else false
+
+
+func get_has_instance_id():
+	return _data.state.has_instance_id if _data.state.enabled else false
+
+
+func get_has_encoded_object_as_id():
+	return _data.state.has_encoded_obj_as_id if _data.state.enabled else false
 
 
 func get_has_child():
@@ -88,8 +132,12 @@ func get_has_children():
 
 
 func get_has_name():
-	return _str.is_valid(_name())
+	return _data.state.has_name if _data.state.enabled else false
 
 
 func get_name():
-	return _name()
+	return _data.name if _data.state.enabled && _data.state.has_name else ""
+
+
+func get_encoded_object_as_id():
+	return _data.encoded_obj_as_id if _data.state.enabled && _data.state.has_encoded_object_as_id else null
