@@ -5,20 +5,22 @@ class_name Nodes extends RecyclableItems
 export(bool) var has_nodes setget , get_has_nodes
 export(Array, String) var names setget , get_names
 
-const _RES_PATH = "res://data/node/nodes_storage.tres"
+# fields
 const _TYPE = "NodeItem"
-
+const _RES_PATH = "res://data/node/nodes_storage.tres"
 var _storage = preload(_RES_PATH)
 var _arr = PoolArrayUtility
 var _node = NodeUtility
 var _data = {}
 
 
+# private inherited methods
 func _init():
 	resource_local_to_scene = false
 	_on_init(true)
 
 
+# public methods
 func enable():
 	if not _data.state.enabled:
 		_on_init(true)
@@ -111,15 +113,6 @@ func remove(_node_name = ""):
 	return final_amt < init_amt && final_amt == (init_amt - rem_amt)
 
 
-func _on_rem(_rem_amt = 0, _has_node = false, _node_name = ""):
-	if _has_node && _str.is_valid(_node_name):
-		var n = _data.nodes[_node_name]
-		if n.disable():
-			if .add_to_recycle(n) && _data.nodes.erase(_node_name):
-				_rem_amt = _int.incr(_rem_amt)
-	return _rem_amt
-
-
 func empty():
 	var init_amt = 0
 	var final_amt = 0
@@ -137,12 +130,12 @@ func empty():
 
 
 func disable():
-	if _data.state.enabled:
-		if empty():
-			_on_init(false)
+	if _data.state.enabled && empty() && .on_disable(_RES_PATH, _storage, ResourceSaver.FLAG_COMPRESS):
+		_data.state.enabled = not _data.state.enabled
 	return not _data.state.enabled
 
 
+# private helper methods
 func _on_init(_do_init = true):
 	_data = {
 		"nodes": null,
@@ -155,6 +148,15 @@ func _on_init(_do_init = true):
 		_data.nodes = {}
 		_data.state.enabled = not _data.state.enabled
 		._init(_TYPE, _storage)
+
+
+func _on_rem(_rem_amt = 0, _has_node = false, _node_name = ""):
+	if _has_node && _str.is_valid(_node_name):
+		var n = _data.nodes[_node_name]
+		if n.disable():
+			if .add_to_recycle(n) && _data.nodes.erase(_node_name):
+				_rem_amt = _int.incr(_rem_amt)
+	return _rem_amt
 
 
 func _has_node(_node_name = ""):
@@ -173,6 +175,7 @@ func _names():
 	return _arr.to_arr(_data.nodes.keys(), "str") if _data.state.enabled && _has_nodes() else []
 
 
+# setters, getters functions
 func get_has_nodes():
 	return _has_nodes() if _data.state.enabled else false
 
