@@ -2,12 +2,14 @@ tool
 class_name Nodes extends RecyclableItems
 
 # properties
+export(int) var nodes_amt setget , get_nodes_amt
 export(bool) var has_nodes setget , get_has_nodes
 export(Array, String) var names setget , get_names
 
 # fields
 const _TYPE = "NodeItem"
 const _RES_PATH = "res://data/node/nodes_storage.tres"
+
 var _storage = preload(_RES_PATH)
 var _arr = PoolArrayUtility
 var _node = NodeUtility
@@ -25,6 +27,12 @@ func enable():
 	if not _data.state.enabled:
 		_on_init(true)
 	return _data.state.enabled
+
+
+func disable():
+	if _data.state.enabled && empty() && .on_disable(_RES_PATH, _storage, ResourceSaver.FLAG_COMPRESS):
+		_data.state.enabled = not _data.state.enabled
+	return not _data.state.enabled
 
 
 func has(_node_ref = null, _node_name = ""):
@@ -129,14 +137,8 @@ func empty():
 	return on_empty && final_amt == 0 && final_amt == (init_amt - rem_amt) if en_has_nodes else on_empty
 
 
-func disable():
-	if _data.state.enabled && empty() && .on_disable(_RES_PATH, _storage, ResourceSaver.FLAG_COMPRESS):
-		_data.state.enabled = not _data.state.enabled
-	return not _data.state.enabled
-
-
 # private helper methods
-func _on_init(_do_init = true, _scene_tree_ref=null):
+func _on_init(_do_init = true):
 	_data = {
 		"nodes": null,
 		"state":
@@ -176,9 +178,13 @@ func _names():
 
 
 # setters, getters functions
+func get_nodes_amt():
+	return _nodes_amt()
+
+
 func get_has_nodes():
-	return _has_nodes() if _data.state.enabled else false
+	return _has_nodes()
 
 
 func get_names():
-	return _names() if _data.state.enabled else []
+	return _names()

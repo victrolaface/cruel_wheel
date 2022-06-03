@@ -2,6 +2,8 @@ tool
 class_name Entity extends Node
 
 # fields
+enum _EVENTS { NONE = 0, EV_MGR_SUB = 1, REQ_ID = 2, REC_ID = 3, EV_MGR_UNSUB = 4 }
+
 const _ID = "id"
 const _ON_PRE = "_on_"
 const _REQ_PRE = "request_"
@@ -12,7 +14,6 @@ const _REQ_UNSUB = _REQ_PRE + "unsubscribe"
 const _ON_EV_MGR_PRE = _ON_PRE + "event_mgr_"
 const _REQ_ID = _REQ_PRE + _ID
 const _REC_ID = _REC_PRE + _ID
-enum _EVENTS { NONE = 0, EV_MGR_SUB = 1, REQ_ID = 2, REC_ID = 3, EV_MGR_UNSUB = 4 }
 
 var _data = {}
 

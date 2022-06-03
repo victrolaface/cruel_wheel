@@ -7,12 +7,14 @@ const _REQ_SUBS_EVENT = "request_subscribers"
 const _REQ_SUBS_FUNC = "_on_request_subscribers"
 const _REQ_UNSUB_EVENT = "request_unsubscribe"
 const _REQ_UNSUB_FUNC = "_on_request_unsubscribe"
+
 var _str = StringUtility
 var _obj = ObjectUtility
 var _type = TypeUtility
 var _res = ResourceUtility
 var _node = NodeUtility
 var _int = IntUtility
+
 var _data = {
 	"state":
 	{
