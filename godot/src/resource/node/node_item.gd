@@ -16,6 +16,7 @@ export(Resource) var encoded_object_as_id setget , get_encoded_object_as_id
 var _obj = ObjectUtility
 var _type = TypeUtility
 var _str = StringUtility
+var _node = NodeUtility
 var _data = {}
 
 
@@ -29,6 +30,16 @@ func _init(_ref = null):
 func enable(_ref = null):
 	_on_init(true, _ref)
 	return _data.state.enabled
+
+
+func rename(_ref = null):
+	var init_name = ""
+	var init_id = 0
+	if _data.state.enabled && _node.is_node(_ref):
+		init_name = _data.name
+		init_id = _data.instance_id
+		_on_init(true, _ref)
+	return not init_name == _data.name && init_id == _data.instance_id if _data.state.enabled else false
 
 
 func disable():

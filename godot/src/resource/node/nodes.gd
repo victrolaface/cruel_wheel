@@ -52,6 +52,27 @@ func has(_node_ref = null, _node_name = ""):
 	return n if _has_node(n) else false
 
 
+func has_instance_id(_instance_id = 0):
+	var has_id = false
+	if _data.state.enabled && _has_nodes() && _instance_id > 0:
+		for name in _names():
+			var n = _data.nodes[name]
+			has_id = n.has_instance_id && n.instance_id == _instance_id
+			if has_id:
+				break
+	return has_id
+
+
+func node(_id = 0):
+	var n = null
+	if has_instance_id(_id):
+		for name in _names():
+			n = _data.nodes[name]
+			if n.has_instance_id && n.instance_id == _id:
+				break
+	return n
+
+
 func add(_node_ref = null):
 	var init_amt = 0
 	var added_amt = 0
@@ -188,3 +209,34 @@ func get_has_nodes():
 
 func get_names():
 	return _names()
+
+#func reset_key(_name = "", _id = 0):
+#	var reset = false
+#	var has_name_param = _str.is_valid(_name)
+#	var has_id_param = _id > 0
+#	if not _node_ref == null:
+#		pass
+#var by_name = _str.is_valid(_name)
+#var by_id = _id > 0
+#var n = null#NodeItem
+#if by_name && _has_node(_name):
+#	n = _data.nodes[_name]
+#	if n.enabled && n.has_node_ref && n.has_name:
+#if _id > 0 &&
+#func rename_node_with_instance_id(_node_ref=null):
+#	var renamed = false
+#	var instance_id = 0
+#	var to_rename = ""
+#	var n = NodeItem
+#	if _data.state.enabled && _has_nodes():
+#		if _node.is_node(_node_ref):
+#			instance_id =_node_ref.get_instance_id()
+#		if instance_id > 0:
+#			for name in _names():
+#				n = _data.nodes[name]
+#				if n.has_instance_id && n.instance_id == instance_id:
+#					to_rename = name
+#					break
+#		if _str.is_valid(to_rename):
+#			if n.rename(_node_ref):
+#				#n.rename
