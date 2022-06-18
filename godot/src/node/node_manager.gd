@@ -60,31 +60,39 @@ func _physics_process(_delta):
 
 
 # signal methods
+func _on_scene_tree_node_signal(_signal = _SIGNAL.NONE, _node_ref = null):
+	var warn = true
+	var msg = ""
+	var has_node = _data.nodes.has(_node_ref)
+	match _signal:
+		_SIGNAL.SCENE_TREE_ADDED_NODE:
+			if not has_node:
+				warn = false if _data.nodes.add(_node_ref) else warn
+				msg = "unable to add node." if warn else msg
+		_SIGNAL.SCENE_TREE_REMOVED_NODE:
+			if has_node:
+				warn = false if _data.nodes.remove(_node_ref) else warn
+				msg = "unable to remove node" if warn else msg
+		_SIGNAL.SCENE_TREE_RENAMED_NODE:
+			if has_node:
+				warn = false if _data.nodes.rename(_node_ref) else warn
+			else:
+				warn = false if _data.nodes.add(_node_ref) else warn
+			msg = "unable to rename node." if warn else msg
+	if warn:
+		push_warning(msg)
+
+
 func _on_scene_tree_added_node(_node_ref = null):
-	pass
-
-
-#func _on_node_added(_node_ref = null):
-#	if not _node_ref == null && not _data.nodes.has(_node_ref):
-#		_data.nodes.add(_node_ref)
+	_on_scene_tree_node_signal(_SIGNAL.SCENE_TREE_ADDED_NODE, _node_ref)
 
 
 func _on_scene_tree_removed_node(_node_ref = null):
-	pass
-
-
-#func _on_node_removed(_node_ref = null):
-#	if not _node_ref == null && _data.nodes.has(_node_ref):
-#		_data.nodes.remove(_node_ref.name)
+	_on_scene_tree_node_signal(_SIGNAL.SCENE_TREE_REMOVED_NODE, _node_ref)
 
 
 func _on_scene_tree_renamed_node(_node_ref = null):
-	if _node.is_node(_node_ref):
-		var name = _node.name
-		var id = _node.get_instance_id()
-		if id > 0 && _str.is_valid(name) && _data.nodes.has_instance_id(id):
-			if not _data.nodes.rename(_node):
-				push_warning("unable to rename node.")
+	_on_scene_tree_node_signal(_SIGNAL.SCENE_TREE_RENAMED_NODE, _node_ref)
 
 
 func _on_current_scene_ready():

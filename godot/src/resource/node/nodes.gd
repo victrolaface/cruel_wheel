@@ -168,8 +168,8 @@ func rename(_node_ref = null):
 			if n.enabled && n.has_instance_id && n.instance_id == id:
 				name_from_id = name
 				break
-		if _str.is_valid(name_from_id):
-			renamed = remove(name_from_id) && add(_node_ref)
+		if _str.is_valid(name_from_id) && remove(name_from_id):
+			renamed = add(_node_ref)
 	return renamed
 
 
