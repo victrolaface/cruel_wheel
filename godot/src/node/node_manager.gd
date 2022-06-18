@@ -18,6 +18,7 @@ var _int = IntUtility
 var _obj = ObjectUtility
 var _type = TypeUtility
 var _str = StringUtility
+var _node = NodeUtility
 
 var _data = {
 	"state":
@@ -59,23 +60,48 @@ func _physics_process(_delta):
 
 
 # signal methods
-func _on_node_added(_node_ref = null):
-	if not _node_ref == null && not _data.nodes.has(_node_ref):
-		_data.nodes.add(_node_ref)
+func _on_scene_tree_added_node(_node_ref = null):
+	pass
 
 
-func _on_node_removed(_node_ref = null):
-	if not _node_ref == null && _data.nodes.has(_node_ref):
-		_data.nodes.remove(_node_ref.name)
+#func _on_node_added(_node_ref = null):
+#	if not _node_ref == null && not _data.nodes.has(_node_ref):
+#		_data.nodes.add(_node_ref)
 
 
-func _on_node_renamed(_node_ref = null):
-	if not _node_ref == null:
-		var name = _node_ref.name
-		var id = _node_ref.get_instance_id()
+func _on_scene_tree_removed_node(_node_ref = null):
+	pass
+
+
+#func _on_node_removed(_node_ref = null):
+#	if not _node_ref == null && _data.nodes.has(_node_ref):
+#		_data.nodes.remove(_node_ref.name)
+
+
+func _on_scene_tree_renamed_node(_node_ref = null):
+	if _node.is_node(_node_ref):
+		var name = _node.name
+		var id = _node.get_instance_id()
 		if id > 0 && _str.is_valid(name) && _data.nodes.has_instance_id(id):
-			if not _data.nodes.reset_key(_node_ref, name, id):
-				push_warning("cannot reset key of node with id " + String(id) + " to name of value " + name)
+			if not _data.nodes.rename(_node):
+				push_warning("unable to rename node.")
+
+
+func _on_current_scene_ready():
+	# current scene = _data.current_scene_ref
+	pass
+
+
+func _on_current_scene_entered():
+	pass
+
+
+func _on_current_scene_renamed():
+	pass
+
+
+func _on_current_scene_exiting():
+	pass
 
 
 # private helper methods
