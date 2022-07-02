@@ -12,6 +12,12 @@ enum _SIGNAL {
 	CURRENT_SCENE_EXITING = 7
 }
 
+enum _EVENTS {
+	NONE = 0,
+	EV_MGR_SUB = 1,
+	EV_MGR_UNSUB = 2
+}
+
 enum _REF_TYPE { NONE = 0, SCENE_TREE = 1, CURRENT_SCENE = 2 }
 
 var _int = IntUtility
@@ -48,6 +54,8 @@ func _notification(_n):
 		NOTIFICATION_POSTINITIALIZE:
 			_enable()
 		NOTIFICATION_PREDELETE:
+			_disable()
+		NOTIFICATION_WM_QUIT_REQUEST:
 			_disable()
 
 
@@ -138,6 +146,7 @@ func _on_init(_do_init = true):
 		_data.scene_tree_ref = null
 		_data.root_ref = null
 		_data.current_scene_ref = null
+		_data.event_manager_ref = null
 		_data.state.has_scene_tree_ref = false
 		_data.state.has_root_ref = false
 		_data.state.has_current_scene_ref = false
@@ -149,10 +158,14 @@ func _on_init(_do_init = true):
 		_data.state.current_scene_entered_connected = false
 		_data.state.current_scene_renamed_connected = false
 		_data.state.current_scene_exiting_connected = false
+		_data.state.has_event_manager_ref = false
+		_data.state.ev_mgr_req_sub_connected=false
+		_data.state.ev_mgr_req_unsub_connected=false
 		if on_init:
 			var init_nodes_amt = 0
 			var added_nodes_amt = 0
 			var all_signals_connected = false
+			var all_events_subscribed = false
 			var scene_tree = get_tree()
 			_data.state.has_scene_tree_ref = _valid_has(scene_tree, "SceneTree")
 			_data.scene_tree_ref = _valid_val(scene_tree, _data.state.has_scene_tree_ref, _data.scene_tree_ref)
@@ -168,87 +181,63 @@ func _on_init(_do_init = true):
 			)
 			_data.nodes = Nodes.new()
 			_data.state.has_nodes_storage = _data.nodes.enabled
-			if _data.state.has_current_scene_ref:
-				if _data.state.has_nodes_storage:
-					init_nodes_amt = _data.current_scene_ref.get_child_count()
-					if init_nodes_amt > 0:
-						var nodes = _data.current_scene_ref.get_children()
-						if nodes.size() > 0:
-							for n in nodes:
-								if _data.nodes.add(n):
-									added_nodes_amt = _int.incr(added_nodes_amt)
-						_data.state.has_nodes_storage = (
-							_data.state.has_nodes_storage
-							&& _data.nodes.has_nodes
-							&& _data.nodes.nodes_amt == init_nodes_amt
-							&& _data.nodes.nodes_amt == added_nodes_amt
-							&& init_nodes_amt == added_nodes_amt
-						)
-				all_signals_connected = _on_connect_signals(true)
+			if _data.state.has_current_scene_ref && _data.state.has_nodes_storage:
+				init_nodes_amt = _data.current_scene_ref.get_child_count()
+				if init_nodes_amt > 0:
+					var nodes = _data.current_scene_ref.get_children()
+					if nodes.size() > 0:
+						for n in nodes:
+							if _data.nodes.add(n):
+								added_nodes_amt = _int.incr(added_nodes_amt)
+					_data.state.has_nodes_storage = (
+						_data.state.has_nodes_storage
+						&& _data.nodes.has_nodes
+						&& _data.nodes.nodes_amt == init_nodes_amt
+						&& _data.nodes.nodes_amt == added_nodes_amt
+						&& init_nodes_amt == added_nodes_amt
+					)
+			all_signals_connected = _connect_signals(true)
+			all_events_subscribed = _subscribe_events(true)
 			_data.state.enabled = (
 				_data.state.has_root_ref
 				&& _data.state.has_current_scene_ref
 				&& _data.state.has_nodes_storage
 				&& all_signals_connected
+				&& all_events_subscribed
 			)
 		elif on_deinit && _data.state.enabled:
-			if _data.nodes.disable() && _on_connect_signals(false):
+			if _data.nodes.disable() && _connect_signals(false) && _subscribe_events(false):
 				_data.state.enabled = not _data.state.enabled
 
-
-func _on_connect(_connect = true, _ref_type = _REF_TYPE.NONE, _signal_name = "", _signal_func = ""):
-	var param = Node
-	var ref_valid = not _ref_type == _REF_TYPE.NONE
-	var signal_connected = false
-	var signal_disconnected = false
-	if _str.is_valid(_signal_name) && _str.is_valid(_signal_func) && ref_valid:
-		match _ref_type:
-			_REF_TYPE.SCENE_TREE:
-				signal_connected = is_connected(_signal_name, _data.scene_tree_ref, _signal_func)
-				if _connect && not signal_connected:
-					signal_connected = connect(_signal_name, _data.scene_tree_ref, _signal_func, [param], CONNECT_DEFERRED)
-				elif not _connect && signal_connected:
-					disconnect(_signal_name, _data.scene_tree_ref, _signal_func)
-					signal_connected = not signal_connected
-			_REF_TYPE.CURRENT_SCENE:
-				signal_connected = is_connected(_signal_name, _data.current_scene_ref, _signal_func)
-				if _connect && not signal_connected:
-					signal_connected = connect(_signal_name, _data.current_scene_ref, _signal_func)
-				elif not _connect && signal_connected:
-					disconnect(_signal_name, _data.current_scene_ref, _signal_func)
-					signal_disconnected = not signal_disconnected
-	return signal_connected if _connect else signal_disconnected
-
-
-func _on_connect_signals(_connect = true):
+func _connect_signals(_connect = true):
 	for s in _SIGNAL:
 		match s:
 			_SIGNAL.SCENE_TREE_ADDED_NODE:
-				_data.state.scene_tree_added_node_connected = _on_connect(
+				_data.state.scene_tree_added_node_connected = _connect_signal(
 					_connect, _REF_TYPE.SCENE_TREE, "node_added", "_on_scene_tree_added_node"
 				)
 			_SIGNAL.SCENE_TREE_REMOVED_NODE:
-				_data.state.scene_tree_removed_node_connected = _on_connect(
+				_data.state.scene_tree_removed_node_connected = _connect_signal(
 					_connect, _REF_TYPE.SCENE_TREE, "node_removed", "_on_scene_tree_removed_node"
 				)
 			_SIGNAL.SCENE_TREE_RENAMED_NODE:
-				_data.state.scene_tree_renamed_node_connected = _on_connect(
+				_data.state.scene_tree_renamed_node_connected = _connect_signal(
 					_connect, _REF_TYPE.SCENE_TREE, "node_renamed", "_on_scene_tree_renamed_node"
 				)
 			_SIGNAL.CURRENT_SCENE_READY:
-				_data.state.current_scene_ready_connected = _on_connect(
+				_data.state.current_scene_ready_connected = _connect_signal(
 					_connect, _REF_TYPE.CURRENT_SCENE, "ready", "_on_current_scene_ready"
 				)
 			_SIGNAL.CURRENT_SCENE_ENTERED:
-				_data.state.current_scene_entered_connected = _on_connect(
+				_data.state.current_scene_entered_connected = _connect_signal(
 					_connect, _REF_TYPE.CURRENT_SCENE, "tree_entered", "_on_current_scene_entered"
 				)
 			_SIGNAL.CURRENT_SCENE_RENAMED:
-				_data.state.current_scene_renamed_connected = _on_connect(
+				_data.state.current_scene_renamed_connected = _connect_signal(
 					_connect, _REF_TYPE.CURRENT_SCENE, "renamed", "_on_current_scene_renamed"
 				)
 			_SIGNAL.CURRENT_SCENE_EXITING:
-				_data.state.current_scene_exiting_connected = _on_connect(
+				_data.state.current_scene_exiting_connected = _connect_signal(
 					_connect, _REF_TYPE.CURRENT_SCENE, "tree_exiting", "_on_current_scene_exiting"
 				)
 			_:
@@ -272,3 +261,32 @@ func _on_connect_signals(_connect = true):
 		&& not _data.state.current_scene_exiting_connected
 	)
 	return all_signals_connected if _connect else all_signals_disconnected
+
+func _connect_signal(_connect = true, _ref_type = _REF_TYPE.NONE, _signal_name = "", _signal_func = ""):
+	var param = Node
+	var ref_valid = not _ref_type == _REF_TYPE.NONE
+	var signal_connected = false
+	var signal_disconnected = false
+	if _str.is_valid(_signal_name) && _str.is_valid(_signal_func) && ref_valid:
+		match _ref_type:
+			_REF_TYPE.SCENE_TREE:
+				signal_connected = is_connected(_signal_name, _data.scene_tree_ref, _signal_func)
+				if _connect && not signal_connected:
+					signal_connected = connect(_signal_name, _data.scene_tree_ref, _signal_func, [param], CONNECT_DEFERRED)
+				elif not _connect && signal_connected:
+					disconnect(_signal_name, _data.scene_tree_ref, _signal_func)
+					signal_connected = not signal_connected
+			_REF_TYPE.CURRENT_SCENE:
+				signal_connected = is_connected(_signal_name, _data.current_scene_ref, _signal_func)
+				if _connect && not signal_connected:
+					signal_connected = connect(_signal_name, _data.current_scene_ref, _signal_func)
+				elif not _connect && signal_connected:
+					disconnect(_signal_name, _data.current_scene_ref, _signal_func)
+					signal_disconnected = not signal_disconnected
+	return signal_connected if _connect else signal_disconnected
+
+func _subscribe_events(_subscribe=true):
+	pass
+
+func _subscribe_event():
+	pass
